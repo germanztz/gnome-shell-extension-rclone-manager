@@ -2,7 +2,7 @@
 RClone Manager
 ============================
 
-RClone Manager extension for Gnome-Shell - Adds a rclone indicator to the top panel in roder to manage rclone congifurations.
+RClone Manager extension for Gnome-Shell - Adds a rclone indicator to the top panel in roder to manage rclone configurations.
 
 Extension page on e.g.o:
 https://extensions.gnome.org/extension/xxx
