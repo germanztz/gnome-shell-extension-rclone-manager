@@ -16,7 +16,7 @@ const PopupMenu = imports.ui.popupMenu;
 const CheckBox  = imports.ui.checkBox.CheckBox;
 
 const Gettext = imports.gettext;
-const _ = Gettext.domain('clipboard-indicator').gettext;
+const _ = Gettext.domain('rclone-manager').gettext;
 
 const Clipboard = St.Clipboard.get_default();
 const CLIPBOARD_TYPE = St.ClipboardType.CLIPBOARD;
@@ -51,8 +51,8 @@ let TOPBAR_DISPLAY_MODE  = 1; //0 - only icon, 1 - only clipbord content, 2 - bo
 let DISABLE_DOWN_ARROW   = false;
 let STRIP_TEXT           = false;
 
-const ClipboardIndicator = Lang.Class({
-    Name: 'ClipboardIndicator',
+const RcloneManeger = Lang.Class({
+    Name: 'RcloneManeger',
     Extends: PanelMenu.Button,
 
     _settingsChangedId: null,
@@ -76,13 +76,13 @@ const ClipboardIndicator = Lang.Class({
     },
 
     _init: function() {
-        this.parent(0.0, "ClipboardIndicator");
+        this.parent(0.0, "RcloneManeger");
         this._shortcutsBindingIds = [];
         this.clipItemsRadioGroup = [];
 
-        let hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box clipboard-indicator-hbox' });
+        let hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box rclone-manager-hbox' });
         this.icon = new St.Icon({ icon_name: INDICATOR_ICON,
-            style_class: 'system-status-icon clipboard-indicator-icon' });
+            style_class: 'system-status-icon rclone-manager-icon' });
         hbox.add_child(this.icon);
         this._buttonText = new St.Label({
             text: _('Text will be here'),
@@ -593,7 +593,7 @@ const ClipboardIndicator = Lang.Class({
 
     _initNotifSource: function () {
         if (!this._notifSource) {
-            this._notifSource = new MessageTray.Source('ClipboardIndicator',
+            this._notifSource = new MessageTray.Source('RcloneManeger',
                                     INDICATOR_ICON);
             this._notifSource.connect('destroy', Lang.bind(this, function() {
                 this._notifSource = null;
@@ -890,15 +890,15 @@ const ClipboardIndicator = Lang.Class({
 
 function init () {
     let localeDir = Me.dir.get_child('locale');
-    Gettext.bindtextdomain('clipboard-indicator', localeDir.get_path());
+    Gettext.bindtextdomain('rclone-manager', localeDir.get_path());
 }
 
-let clipboardIndicator;
+let RcloneManeger;
 function enable () {
-    clipboardIndicator = new ClipboardIndicator();
-    Main.panel.addToStatusArea('clipboardIndicator', clipboardIndicator, 1);
+    RcloneManeger = new RcloneManeger();
+    Main.panel.addToStatusArea('RcloneManeger', RcloneManeger, 1);
 }
 
 function disable () {
-    clipboardIndicator.destroy();
+    RcloneManeger.destroy();
 }

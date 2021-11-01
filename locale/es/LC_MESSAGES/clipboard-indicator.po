@@ -1,11 +1,11 @@
-# Spanish translation for gnome-shell-extension-clipboard-indicator.
+# Spanish translation for gnome-shell-extension-rclone-manager.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the gnome-shell-extension-clipboard-indicator package.
+# This file is distributed under the same license as the gnome-shell-extension-rclone-manager package.
 # Javier Junquera <javier.junquera.sanchez@gmail.com>, 2016.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gnome-shell-extension-clipboard-indicator\n"
+"Project-Id-Version: gnome-shell-extension-rclone-manager\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-04-15 13:20+0300\n"
 "PO-Revision-Date: 2018-03-10 09:43-0600\n"

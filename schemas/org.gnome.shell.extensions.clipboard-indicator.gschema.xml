@@ -1,6 +1,6 @@
 <schemalist gettext-domain="gnome-shell-extensions">
-  <schema id="org.gnome.shell.extensions.clipboard-indicator"
-      path="/org/gnome/shell/extensions/clipboard-indicator/">
+  <schema id="org.gnome.shell.extensions.rclone-manager"
+      path="/org/gnome/shell/extensions/rclone-manager/">
 
     <key name="enable-deletion" type="b">
       <default>true</default>

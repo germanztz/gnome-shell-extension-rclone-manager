@@ -7,7 +7,7 @@ const Utils = Extension.imports.utils;
 const prettyPrint = Utils.prettyPrint;
 
 const Gettext = imports.gettext;
-const _ = Gettext.domain('clipboard-indicator').gettext;
+const _ = Gettext.domain('rclone-manager').gettext;
 
 var Fields = {
     INTERVAL               : 'refresh-interval',
@@ -26,7 +26,7 @@ var Fields = {
     STRIP_TEXT             : 'strip-text'
 };
 
-const SCHEMA_NAME = 'org.gnome.shell.extensions.clipboard-indicator';
+const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
 
 const getSchema = function () {
     let schemaDir = Extension.dir.get_child('schemas').get_path();
@@ -42,11 +42,11 @@ var SettingsSchema = getSchema();
 function init() {
     let localeDir = Extension.dir.get_child('locale');
     if (localeDir.query_exists(null))
-        Gettext.bindtextdomain('clipboard-indicator', localeDir.get_path());
+        Gettext.bindtextdomain('rclone-manager', localeDir.get_path());
 }
 
 const App = new Lang.Class({
-    Name: 'ClipboardIndicator.App',
+    Name: 'RcloneManeger.App',
     _init: function() {
         this.main = new Gtk.Grid({
             margin_top: 10,
