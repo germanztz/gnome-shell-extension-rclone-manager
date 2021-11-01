@@ -51,8 +51,8 @@ let TOPBAR_DISPLAY_MODE  = 1; //0 - only icon, 1 - only clipbord content, 2 - bo
 let DISABLE_DOWN_ARROW   = false;
 let STRIP_TEXT           = false;
 
-const RcloneManeger = Lang.Class({
-    Name: 'RcloneManeger',
+const RcloneManager = Lang.Class({
+    Name: 'RcloneManager',
     Extends: PanelMenu.Button,
 
     _settingsChangedId: null,
@@ -76,7 +76,7 @@ const RcloneManeger = Lang.Class({
     },
 
     _init: function() {
-        this.parent(0.0, "RcloneManeger");
+        this.parent(0.0, "RcloneManager");
         this._shortcutsBindingIds = [];
         this.clipItemsRadioGroup = [];
 
@@ -593,7 +593,7 @@ const RcloneManeger = Lang.Class({
 
     _initNotifSource: function () {
         if (!this._notifSource) {
-            this._notifSource = new MessageTray.Source('RcloneManeger',
+            this._notifSource = new MessageTray.Source('RcloneManager',
                                     INDICATOR_ICON);
             this._notifSource.connect('destroy', Lang.bind(this, function() {
                 this._notifSource = null;
@@ -893,12 +893,12 @@ function init () {
     Gettext.bindtextdomain('rclone-manager', localeDir.get_path());
 }
 
-let RcloneManeger;
+let rcloneManager;
 function enable () {
-    RcloneManeger = new RcloneManeger();
-    Main.panel.addToStatusArea('RcloneManeger', RcloneManeger, 1);
+    rcloneManager = new RcloneManager();
+    Main.panel.addToStatusArea('rcloneManager', rcloneManager, 1);
 }
 
 function disable () {
-    RcloneManeger.destroy();
+    rcloneManager.destroy();
 }
