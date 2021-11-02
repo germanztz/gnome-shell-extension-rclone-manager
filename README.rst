@@ -7,6 +7,10 @@ RClone Manager extension for Gnome-Shell - Adds a rclone indicator to the top pa
 Extension page on e.g.o:
 https://extensions.gnome.org/extension/xxx
 
+Debugging
+
+make install && make run 2>&1 | grep rclone
+
 Installation
 ----------------
 
@@ -19,4 +23,10 @@ order to enable it, you need to use gnome-tweak-tool - find the extension,
 titled 'RClone Manager', in the 'Extensions' screen and turn it 'On'.
 You may need to restart the shell (Alt+F2 and insert 'r' in the prompt) for the
 extension to be listed there.
+
+Doc
+
+https://gjs.guide/
+
+https://gjs-docs.gnome.org/shell01~0.1_api/
 

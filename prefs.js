@@ -10,6 +10,7 @@ const Gettext = imports.gettext;
 const _ = Gettext.domain('rclone-manager').gettext;
 
 var Fields = {
+    RCONFIG_FILE_PATH       : 'rconfig-file-path',
     INTERVAL               : 'refresh-interval',
     HISTORY_SIZE           : 'history-size',
     PREVIEW_SIZE           : 'preview-size',

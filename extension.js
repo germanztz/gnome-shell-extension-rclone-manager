@@ -25,7 +25,7 @@ const SETTING_KEY_CLEAR_HISTORY = "clear-history";
 const SETTING_KEY_PREV_ENTRY = "prev-entry";
 const SETTING_KEY_NEXT_ENTRY = "next-entry";
 const SETTING_KEY_TOGGLE_MENU = "toggle-menu";
-const INDICATOR_ICON = 'edit-paste-symbolic';
+const INDICATOR_ICON = 'folder-remote-symbolic';
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -36,6 +36,7 @@ const prettyPrint = Utils.prettyPrint;
 const writeRegistry = Utils.writeRegistry;
 const readRegistry = Utils.readRegistry;
 
+let RCONFIG_FILE_PATH           = "/home/daimler/.config/rclone/rclone.conf";
 let TIMEOUT_MS           = 1000;
 let MAX_REGISTRY_LENGTH  = 15;
 let MAX_ENTRY_LENGTH     = 50;
@@ -60,7 +61,6 @@ const RcloneManager = Lang.Class({
     _selectionOwnerChangedId: null,
     _historyLabelTimeoutId: null,
     _historyLabel: null,
-    _buttonText: null,
     _disableDownArrow: null,
 
     destroy: function () {
@@ -84,162 +84,95 @@ const RcloneManager = Lang.Class({
         this.icon = new St.Icon({ icon_name: INDICATOR_ICON,
             style_class: 'system-status-icon rclone-manager-icon' });
         hbox.add_child(this.icon);
-        this._buttonText = new St.Label({
-            text: _('Text will be here'),
-            y_align: Clutter.ActorAlign.CENTER
-        });
-        hbox.add_child(this._buttonText);
-        this._downArrow = PopupMenu.arrowIcon(St.Side.BOTTOM);
-        hbox.add(this._downArrow);
         this.add_child(hbox);
 
-        this._createHistoryLabel();
-        this._loadSettings();
+        // this._createHistoryLabel();
+        // this._loadSettings();
         this._buildMenu();
 
-        this._updateTopbarLayout();
+        // this._updateTopbarLayout();
 
-        this._setupListener();
-    },
-    _updateButtonText: function(content){
-        if (!content || PRIVATEMODE){
-            this._buttonText.set_text("...")
-        } else {
-            this._buttonText.set_text(this._truncate(content, MAX_TOPBAR_LENGTH));
-        }
+        // this._setupListener();
     },
 
     _buildMenu: function () {
         let that = this;
-        this._getCache(function (clipHistory) {
-            let lastIdx = clipHistory.length - 1;
-            let clipItemsArr = that.clipItemsRadioGroup;
 
-            /* This create the search entry, which is add to a menuItem.
-            The searchEntry is connected to the function for research.
-            The menu itself is connected to some shitty hack in order to
-            grab the focus of the keyboard. */
-            that._entryItem = new PopupMenu.PopupBaseMenuItem({
-                reactive: false,
-                can_focus: false
-            });
-            that.searchEntry = new St.Entry({
-                name: 'searchEntry',
-                style_class: 'search-entry',
-                can_focus: true,
-                hint_text: _('Type here to search...'),
-                track_hover: true,
-                x_expand: true,
-                y_expand: true
-            });
+        let rconfig = Utils.parseConfigFile(RCONFIG_FILE_PATH);
+        for (let section in rconfig){
+            that.menu.addMenuItem(that._getMenuItem(section,rconfig[section]));
+        }
+        // Add separator
+        that.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-            that.searchEntry.get_clutter_text().connect(
-                'text-changed',
-                Lang.bind(that, that._onSearchTextChanged)
-            );
 
-            that._entryItem.add(that.searchEntry);
+        // Add 'Add config' button which adds new config to rclone
+        let addMenuItem = new PopupMenu.PopupMenuItem(_('Add config'));
+        that.menu.addMenuItem(addMenuItem);
+        addMenuItem.connect('activate', Lang.bind(that, that._addConfig));
 
-            that.menu.addMenuItem(that._entryItem);
+        // Add 'Restore config' button which restores rclonefile from a mount
+        let retoreMenuItem = new PopupMenu.PopupMenuItem(_('Restore config'));
+        that.menu.addMenuItem(retoreMenuItem);
+        retoreMenuItem.connect('activate', Lang.bind(that, that._restoreConfig));
 
-            that.menu.connect('open-state-changed', Lang.bind(this, function(self, open){
-                let a = Mainloop.timeout_add(50, Lang.bind(this, function() {
-                    if (open) {
-                        that.searchEntry.set_text('');
-                        global.stage.set_key_focus(that.searchEntry);
-                    }
-                    Mainloop.source_remove(a);
-                }));
-            }));
+        // Add 'Edit config' button which edits an existing rclone config
+        let editMenuItem = new PopupMenu.PopupMenuItem(_('Edit config'));
+        that.menu.addMenuItem(editMenuItem);
+        editMenuItem.connect('activate', Lang.bind(that, that._editConfig));
 
-            // Create menu sections for items
-            // Favorites
-            that.favoritesSection = new PopupMenu.PopupMenuSection();
+        // Add 'Settings' menu item to open settings
+        let settingsMenuItem = new PopupMenu.PopupMenuItem(_('Settings'));
+        that.menu.addMenuItem(settingsMenuItem);
+        settingsMenuItem.connect('activate', Lang.bind(that, that._openSettings));
 
-            that.scrollViewFavoritesMenuSection = new PopupMenu.PopupMenuSection();
-            let favoritesScrollView = new St.ScrollView({
-                style_class: 'ci-history-menu-section',
-                overlay_scrollbars: true
-            });
-            favoritesScrollView.add_actor(that.favoritesSection.actor);
+    },
+    
+    _getMenuItem(name, rconfig){
 
-            that.scrollViewFavoritesMenuSection.actor.add_actor(favoritesScrollView);
-            that.menu.addMenuItem(that.scrollViewFavoritesMenuSection);
-            that.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        let menuItem = new PopupMenu.PopupMenuItem(name);
+        menuItem.menu = this.menu;
+        menuItem.rconfig = rconfig;
+        menuItem.buttonPressId = menuItem.connect('activate',
+            Lang.bind(menuItem, this._openRemote));
 
-            // History
-            that.historySection = new PopupMenu.PopupMenuSection();
-
-            that.scrollViewMenuSection = new PopupMenu.PopupMenuSection();
-            let historyScrollView = new St.ScrollView({
-                style_class: 'ci-history-menu-section',
-                overlay_scrollbars: true
-            });
-            historyScrollView.add_actor(that.historySection.actor);
-
-            that.scrollViewMenuSection.actor.add_actor(historyScrollView);
-
-            that.menu.addMenuItem(that.scrollViewMenuSection);
-
-            // Add cached items
-            clipHistory.forEach(function (buffer) {
-                if (typeof buffer === 'string') {
-                    // Old cache format
-                    that._addEntry(buffer);
-                } else {
-                    that._addEntry(buffer["contents"], buffer["favorite"]);
-                }
-            });
-
-            // Add separator
-            that.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-            // Private mode switch
-            that.privateModeMenuItem = new PopupMenu.PopupSwitchMenuItem(
-                _("Private mode"), PRIVATEMODE, { reactive: true });
-            that.privateModeMenuItem.connect('toggled',
-                Lang.bind(that, that._onPrivateModeSwitch));
-            that.menu.addMenuItem(that.privateModeMenuItem);
-            that._onPrivateModeSwitch();
-
-            // Add 'Clear' button which removes all items from cache
-            let clearMenuItem = new PopupMenu.PopupMenuItem(_('Clear history'));
-            that.menu.addMenuItem(clearMenuItem);
-            clearMenuItem.connect('activate', Lang.bind(that, that._removeAll));
-
-            // Add 'Settings' menu item to open settings
-            let settingsMenuItem = new PopupMenu.PopupMenuItem(_('Settings'));
-            that.menu.addMenuItem(settingsMenuItem);
-            settingsMenuItem.connect('activate', Lang.bind(that, that._openSettings));
-
-            if (lastIdx >= 0) {
-                that._selectMenuItem(clipItemsArr[lastIdx]);
-            }
+        // Delete button
+        let icon = new St.Icon({
+            icon_name: 'edit-delete-symbolic',
+            style_class: 'system-status-icon'
         });
+
+        let icoBtn = new St.Button({
+            style_class: 'ci-action-btn',
+            can_focus: true,
+            child: icon,
+            x_align: Clutter.ActorAlign.END,
+            x_expand: false,
+            y_expand: true
+        });
+
+        menuItem.actor.add_child(icoBtn);
+        menuItem.icoBtn = icoBtn;
+        menuItem.deletePressId = icoBtn.connect('button-press-event',
+            Lang.bind(this, function () {
+                this._removeEntry(menuItem, 'delete');
+            })
+        );
+
+        return menuItem
     },
 
-    /* When text change, this function will check, for each item of the
-    historySection and favoritesSestion, if it should be visible or not (based on words contained
-    in the clipContents attribute of the item). It doesn't destroy or create
-    items. It the entry is empty, the section is restored with all items
-    set as visible. */
-    _onSearchTextChanged: function() {
-        let searchedText = this.searchEntry.get_text().toLowerCase();
-
-        if(searchedText === '') {
-            this._getAllIMenuItems().forEach(function(mItem){
-                mItem.actor.visible = true;
-            });
-        }
-        else {
-            this._getAllIMenuItems().forEach(function(mItem){
-                let text = mItem.clipContents.toLowerCase();
-                let isMatching = text.indexOf(searchedText) >= 0;
-                mItem.actor.visible = isMatching
-            });
-        }
+    _openRemote: function (autoSet) {
+        var that = this;
+        print(autoSet);
+        print(that.rconfig.type);
     },
 
+    _restoreConfig: function() { },
+    _editConfig: function() { },
+    _addConfig: function() { },
+
+ 
     _truncate: function(string, length) {
         let shortened = string.replace(/\s+/g, ' ');
 
@@ -323,9 +256,6 @@ const RcloneManager = Lang.Class({
         if (autoSelect === true)
             this._selectMenuItem(menuItem, autoSetClip);
 
-        if (TOPBAR_DISPLAY_MODE === 1 || TOPBAR_DISPLAY_MODE === 2) {
-            this._updateButtonText(buffer);
-        }
 
         this._updateCache();
     },
@@ -426,9 +356,6 @@ const RcloneManager = Lang.Class({
     _selectMenuItem: function (menuItem, autoSet) {
         let fn = Lang.bind(menuItem, this._onMenuItemSelected);
         fn(autoSet);
-        if(TOPBAR_DISPLAY_MODE === 1 || TOPBAR_DISPLAY_MODE === 2) {
-            this._updateButtonText(menuItem.label.text);
-        }
     },
 
     _onMenuItemSelectedAndMenuClose: function (autoSet) {
@@ -661,9 +588,6 @@ const RcloneManager = Lang.Class({
         // If we get out of private mode then we restore the clipboard to old state
         if (!PRIVATEMODE) {
             let selectList = this.clipItemsRadioGroup.filter((item) => !!item.currentlySelected);
-            Clipboard.get_text(CLIPBOARD_TYPE, function (clipBoard, text) {
-                            that._updateButtonText(text);
-                        });
             if (selectList.length) {
                 this._selectMenuItem(selectList[0]);
             } else {
@@ -673,7 +597,6 @@ const RcloneManager = Lang.Class({
 
             this.icon.remove_style_class_name('private-mode');
         } else {
-            this._buttonText.set_text('...');
             this.icon.add_style_class_name('private-mode');
         }
     },
@@ -690,19 +613,9 @@ const RcloneManager = Lang.Class({
     },
 
     _fetchSettings: function () {
-        TIMEOUT_MS           = this._settings.get_int(Prefs.Fields.INTERVAL);
-        MAX_REGISTRY_LENGTH  = this._settings.get_int(Prefs.Fields.HISTORY_SIZE);
-        MAX_ENTRY_LENGTH     = this._settings.get_int(Prefs.Fields.PREVIEW_SIZE);
-        CACHE_ONLY_FAVORITE  = this._settings.get_boolean(Prefs.Fields.CACHE_ONLY_FAVORITE);
-        DELETE_ENABLED       = this._settings.get_boolean(Prefs.Fields.DELETE);
-        MOVE_ITEM_FIRST      = this._settings.get_boolean(Prefs.Fields.MOVE_ITEM_FIRST);
-        NOTIFY_ON_COPY       = this._settings.get_boolean(Prefs.Fields.NOTIFY_ON_COPY);
-        CONFIRM_ON_CLEAR     = this._settings.get_boolean(Prefs.Fields.CONFIRM_ON_CLEAR);
-        ENABLE_KEYBINDING    = this._settings.get_boolean(Prefs.Fields.ENABLE_KEYBINDING);
-        MAX_TOPBAR_LENGTH    = this._settings.get_int(Prefs.Fields.TOPBAR_PREVIEW_SIZE);
-        TOPBAR_DISPLAY_MODE  = this._settings.get_int(Prefs.Fields.TOPBAR_DISPLAY_MODE_ID);
-        DISABLE_DOWN_ARROW   = this._settings.get_boolean(Prefs.Fields.DISABLE_DOWN_ARROW);
-        STRIP_TEXT           = this._settings.get_boolean(Prefs.Fields.STRIP_TEXT);
+        RCONFIG_FILE_PATH        = this._settings.get_text(Prefs.Fields.RCONFIG_FILE_PATH);
+        // TIMEOUT_MS           = this._settings.get_int(Prefs.Fields.INTERVAL);
+        // CACHE_ONLY_FAVORITE  = this._settings.get_boolean(Prefs.Fields.CACHE_ONLY_FAVORITE);
     },
 
     _onSettingsChange: function () {
@@ -722,9 +635,6 @@ const RcloneManager = Lang.Class({
         //update topbar
         this._updateTopbarLayout();
         if(TOPBAR_DISPLAY_MODE === 1 || TOPBAR_DISPLAY_MODE === 2) {
-            Clipboard.get_text(CLIPBOARD_TYPE, function (clipBoard, text) {
-                that._updateButtonText(text);
-            });
         }
 
         // Bind or unbind shortcuts
@@ -768,15 +678,12 @@ const RcloneManager = Lang.Class({
     _updateTopbarLayout: function(){
         if(TOPBAR_DISPLAY_MODE === 0){
             this.icon.visible = true;
-            this._buttonText.visible = false;
         }
         if(TOPBAR_DISPLAY_MODE === 1){
             this.icon.visible = false;
-            this._buttonText.visible = true;
         }
         if(TOPBAR_DISPLAY_MODE === 2){
             this.icon.visible = true;
-            this._buttonText.visible = true;
         }
         if(!DISABLE_DOWN_ARROW) {
             this._downArrow.visible = true;

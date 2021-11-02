@@ -22,3 +22,6 @@ install: all
 
 bundle: all
 	zip -r bundle.zip $(MODULES)
+
+run:
+	dbus-run-session -- gnome-shell --nested --wayland
