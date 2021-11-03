@@ -36,7 +36,8 @@ const prettyPrint = Utils.prettyPrint;
 const writeRegistry = Utils.writeRegistry;
 const readRegistry = Utils.readRegistry;
 
-let RCONFIG_FILE_PATH           = "/home/daimler/.config/rclone/rclone.conf";
+let RCONFIG_FILE_PATH    = "~/.config/rclone/rclone.conf";
+let IGNORE_PATTERNS      = '.remmina.,~lock,.tmp,.log';
 let TIMEOUT_MS           = 1000;
 let MAX_REGISTRY_LENGTH  = 15;
 let MAX_ENTRY_LENGTH     = 50;
@@ -62,20 +63,10 @@ const RcloneManager = Lang.Class({
     _historyLabelTimeoutId: null,
     _historyLabel: null,
     _disableDownArrow: null,
-
-    destroy: function () {
-        this._disconnectSettings();
-        this._unbindShortcuts();
-        this._clearClipboardTimeout();
-        this._disconnectSelectionListener();
-        this._clearLabelTimeout();
-        this._clearDelayedSelectionTimeout();
-
-        // Call parent
-        this.parent();
-    },
+    _rconfig: null,
 
     _init: function() {
+        print('rclone _init');
         this.parent(0.0, "RcloneManager");
         this._shortcutsBindingIds = [];
         this.clipItemsRadioGroup = [];
@@ -86,45 +77,64 @@ const RcloneManager = Lang.Class({
         hbox.add_child(this.icon);
         this.add_child(hbox);
 
-        // this._createHistoryLabel();
-        // this._loadSettings();
-        this._buildMenu();
-
-        // this._updateTopbarLayout();
-
-        // this._setupListener();
+        this._loadSettings();
     },
 
-    _buildMenu: function () {
-        let that = this;
+    _loadSettings: function () {
+        print('rclone _loadSettings');
+        this._settings = Prefs.SettingsSchema;
+        this._settingsChangedId = this._settings.connect('changed',
+            Lang.bind(this, this._onSettingsChange));
 
-        let rconfig = Utils.parseConfigFile(RCONFIG_FILE_PATH);
-        for (let section in rconfig){
-            that.menu.addMenuItem(that._getMenuItem(section,rconfig[section]));
+        this._onSettingsChange();
+    },
+
+    _onSettingsChange: function () {
+        print('rclone _onSettingsChange');
+        RCONFIG_FILE_PATH = this._settings.get_string(Prefs.Fields.RCONFIG_FILE_PATH);
+        IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.IGNORE_PATTERNS);
+
+        this._loadConfigs()
+        this._buildMenu()
+    },
+
+    _loadConfigs: function() {
+        print('rclone _loadConfigs');
+        this._rconfig = Utils.parseConfigFile(RCONFIG_FILE_PATH);
+    },
+    
+    _buildMenu: function () {
+        print('rclone _buildMenu');
+
+        //clean menu
+        this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
+
+        for (let section in this._rconfig){
+            this.menu.addMenuItem(this._getMenuItem(section, this._rconfig[section]));
         }
         // Add separator
-        that.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
 
         // Add 'Add config' button which adds new config to rclone
         let addMenuItem = new PopupMenu.PopupMenuItem(_('Add config'));
-        that.menu.addMenuItem(addMenuItem);
-        addMenuItem.connect('activate', Lang.bind(that, that._addConfig));
+        this.menu.addMenuItem(addMenuItem);
+        addMenuItem.connect('activate', Lang.bind(this, this._addConfig));
 
         // Add 'Restore config' button which restores rclonefile from a mount
         let retoreMenuItem = new PopupMenu.PopupMenuItem(_('Restore config'));
-        that.menu.addMenuItem(retoreMenuItem);
-        retoreMenuItem.connect('activate', Lang.bind(that, that._restoreConfig));
+        this.menu.addMenuItem(retoreMenuItem);
+        retoreMenuItem.connect('activate', Lang.bind(this, this._restoreConfig));
 
         // Add 'Edit config' button which edits an existing rclone config
         let editMenuItem = new PopupMenu.PopupMenuItem(_('Edit config'));
-        that.menu.addMenuItem(editMenuItem);
-        editMenuItem.connect('activate', Lang.bind(that, that._editConfig));
+        this.menu.addMenuItem(editMenuItem);
+        editMenuItem.connect('activate', Lang.bind(this, this._editConfig));
 
         // Add 'Settings' menu item to open settings
         let settingsMenuItem = new PopupMenu.PopupMenuItem(_('Settings'));
-        that.menu.addMenuItem(settingsMenuItem);
-        settingsMenuItem.connect('activate', Lang.bind(that, that._openSettings));
+        this.menu.addMenuItem(settingsMenuItem);
+        settingsMenuItem.connect('activate', Lang.bind(this, this._openSettings));
 
     },
     
@@ -293,7 +303,8 @@ const RcloneManager = Lang.Class({
             }
         });
         that._updateCache();
-        that._showNotification(_("Clipboard history cleared"));    },
+        that._showNotification(_("Clipboard history cleared"));    
+    },
 
     _removeAll: function () {
         var that = this;
@@ -601,96 +612,54 @@ const RcloneManager = Lang.Class({
         }
     },
 
-    _loadSettings: function () {
-        this._settings = Prefs.SettingsSchema;
-        this._settingsChangedId = this._settings.connect('changed',
-            Lang.bind(this, this._onSettingsChange));
 
-        this._fetchSettings();
+    // _bindShortcuts: function () {
+    //     this._unbindShortcuts();
+    //     this._bindShortcut(SETTING_KEY_CLEAR_HISTORY, this._removeAll);
+    //     this._bindShortcut(SETTING_KEY_PREV_ENTRY, this._previousEntry);
+    //     this._bindShortcut(SETTING_KEY_NEXT_ENTRY, this._nextEntry);
+    //     this._bindShortcut(SETTING_KEY_TOGGLE_MENU, this._toggleMenu);
+    // },
 
-        if (ENABLE_KEYBINDING)
-            this._bindShortcuts();
-    },
+    // _unbindShortcuts: function () {
+    //     this._shortcutsBindingIds.forEach(
+    //         (id) => Main.wm.removeKeybinding(id)
+    //     );
 
-    _fetchSettings: function () {
-        RCONFIG_FILE_PATH        = this._settings.get_text(Prefs.Fields.RCONFIG_FILE_PATH);
-        // TIMEOUT_MS           = this._settings.get_int(Prefs.Fields.INTERVAL);
-        // CACHE_ONLY_FAVORITE  = this._settings.get_boolean(Prefs.Fields.CACHE_ONLY_FAVORITE);
-    },
+    //     this._shortcutsBindingIds = [];
+    // },
 
-    _onSettingsChange: function () {
-        var that = this;
+    // _bindShortcut: function(name, cb) {
+    //     var ModeType = Shell.hasOwnProperty('ActionMode') ?
+    //         Shell.ActionMode : Shell.KeyBindingMode;
 
-        // Load the settings into variables
-        that._fetchSettings();
+    //     Main.wm.addKeybinding(
+    //         name,
+    //         this._settings,
+    //         Meta.KeyBindingFlags.NONE,
+    //         ModeType.ALL,
+    //         Lang.bind(this, cb)
+    //     );
 
-        // Remove old entries in case the registry size changed
-        that._removeOldestEntries();
+    //     this._shortcutsBindingIds.push(name);
+    // },
 
-        // Re-set menu-items lables in case preview size changed
-        this._getAllIMenuItems().forEach(function (mItem) {
-            that._setEntryLabel(mItem);
-        });
-
-        //update topbar
-        this._updateTopbarLayout();
-        if(TOPBAR_DISPLAY_MODE === 1 || TOPBAR_DISPLAY_MODE === 2) {
-        }
-
-        // Bind or unbind shortcuts
-        if (ENABLE_KEYBINDING)
-            that._bindShortcuts();
-        else
-            that._unbindShortcuts();
-    },
-
-    _bindShortcuts: function () {
-        this._unbindShortcuts();
-        this._bindShortcut(SETTING_KEY_CLEAR_HISTORY, this._removeAll);
-        this._bindShortcut(SETTING_KEY_PREV_ENTRY, this._previousEntry);
-        this._bindShortcut(SETTING_KEY_NEXT_ENTRY, this._nextEntry);
-        this._bindShortcut(SETTING_KEY_TOGGLE_MENU, this._toggleMenu);
-    },
-
-    _unbindShortcuts: function () {
-        this._shortcutsBindingIds.forEach(
-            (id) => Main.wm.removeKeybinding(id)
-        );
-
-        this._shortcutsBindingIds = [];
-    },
-
-    _bindShortcut: function(name, cb) {
-        var ModeType = Shell.hasOwnProperty('ActionMode') ?
-            Shell.ActionMode : Shell.KeyBindingMode;
-
-        Main.wm.addKeybinding(
-            name,
-            this._settings,
-            Meta.KeyBindingFlags.NONE,
-            ModeType.ALL,
-            Lang.bind(this, cb)
-        );
-
-        this._shortcutsBindingIds.push(name);
-    },
-
-    _updateTopbarLayout: function(){
-        if(TOPBAR_DISPLAY_MODE === 0){
-            this.icon.visible = true;
-        }
-        if(TOPBAR_DISPLAY_MODE === 1){
-            this.icon.visible = false;
-        }
-        if(TOPBAR_DISPLAY_MODE === 2){
-            this.icon.visible = true;
-        }
-        if(!DISABLE_DOWN_ARROW) {
-            this._downArrow.visible = true;
-        } else {
-            this._downArrow.visible = false;
-        }
-    },
+    // _updateTopbarLayout: function(){
+    //     if(TOPBAR_DISPLAY_MODE === 0){
+    //         this.icon.visible = true;
+    //     }
+    //     if(TOPBAR_DISPLAY_MODE === 1){
+    //         this.icon.visible = false;
+    //     }
+    //     if(TOPBAR_DISPLAY_MODE === 2){
+    //         this.icon.visible = true;
+    //     }
+    //     if(!DISABLE_DOWN_ARROW) {
+    //         this._downArrow.visible = true;
+    //     } else {
+    //         this._downArrow.visible = false;
+    //     }
+    // },
 
     _disconnectSettings: function () {
         if (!this._settingsChangedId)
@@ -791,7 +760,21 @@ const RcloneManager = Lang.Class({
 
     _toggleMenu: function(){
         this.menu.toggle();
-    }
+    },
+
+    destroy: function () {
+        this._disconnectSettings();
+        this._unbindShortcuts();
+        this._clearClipboardTimeout();
+        this._disconnectSelectionListener();
+        this._clearLabelTimeout();
+        this._clearDelayedSelectionTimeout();
+
+        // Call parent
+        this.parent();
+    },
+
+
 });
 
 

@@ -133,27 +133,35 @@ function readRegistry (callback) {
     }
 }
 
-function parseConfigFile(file) {
-    let fileContents = GLib.file_get_contents(file)[1];
-    // are we running gnome 3.30 or higher?
-    if (fileContents instanceof Uint8Array) {
-        fileContents = imports.byteArray.toString(fileContents).split("\n");
-    } 
-  
+function parseConfigFile(filepath) {
     let config = {};
-    let currentSection=''
-    fileContents.forEach(function(line){
-        if(line.trim().startsWith('#') || line.trim().length == 0) { }
-        else if (line.trim().startsWith('[')) {
-            currentSection = line.replace('[','').replace(']','');
-            config[currentSection] = {};
-        }
-        else if (p=line.search('=',0)) {
-            let key = line.substr(0,p).trim();
-            let value = line.substr(p+1,line.length-1).trim();
-            config[currentSection][key] = value;
-        }
-    });
-    // print(JSON.stringify(config));
+    try {
+        filepath = filepath.replace('~',GLib.get_home_dir());
+        print('rclone parseConfigFile '+filepath);
+        let fileContents = GLib.file_get_contents(filepath)[1];
+        // are we running gnome 3.30 or higher?
+        if (fileContents instanceof Uint8Array) {
+            fileContents = imports.byteArray.toString(fileContents).split("\n");
+        } 
+    
+        let currentSection=''
+        fileContents.forEach(function(line){
+            if(line.trim().startsWith('#') || line.trim().length == 0) { }
+            else if (line.trim().startsWith('[')) {
+                currentSection = line.replace('[','').replace(']','');
+                config[currentSection] = {};
+            }
+            else if (p=line.search('=',0)) {
+                let key = line.substr(0,p).trim();
+                let value = line.substr(p+1,line.length-1).trim();
+                config[currentSection][key] = value;
+            }
+        });
+        // print(JSON.stringify(config));
+    } catch (e) {
+        printerr(e.message);
+        logError(e, 'rclone-manager Error');
+    }
+    
     return config;
 }

@@ -2,7 +2,23 @@
   <schema id="org.gnome.shell.extensions.rclone-manager"
       path="/org/gnome/shell/extensions/rclone-manager/">
 
-    <key name="enable-deletion" type="b">
+    <key name="rconfig-file-path" type="s">
+      <default>'~/.config/rclone/rclone.conf'</default>
+        <summary>Rclone configuration file path</summary>
+        <description>
+            Rclone configuration file path
+        </description>
+    </key>
+
+    <key name="ignore-patterns" type="s">
+      <default>'.remmina.,~lock,.tmp,.log'</default>
+        <summary>Filenames to be ignored</summary>
+        <description>
+            Comma separed filenames to be ignored by inotify
+        </description>
+    </key>
+
+    <!-- <key name="enable-deletion" type="b">
       <default>true</default>
         <summary>Enable the deletion of clipboard items from your history</summary>
         <description>
@@ -137,6 +153,6 @@
       <description>
         Key to toggle the clipboard menu
       </description>
-    </key>
+    </key> -->
   </schema>
 </schemalist>
