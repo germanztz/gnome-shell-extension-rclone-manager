@@ -159,7 +159,7 @@ function parseConfigFile(filepath) {
         });
         // print(JSON.stringify(config));
     } catch (e) {
-        printerr(e.message);
+		printerr("rclone-manager Error: %s\n", e.message);
         logError(e, 'rclone-manager Error');
     }
     

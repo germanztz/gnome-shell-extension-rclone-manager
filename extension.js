@@ -36,7 +36,10 @@ const prettyPrint = Utils.prettyPrint;
 const writeRegistry = Utils.writeRegistry;
 const readRegistry = Utils.readRegistry;
 
+const FileMonitorHelper = Me.imports.fileMonitorHelper;
+
 let RCONFIG_FILE_PATH    = "~/.config/rclone/rclone.conf";
+let BASE_MOUNT_PATH    = "~";
 let IGNORE_PATTERNS      = '.remmina.,~lock,.tmp,.log';
 let TIMEOUT_MS           = 1000;
 let MAX_REGISTRY_LENGTH  = 15;
@@ -92,10 +95,12 @@ const RcloneManager = Lang.Class({
     _onSettingsChange: function () {
         print('rclone _onSettingsChange');
         RCONFIG_FILE_PATH = this._settings.get_string(Prefs.Fields.RCONFIG_FILE_PATH);
+        BASE_MOUNT_PATH = this._settings.get_string(Prefs.Fields.BASE_MOUNT_PATH);
         IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.IGNORE_PATTERNS);
 
-        this._loadConfigs()
-        this._buildMenu()
+        this._loadConfigs();
+        this._buildMenu();
+        FileMonitorHelper.automount(this._rconfig);
     },
 
     _loadConfigs: function() {
@@ -109,8 +114,8 @@ const RcloneManager = Lang.Class({
         //clean menu
         this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
-        for (let section in this._rconfig){
-            this.menu.addMenuItem(this._getMenuItem(section, this._rconfig[section]));
+        for (let profile in this._rconfig){
+            this.menu.addMenuItem(this._getMenuItem(profile, this._rconfig[profile]));
         }
         // Add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -138,9 +143,9 @@ const RcloneManager = Lang.Class({
 
     },
     
-    _getMenuItem(name, rconfig){
+    _getMenuItem(profile, rconfig){
 
-        let menuItem = new PopupMenu.PopupMenuItem(name);
+        let menuItem = new PopupMenu.PopupMenuItem(profile);
         menuItem.menu = this.menu;
         menuItem.rconfig = rconfig;
         menuItem.buttonPressId = menuItem.connect('activate',
@@ -178,9 +183,17 @@ const RcloneManager = Lang.Class({
         print(that.rconfig.type);
     },
 
-    _restoreConfig: function() { },
-    _editConfig: function() { },
-    _addConfig: function() { },
+    _restoreConfig: function() { 
+
+    },
+
+    _editConfig: function() { 
+
+    },
+
+    _addConfig: function() { 
+
+    },
 
  
     _truncate: function(string, length) {

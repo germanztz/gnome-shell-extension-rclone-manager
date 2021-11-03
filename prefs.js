@@ -10,8 +10,9 @@ const Gettext = imports.gettext;
 const _ = Gettext.domain('rclone-manager').gettext;
 
 var Fields = {
-    RCONFIG_FILE_PATH      : 'rconfig-file-path',
-    IGNORE_PATTERNS        : 'ignore-patterns',
+    RCONFIG_FILE_PATH : 'rconfig-file-path',
+    BASE_MOUNT_PATH : 'base-mount-path',
+    IGNORE_PATTERNS : 'ignore-patterns',
 };
 
 const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
@@ -20,12 +21,10 @@ const getSchema = function () {
     let schemaDir = Extension.dir.get_child('schemas').get_path();
     let schemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false);
     let schema = schemaSource.lookup(SCHEMA_NAME, false);
-
     return new Gio.Settings({ settings_schema: schema });
 };
 
 var SettingsSchema = getSchema();
-
 
 function init() {
     let localeDir = Extension.dir.get_child('locale');
@@ -47,11 +46,17 @@ const App = new Lang.Class({
             row_homogeneous: false
         });
         this.field_rconfig = new Gtk.Entry();
-
+        this.field_base = new Gtk.Entry();
         this.field_ignore = new Gtk.Entry();
 
         let rconfigLabel = new Gtk.Label({
             label: _("rclone file path"),
+            hexpand: true,
+            halign: Gtk.Align.START
+        });
+
+        let baseLabel = new Gtk.Label({
+            label: _("Base mount path"),
             hexpand: true,
             halign: Gtk.Align.START
         });
@@ -84,10 +89,12 @@ const App = new Lang.Class({
             };
         })(this.main);
 
-        addRow(rconfigLabel,          this.field_rconfig);
-        addRow(ignoreLabel,           this.field_ignore);
+        addRow(rconfigLabel, this.field_rconfig);
+        addRow(baseLabel, this.field_base);
+        addRow(ignoreLabel, this.field_ignore);
 
         SettingsSchema.bind(Fields.RCONFIG_FILE_PATH, this.field_rconfig, 'text', Gio.SettingsBindFlags.DEFAULT);
+        SettingsSchema.bind(Fields.BASE_MOUNT_PATH, this.field_base, 'text', Gio.SettingsBindFlags.DEFAULT);
         SettingsSchema.bind(Fields.IGNORE_PATTERNS, this.field_ignore, 'text', Gio.SettingsBindFlags.DEFAULT);
     },
 
