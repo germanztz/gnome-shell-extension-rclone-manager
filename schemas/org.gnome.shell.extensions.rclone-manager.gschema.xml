@@ -11,7 +11,7 @@
     </key>
 
     <key name="base-mount-path" type="s">
-      <default>'~'</default>
+      <default>'~/'</default>
         <summary>Path where the remote disks are mounted</summary>
         <description>
             Path where the remote disks are mounted

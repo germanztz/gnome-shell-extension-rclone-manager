@@ -69,7 +69,6 @@ const RcloneManager = Lang.Class({
     _rconfig: null,
 
     _init: function() {
-        print('rclone _init');
         this.parent(0.0, "RcloneManager");
         this._shortcutsBindingIds = [];
         this.clipItemsRadioGroup = [];
@@ -84,7 +83,6 @@ const RcloneManager = Lang.Class({
     },
 
     _loadSettings: function () {
-        print('rclone _loadSettings');
         this._settings = Prefs.SettingsSchema;
         this._settingsChangedId = this._settings.connect('changed',
             Lang.bind(this, this._onSettingsChange));
@@ -93,7 +91,6 @@ const RcloneManager = Lang.Class({
     },
 
     _onSettingsChange: function () {
-        print('rclone _onSettingsChange');
         RCONFIG_FILE_PATH = this._settings.get_string(Prefs.Fields.RCONFIG_FILE_PATH);
         BASE_MOUNT_PATH = this._settings.get_string(Prefs.Fields.BASE_MOUNT_PATH);
         IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.IGNORE_PATTERNS);
@@ -104,13 +101,10 @@ const RcloneManager = Lang.Class({
     },
 
     _loadConfigs: function() {
-        print('rclone _loadConfigs');
         this._rconfig = Utils.parseConfigFile(RCONFIG_FILE_PATH);
     },
     
     _buildMenu: function () {
-        print('rclone _buildMenu');
-
         //clean menu
         this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 

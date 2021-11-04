@@ -137,7 +137,6 @@ function parseConfigFile(filepath) {
     let config = {};
     try {
         filepath = filepath.replace('~',GLib.get_home_dir());
-        print('rclone parseConfigFile '+filepath);
         let fileContents = GLib.file_get_contents(filepath)[1];
         // are we running gnome 3.30 or higher?
         if (fileContents instanceof Uint8Array) {
