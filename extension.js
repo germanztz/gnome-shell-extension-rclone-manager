@@ -41,6 +41,20 @@ const FileMonitorHelper = Me.imports.fileMonitorHelper;
 let RCONFIG_FILE_PATH    = "~/.config/rclone/rclone.conf";
 let BASE_MOUNT_PATH    = "~";
 let IGNORE_PATTERNS      = '.remmina.,~lock,.tmp,.log';
+
+const submenus = {
+    'Watch': 'folder-saved-search-symbolic',
+    'Unwatch': 'image-zoom-out-symbolic',
+    'Mount': 'folder-remote-symbolic',
+    'Umount': 'image-zoom-out-symbolic',
+    'Open': 'window-new-symbolic',
+    'Backup': 'mail-outbox-symbolic',
+    'Restore': 'object-rotate-left-symbolic',
+    'Reconnect': 'mail-send-receive-symbolic',
+    'Sync': 'mail-send-receive-symbolic',
+    'Delete': 'user-trash-symbolic'
+};
+
 let TIMEOUT_MS           = 1000;
 let MAX_REGISTRY_LENGTH  = 15;
 let MAX_ENTRY_LENGTH     = 50;
@@ -67,6 +81,7 @@ const RcloneManager = Lang.Class({
     _historyLabel: null,
     _disableDownArrow: null,
     _rconfig: null,
+    _mounts: [],
 
     _init: function() {
         this.parent(0.0, "RcloneManager");
@@ -79,6 +94,7 @@ const RcloneManager = Lang.Class({
         hbox.add_child(this.icon);
         this.add_child(hbox);
 
+        this._mounts = FileMonitorHelper.getMounts();
         this._loadSettings();
     },
 
@@ -97,7 +113,7 @@ const RcloneManager = Lang.Class({
 
         this._loadConfigs();
         this._buildMenu();
-        FileMonitorHelper.automount(this._rconfig);
+        FileMonitorHelper.automount(this._rconfig, this._onProfileStatusChanged);
     },
 
     _loadConfigs: function() {
@@ -120,10 +136,10 @@ const RcloneManager = Lang.Class({
         this.menu.addMenuItem(addMenuItem);
         addMenuItem.connect('activate', Lang.bind(this, this._addConfig));
 
-        // Add 'Restore config' button which restores rclonefile from a mount
-        let retoreMenuItem = new PopupMenu.PopupMenuItem(_('Restore config'));
-        this.menu.addMenuItem(retoreMenuItem);
-        retoreMenuItem.connect('activate', Lang.bind(this, this._restoreConfig));
+        // // Add 'Restore config' button which restores rclonefile from a mount
+        // let retoreMenuItem = new PopupMenu.PopupMenuItem(_('Restore config'));
+        // this.menu.addMenuItem(retoreMenuItem);
+        // retoreMenuItem.connect('activate', Lang.bind(this, this._restoreConfig));
 
         // Add 'Edit config' button which edits an existing rclone config
         let editMenuItem = new PopupMenu.PopupMenuItem(_('Edit config'));
@@ -134,20 +150,58 @@ const RcloneManager = Lang.Class({
         let settingsMenuItem = new PopupMenu.PopupMenuItem(_('Settings'));
         this.menu.addMenuItem(settingsMenuItem);
         settingsMenuItem.connect('activate', Lang.bind(this, this._openSettings));
-
     },
     
+    /**
+     * https://github.com/julio641742/gnome-shell-extension-reference/blob/master/tutorials/POPUPMENU-EXTENSION.md
+     * @param {string} profile
+     * @param {Array} rconfig
+     * @returns {PopupSubMenuMenuItem}
+     */
     _getMenuItem(profile, rconfig){
+        isMounted = this._mounts.some(item => item == profile);
+		let menuItem = new PopupMenu.PopupSubMenuMenuItem(profile, true);
+        this._addSubmenu(menuItem, profile, rconfig, isMounted, false);
+        return menuItem
+    },
 
-        let menuItem = new PopupMenu.PopupMenuItem(profile);
-        menuItem.menu = this.menu;
-        menuItem.rconfig = rconfig;
-        menuItem.buttonPressId = menuItem.connect('activate',
-            Lang.bind(menuItem, this._openRemote));
+    _addSubmenu: function(menuItem, profile, rconfig, isMounted, isInotify){
 
-        // Delete button
+        if(isMounted){
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Umount', profile, rconfig));
+        } else if (isInotify) {
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Unwatch', profile, rconfig));
+        }
+        else{
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Mount', profile, rconfig));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Watch', profile, rconfig));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Reconnect', profile, rconfig));
+        }
+
+        if (isInotify || isMounted){
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Open', profile, rconfig));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Backup', profile, rconfig));
+        }
+
+        menuItem.menu.addMenuItem(this._getSubMenuItem('Sync', profile, rconfig));
+        menuItem.menu.addMenuItem(this._getSubMenuItem('Delete', profile, rconfig));
+
+		// The CSS from our file is automatically imported
+		// You can add custom styles like this
+		// REMOVE THIS AND SEE WHAT HAPPENS
+		menuItem.menu.box.style_class = 'PopupSubMenuMenuItemStyle';
+
+        // menuItem.menu._getMenuItems().forEach(function (mItem, i, menuItems){});
+
+    },
+
+    _getSubMenuItem(action, profile, rconfig){
+        subMenuItem = new PopupMenu.PopupMenuItem(action);
+        subMenuItem.profile = profile;
+        subMenuItem.rconfig = rconfig;
+        subMenuItem.action = action;
         let icon = new St.Icon({
-            icon_name: 'edit-delete-symbolic',
+            icon_name: submenus[action],
             style_class: 'system-status-icon'
         });
 
@@ -156,19 +210,58 @@ const RcloneManager = Lang.Class({
             can_focus: true,
             child: icon,
             x_align: Clutter.ActorAlign.END,
-            x_expand: false,
+            x_expand: true,
             y_expand: true
         });
 
-        menuItem.actor.add_child(icoBtn);
-        menuItem.icoBtn = icoBtn;
-        menuItem.deletePressId = icoBtn.connect('button-press-event',
-            Lang.bind(this, function () {
-                this._removeEntry(menuItem, 'delete');
-            })
-        );
+        subMenuItem.actor.add_child(icoBtn);
+        // subMenuItem.icoBtn = icoBtn;
 
-        return menuItem
+        subMenuItem.connect('activate', this._subMenuActivated);
+        return subMenuItem;
+    },
+
+    _subMenuActivated: function (menuItem){
+        print(menuItem.profile, menuItem.action);
+        switch (menuItem.action) {
+            case 'Watch':
+                FileMonitorHelper.init_filemonitor(menuItem.profile);
+            break;
+            case 'Unwatch':
+                FileMonitorHelper.remove_filemonitor(menuItem.profile);
+            break;
+            case 'Mount':
+                FileMonitorHelper.mount(menuItem.profile, function(status, stdoutLines, stderrLines){
+                    print('rclone onRcloneFinished',status);
+                    print('rclone stdoutLines',stdoutLines.join('\n'));
+                    print('rclone stderrLines',stderrLines.join('\n'));
+                });
+            break;
+            case 'Umount':
+                FileMonitorHelper.umount(menuItem.profile);
+            break;
+            case 'Open':
+
+            break;
+            case 'Backup':
+                FileMonitorHelper.backup(menuItem.profile);
+            break;
+            case 'Restore':
+                FileMonitorHelper.restore(menuItem.profile);
+            break;
+            case 'Reconnect':
+                FileMonitorHelper.reconnect(menuItem.profile);
+            break;
+            case 'Sync':
+                FileMonitorHelper.sync(menuItem.profile);
+            break;
+            case 'Delete':
+
+            break;
+
+            default:
+                break;
+        }
     },
 
     _openRemote: function (autoSet) {
@@ -189,7 +282,10 @@ const RcloneManager = Lang.Class({
 
     },
 
- 
+    _onProfileStatusChanged: function(status, profile, action){
+        
+    },
+
     _truncate: function(string, length) {
         let shortened = string.replace(/\s+/g, ' ');
 
