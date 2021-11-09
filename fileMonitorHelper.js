@@ -20,6 +20,8 @@ const RC_GETMOUNTS = 'mount';
 const RC_RECONNECT  = 'rclone config reconnect %profile: %flags';
 const RC_SYNC  = 'rclone sync %profile:"%source" --create-empty-src-dirs';
 const RC_COPYTO  = 'rclone copyto %profile:"%destination" %source';
+const RC_ADDCONFIG = 'rclone config';
+const RC_DELETE = 'rclone config delete %profile'
 
 var baseMountPath = SettingsSchema.get_string(Prefs.Fields.BASE_MOUNT_PATH);
 var ignores = SettingsSchema.get_string(Prefs.Fields.IGNORE_PATTERNS).split(',');
@@ -64,6 +66,13 @@ function init_filemonitor(profile, callback){
 	if(ok && callback) callback(profile, this.ProfileStatus.WATCHED);
 }
 
+function remove_filemonitor(profile){
+	if(isWatched(profile)){
+		//TODO
+	}
+}
+
+
 /**
  * 
  * @param {string} profile 
@@ -79,6 +88,7 @@ function monitor_directory_recursive(profile, path){
 		this.monitors[profile][directory.get_path()] = monitor;
 		print('rclone monitor rec', profile, directory.get_path());
 		let subfolders = directory.enumerate_children('standard::name,standard::type',Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
+		let file_info;
 		while ((file_info = subfolders.next_file(null)) != null) {
 			if(file_info.get_file_type() == Gio.FileType.DIRECTORY)
 				monitor_directory_recursive(profile, path+'/'+file_info.get_name());
@@ -143,8 +153,15 @@ function onRcloneFinished(status, stdoutLines, stderrLines, profile, file){
 }
 
 function mount(profile, callback){
-	rclone(RC_MOUNT, profile, Gio.file_new_for_path(this.monitors[profile]['basepath']), null, callback);
-	if(ok && callback) callback(profile, this.ProfileStatus.WATCHED);
+	let that = this;
+	rclone(RC_MOUNT, profile, Gio.file_new_for_path(this.monitors[profile]['basepath']), null, 
+		function(status, stdoutLines, stderrLines){
+			if(status === 0) {
+				if(callback) callback(profile, that.ProfileStatus.MOUNTED, '');
+			} else {
+				if(callback) callback(profile, that.ProfileStatus.DISCONNECTED, stderrLines);
+			}
+	});
 
 }
 
@@ -164,8 +181,16 @@ function getMounts(){
 	return mounts;
 }
 
+function isMounted(profile) {
+	return getMounts().some(item => item == profile);
+}
+
+function isWatched(profile) {
+	return monitors.some(item => item == profile);
+}
+
 function reconnect(profile){
-	rclone(RC_RECONNECT, profile);
+	launch_term_cmd(RC_RECONNECT, profile);
 }
 
 function sync(profile){
@@ -182,18 +207,33 @@ function restore(profile){
 	this.spawn_async_with_pipes(['ls','-la','.'], this.onRcloneFinished);
 }
 
+function addConfig(){
+	launch_term_cmd(RC_ADDCONFIG, false, false);
+}
+
+function deleteConfig(profile, callback){
+
+	if (isMounted(profile)){
+		umount(profile, function(status, stdoutLines, stderrLines){
+			if(status === 0)
+				let [stat, stdout, stderr] = spawn_sync(RC_DELETE.replace('%profile', profile).split(' '));
+		});
+	} else if (isWatched(profile)){
+		remove_filemonitor(profile);
+	}
+}
+
 function rclone(cmd, profile, file, destination, callback){
 	const basepath = this.monitors[profile]['basepath'];
 	if(!destination && file) 
 		destination = file.get_path().replace(basepath,'');
-	cmd = cmd.replaceAll('%profile', profile)
-			.replaceAll('%source', (file === undefined) ? '':file.get_path())
+	
+	cmd = cmd.replace(new RegExp('%profile', 'g'), profile)
+			.replace(new RegExp('%source', 'g'), (file === undefined) ? '':file.get_path())
 			.replace('%destination', destination)
 			.replace('%flags', this.monitors[profile]['flags']);
 	spawn_async_with_pipes(cmd.split(' '), callback);
 }
-
-function remove_filemonitor(profile){}
 
 
 // A simple asynchronous read loop
@@ -324,4 +364,15 @@ function spawn_sync(argv){
 		logError(e);
 	}	
 	return [status, out, err]
+}
+
+function launch_term_cmd(cmd, autoclose, sudo){
+    let autoclosecmd = autoclose ? '; echo "Press any key to exit"; read' : '';
+    let sudocmd = sudo ? 'sudo' : '';
+    cmd = "gnome-terminal --window -- {0} bash -c '{1} {2}'"
+		.replace('{0}', sudocmd)
+		.replace('{1}',cmd)
+		.replace('{2}',autoclosecmd);
+	GLib.spawn_command_line_async(cmd);
+
 }

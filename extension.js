@@ -21,11 +21,7 @@ const _ = Gettext.domain('rclone-manager').gettext;
 const Clipboard = St.Clipboard.get_default();
 const CLIPBOARD_TYPE = St.ClipboardType.CLIPBOARD;
 
-const SETTING_KEY_CLEAR_HISTORY = "clear-history";
-const SETTING_KEY_PREV_ENTRY = "prev-entry";
-const SETTING_KEY_NEXT_ENTRY = "next-entry";
-const SETTING_KEY_TOGGLE_MENU = "toggle-menu";
-const INDICATOR_ICON = 'folder-remote-symbolic';
+const INDICATOR_ICON = 'drive-multidisk-symbolic';
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -48,9 +44,9 @@ const submenus = {
     'Mount': 'folder-remote-symbolic',
     'Umount': 'image-zoom-out-symbolic',
     'Open': 'window-new-symbolic',
-    'Backup': 'mail-outbox-symbolic',
-    'Restore': 'object-rotate-left-symbolic',
-    'Reconnect': 'mail-send-receive-symbolic',
+    'Backup': 'backups-app-symbolic',
+    'Restore': 'aptdaemon-download-symbolic',
+    'Reconnect': 'gnome-dev-ethernet',
     'Sync': 'mail-send-receive-symbolic',
     'Delete': 'user-trash-symbolic'
 };
@@ -132,9 +128,9 @@ const RcloneManager = Lang.Class({
 
 
         // Add 'Add config' button which adds new config to rclone
-        let addMenuItem = new PopupMenu.PopupMenuItem(_('Add config'));
+        let addMenuItem = new PopupMenu.PopupMenuItem(_('Add config')/*,'folder-new-symbolic'*/);
         this.menu.addMenuItem(addMenuItem);
-        addMenuItem.connect('activate', Lang.bind(this, this._addConfig));
+        addMenuItem.connect('activate', Lang.bind(this, FileMonitorHelper.addConfig));
 
         // // Add 'Restore config' button which restores rclonefile from a mount
         // let retoreMenuItem = new PopupMenu.PopupMenuItem(_('Restore config'));
@@ -142,12 +138,12 @@ const RcloneManager = Lang.Class({
         // retoreMenuItem.connect('activate', Lang.bind(this, this._restoreConfig));
 
         // Add 'Edit config' button which edits an existing rclone config
-        let editMenuItem = new PopupMenu.PopupMenuItem(_('Edit config'));
+        let editMenuItem = new PopupMenu.PopupMenuItem(_('Edit config')/*,'gedit-symbolic'*/);
         this.menu.addMenuItem(editMenuItem);
         editMenuItem.connect('activate', Lang.bind(this, this._editConfig));
 
         // Add 'Settings' menu item to open settings
-        let settingsMenuItem = new PopupMenu.PopupMenuItem(_('Settings'));
+        let settingsMenuItem = new PopupMenu.PopupMenuItem(_('Settings')/*,'gnome-tweak-tool-symbolic'*/);
         this.menu.addMenuItem(settingsMenuItem);
         settingsMenuItem.connect('activate', Lang.bind(this, this._openSettings));
     },
@@ -159,7 +155,7 @@ const RcloneManager = Lang.Class({
      * @returns {PopupSubMenuMenuItem}
      */
     _getMenuItem(profile, rconfig){
-        isMounted = this._mounts.some(item => item == profile);
+        let isMounted = this._mounts.some(item => item == profile);
 		let menuItem = new PopupMenu.PopupSubMenuMenuItem(profile, true);
         this._addSubmenu(menuItem, profile, rconfig, isMounted, false);
         return menuItem
@@ -192,11 +188,11 @@ const RcloneManager = Lang.Class({
 		menuItem.menu.box.style_class = 'PopupSubMenuMenuItemStyle';
 
         // menuItem.menu._getMenuItems().forEach(function (mItem, i, menuItems){});
-
+        // menuItem.menu._getMenuItems().filter(item => item.clipContents === text)[0];
     },
 
     _getSubMenuItem(action, profile, rconfig){
-        subMenuItem = new PopupMenu.PopupMenuItem(action);
+        let subMenuItem = new PopupMenu.PopupMenuItem(action);
         subMenuItem.profile = profile;
         subMenuItem.rconfig = rconfig;
         subMenuItem.action = action;
@@ -223,6 +219,7 @@ const RcloneManager = Lang.Class({
 
     _subMenuActivated: function (menuItem){
         print(menuItem.profile, menuItem.action);
+        const that = this;
         switch (menuItem.action) {
             case 'Watch':
                 FileMonitorHelper.init_filemonitor(menuItem.profile);
@@ -231,10 +228,10 @@ const RcloneManager = Lang.Class({
                 FileMonitorHelper.remove_filemonitor(menuItem.profile);
             break;
             case 'Mount':
-                FileMonitorHelper.mount(menuItem.profile, function(status, stdoutLines, stderrLines){
-                    print('rclone onRcloneFinished',status);
-                    print('rclone stdoutLines',stdoutLines.join('\n'));
-                    print('rclone stderrLines',stderrLines.join('\n'));
+                FileMonitorHelper.mount(menuItem.profile, function(profile, profileStatus, stderrLines){
+                    print('rclone profile',profile);
+                    print('rclone profileStatus',profileStatus);
+                    print('rclone stderrLines',stderrLines);
                 });
             break;
             case 'Umount':
@@ -256,7 +253,17 @@ const RcloneManager = Lang.Class({
                 FileMonitorHelper.sync(menuItem.profile);
             break;
             case 'Delete':
-
+                ConfirmDialog.openConfirmDialog( _("Delete?"), 
+                    _("Are you sure you want to delte?"), 
+                    _("This action cannot be undoen"), 
+                    _("Confirm"), _("Cancel"), 
+                    function() {
+                        FileMonitorHelper.deleteConfig(menuItem.profile, 
+                            function(){
+                                that._buildMenu();
+                        })
+                    }
+                );
             break;
 
             default:
@@ -286,216 +293,21 @@ const RcloneManager = Lang.Class({
         
     },
 
-    _truncate: function(string, length) {
-        let shortened = string.replace(/\s+/g, ' ');
-
-        if (shortened.length > length)
-            shortened = shortened.substring(0,length-1) + '...';
-
-        return shortened;
-    },
-
-    _setEntryLabel: function (menuItem) {
-        let buffer = menuItem.clipContents;
-        menuItem.label.set_text(this._truncate(buffer, MAX_ENTRY_LENGTH));
-    },
-
-    _addEntry: function (buffer, favorite, autoSelect, autoSetClip) {
-        let menuItem = new PopupMenu.PopupMenuItem('');
-
-        menuItem.menu = this.menu;
-        menuItem.clipContents = buffer;
-        menuItem.clipFavorite = favorite;
-        menuItem.radioGroup = this.clipItemsRadioGroup;
-        menuItem.buttonPressId = menuItem.connect('activate',
-            Lang.bind(menuItem, this._onMenuItemSelectedAndMenuClose));
-
-        this._setEntryLabel(menuItem);
-        this.clipItemsRadioGroup.push(menuItem);
-
-	// Favorite button
-        let icon_name = favorite ? 'starred-symbolic' : 'non-starred-symbolic';
-        let iconfav = new St.Icon({
-            icon_name: icon_name,
-            style_class: 'system-status-icon'
-        });
-
-        let icofavBtn = new St.Button({
-            style_class: 'ci-action-btn',
-            can_focus: true,
-            child: iconfav,
-            x_align: Clutter.ActorAlign.END,
-            x_expand: true,
-            y_expand: true
-        });
-
-        menuItem.actor.add_child(icofavBtn);
-        menuItem.icofavBtn = icofavBtn;
-        menuItem.favoritePressId = icofavBtn.connect('button-press-event',
-            Lang.bind(this, function () {
-                this._favoriteToggle(menuItem);
-            })
-        );
-
-	// Delete button
-        let icon = new St.Icon({
-            icon_name: 'edit-delete-symbolic', //'mail-attachment-symbolic',
-            style_class: 'system-status-icon'
-        });
-
-        let icoBtn = new St.Button({
-            style_class: 'ci-action-btn',
-            can_focus: true,
-            child: icon,
-            x_align: Clutter.ActorAlign.END,
-            x_expand: false,
-            y_expand: true
-        });
-
-        menuItem.actor.add_child(icoBtn);
-        menuItem.icoBtn = icoBtn;
-        menuItem.deletePressId = icoBtn.connect('button-press-event',
-            Lang.bind(this, function () {
-                this._removeEntry(menuItem, 'delete');
-            })
-        );
-
-        if (favorite) {
-            this.favoritesSection.addMenuItem(menuItem, 0);
+    _openSettings: function () {
+        if (typeof ExtensionUtils.openPrefs === 'function') {
+            ExtensionUtils.openPrefs();
         } else {
-            this.historySection.addMenuItem(menuItem, 0);
-        }
-
-        if (autoSelect === true)
-            this._selectMenuItem(menuItem, autoSetClip);
-
-
-        this._updateCache();
-    },
-
-    _favoriteToggle: function (menuItem) {
-        menuItem.clipFavorite = menuItem.clipFavorite ? false : true;
-        this._moveItemFirst(menuItem);
-
-        this._updateCache();
-    },
-  
-    _confirmRemoveAll: function () {
-        const title = _("Clear all?");
-        const message = _("Are you sure you want to delete all clipboard items?");
-        const sub_message = _("This operation cannot be undone.");
-
-        ConfirmDialog.openConfirmDialog(title, message, sub_message, _("Clear"), _("Cancel"), () => {
-            let that = this;
-            that._clearHistory();
-        }
-      );
-    },
-
-    _clearHistory: function () {
-        let that = this;
-        // We can't actually remove all items, because the clipboard still
-        // has data that will be re-captured on next refresh, so we remove
-        // all except the currently selected item
-        // Don't remove favorites here
-        that.historySection._getMenuItems().forEach(function (mItem) {
-            if (!mItem.currentlySelected) {
-                let idx = that.clipItemsRadioGroup.indexOf(mItem);
-                mItem.destroy();
-                that.clipItemsRadioGroup.splice(idx, 1);
-            }
-        });
-        that._updateCache();
-        that._showNotification(_("Clipboard history cleared"));    
-    },
-
-    _removeAll: function () {
-        var that = this;
-
-        if (CONFIRM_ON_CLEAR) {
-            that._confirmRemoveAll();
-        } else {
-            that._clearHistory();
+            Util.spawn(["gnome-shell-extension-prefs",Me.uuid]);
         }
     },
 
-    _removeEntry: function (menuItem, event) {
-        let itemIdx = this.clipItemsRadioGroup.indexOf(menuItem);
+    destroy: function () {
 
-        if(event === 'delete' && menuItem.currentlySelected) {
-            Clipboard.set_text(CLIPBOARD_TYPE, "");
-        }
-
-        menuItem.destroy();
-        this.clipItemsRadioGroup.splice(itemIdx,1);
-
-        this._updateCache();
+        // Call parent
+        this.parent();
     },
 
-    _removeOldestEntries: function () {
-        let that = this;
-
-        let clipItemsRadioGroupNoFavorite = that.clipItemsRadioGroup.filter(
-            item => item.clipFavorite === false);
-
-        while (clipItemsRadioGroupNoFavorite.length > MAX_REGISTRY_LENGTH) {
-            let oldestNoFavorite = clipItemsRadioGroupNoFavorite.shift();
-            that._removeEntry(oldestNoFavorite);
-
-            clipItemsRadioGroupNoFavorite = that.clipItemsRadioGroup.filter(
-                item => item.clipFavorite === false);
-        }
-
-        that._updateCache();
-    },
-
-    _onMenuItemSelected: function (autoSet) {
-        var that = this;
-        that.radioGroup.forEach(function (menuItem) {
-            let clipContents = that.clipContents;
-
-            if (menuItem === that && clipContents) {
-                that.setOrnament(PopupMenu.Ornament.DOT);
-                that.currentlySelected = true;
-                if (autoSet !== false)
-                    Clipboard.set_text(CLIPBOARD_TYPE, clipContents);
-            }
-            else {
-                menuItem.setOrnament(PopupMenu.Ornament.NONE);
-                menuItem.currentlySelected = false;
-            }
-        });
-    },
-
-    _selectMenuItem: function (menuItem, autoSet) {
-        let fn = Lang.bind(menuItem, this._onMenuItemSelected);
-        fn(autoSet);
-    },
-
-    _onMenuItemSelectedAndMenuClose: function (autoSet) {
-        var that = this;
-        that.radioGroup.forEach(function (menuItem) {
-            let clipContents = that.clipContents;
-
-            if (menuItem === that && clipContents) {
-                that.setOrnament(PopupMenu.Ornament.DOT);
-                that.currentlySelected = true;
-                if (autoSet !== false)
-                    Clipboard.set_text(CLIPBOARD_TYPE, clipContents);
-            }
-            else {
-                menuItem.setOrnament(PopupMenu.Ornament.NONE);
-                menuItem.currentlySelected = false;
-            }
-        });
-
-        that.menu.close();
-    },
-
-    _getCache: function (cb) {
-        return readRegistry(cb);
-    },
-
+/*
     _updateCache: function () {
         let registry = this.clipItemsRadioGroup.map(function (menuItem) {
             return {
@@ -515,73 +327,7 @@ const RcloneManager = Lang.Class({
         }));
     },
 
-    _onSelectionChange (selection, selectionType, selectionSource) {
-        if (selectionType === Meta.SelectionType.SELECTION_CLIPBOARD) {
-            this._refreshIndicator();
-        }
-    },
 
-    _refreshIndicator: function () {
-        if (PRIVATEMODE) return; // Private mode, do not.
-
-        let that = this;
-
-        Clipboard.get_text(CLIPBOARD_TYPE, function (clipBoard, text) {
-            that._processClipboardContent(text);
-        });
-    },
-
-    _processClipboardContent (text) {
-        const that = this;
-
-        if (STRIP_TEXT) {
-            text = text.trim();
-        }
-
-        if (text !== "" && text) {
-            let registry = that.clipItemsRadioGroup.map(function (menuItem) {
-                return menuItem.clipContents;
-            });
-
-            const itemIndex = registry.indexOf(text);
-
-            if (itemIndex < 0) {
-                that._addEntry(text, false, true, false);
-                that._removeOldestEntries();
-                if (NOTIFY_ON_COPY) {
-                    that._showNotification(_("Copied to clipboard"), notif => {
-                        notif.addAction(_('Cancel'), Lang.bind(that, that._cancelNotification));
-                    });
-                }
-            }
-            else if (itemIndex >= 0 && itemIndex < registry.length - 1) {
-                const item = that._findItem(text);
-                that._selectMenuItem(item, false);
-
-                if (!item.clipFavorite && MOVE_ITEM_FIRST) {
-                    that._moveItemFirst(item);
-                }
-            }
-        }
-    },
-
-    _moveItemFirst: function (item) {
-        this._removeEntry(item);
-        this._addEntry(item.clipContents, item.clipFavorite, item.currentlySelected, false);
-    },
-
-    _findItem: function (text) {
-        return this.clipItemsRadioGroup.filter(
-            item => item.clipContents === text)[0];
-    },
-
-    _getCurrentlySelectedItem () {
-        return this.clipItemsRadioGroup.find(item => item.currentlySelected);
-    },
-
-    _getAllIMenuItems: function (text) {
-        return this.historySection._getMenuItems().concat(this.favoritesSection._getMenuItems());
-    },
 
     _setupListener () {
         const metaDisplay = Shell.Global.get().get_display();
@@ -619,17 +365,6 @@ const RcloneManager = Lang.Class({
             // will be invoked again and again as an interval
             return reiterate;
         });
-    },
-
-    _openSettings: function () {
-        if (typeof ExtensionUtils.openPrefs === 'function') {
-            ExtensionUtils.openPrefs();
-        } else {
-            Util.spawn([
-                "gnome-shell-extension-prefs",
-                Me.uuid
-            ]);
-        }
     },
 
     _initNotifSource: function () {
@@ -682,138 +417,6 @@ const RcloneManager = Lang.Class({
             this._notifSource.showNotification(notification);
     },
 
-    _createHistoryLabel: function () {
-        this._historyLabel = new St.Label({
-            style_class: 'ci-notification-label',
-            text: ''
-        });
-
-        global.stage.add_actor(this._historyLabel);
-
-        this._historyLabel.hide();
-    },
-
-    _onPrivateModeSwitch: function() {
-        let that = this;
-        PRIVATEMODE = this.privateModeMenuItem.state;
-        // We hide the history in private ModeTypee because it will be out of sync (selected item will not reflect clipboard)
-        this.scrollViewMenuSection.actor.visible = !PRIVATEMODE;
-        this.scrollViewFavoritesMenuSection.actor.visible = !PRIVATEMODE;
-        // If we get out of private mode then we restore the clipboard to old state
-        if (!PRIVATEMODE) {
-            let selectList = this.clipItemsRadioGroup.filter((item) => !!item.currentlySelected);
-            if (selectList.length) {
-                this._selectMenuItem(selectList[0]);
-            } else {
-                // Nothing to return to, let's empty it instead
-                Clipboard.set_text(CLIPBOARD_TYPE, "");
-            }
-
-            this.icon.remove_style_class_name('private-mode');
-        } else {
-            this.icon.add_style_class_name('private-mode');
-        }
-    },
-
-
-    // _bindShortcuts: function () {
-    //     this._unbindShortcuts();
-    //     this._bindShortcut(SETTING_KEY_CLEAR_HISTORY, this._removeAll);
-    //     this._bindShortcut(SETTING_KEY_PREV_ENTRY, this._previousEntry);
-    //     this._bindShortcut(SETTING_KEY_NEXT_ENTRY, this._nextEntry);
-    //     this._bindShortcut(SETTING_KEY_TOGGLE_MENU, this._toggleMenu);
-    // },
-
-    // _unbindShortcuts: function () {
-    //     this._shortcutsBindingIds.forEach(
-    //         (id) => Main.wm.removeKeybinding(id)
-    //     );
-
-    //     this._shortcutsBindingIds = [];
-    // },
-
-    // _bindShortcut: function(name, cb) {
-    //     var ModeType = Shell.hasOwnProperty('ActionMode') ?
-    //         Shell.ActionMode : Shell.KeyBindingMode;
-
-    //     Main.wm.addKeybinding(
-    //         name,
-    //         this._settings,
-    //         Meta.KeyBindingFlags.NONE,
-    //         ModeType.ALL,
-    //         Lang.bind(this, cb)
-    //     );
-
-    //     this._shortcutsBindingIds.push(name);
-    // },
-
-    // _updateTopbarLayout: function(){
-    //     if(TOPBAR_DISPLAY_MODE === 0){
-    //         this.icon.visible = true;
-    //     }
-    //     if(TOPBAR_DISPLAY_MODE === 1){
-    //         this.icon.visible = false;
-    //     }
-    //     if(TOPBAR_DISPLAY_MODE === 2){
-    //         this.icon.visible = true;
-    //     }
-    //     if(!DISABLE_DOWN_ARROW) {
-    //         this._downArrow.visible = true;
-    //     } else {
-    //         this._downArrow.visible = false;
-    //     }
-    // },
-
-    _disconnectSettings: function () {
-        if (!this._settingsChangedId)
-            return;
-
-        this._settings.disconnect(this._settingsChangedId);
-        this._settingsChangedId = null;
-    },
-
-    _clearClipboardTimeout: function () {
-        if (!this._clipboardTimeoutId)
-            return;
-
-        Mainloop.source_remove(this._clipboardTimeoutId);
-        this._clipboardTimeoutId = null;
-    },
-
-    _disconnectSelectionListener () {
-        if (!this._selectionOwnerChangedId)
-            return;
-
-        this.selection.disconnect(this._selectionOwnerChangedId);
-    },
-
-    _clearLabelTimeout: function () {
-        if (!this._historyLabelTimeoutId)
-            return;
-
-        Mainloop.source_remove(this._historyLabelTimeoutId);
-        this._historyLabelTimeoutId = null;
-    },
-
-    _clearDelayedSelectionTimeout: function () {
-        if (this._delayedSelectionTimeoutId) {
-            Mainloop.source_remove(this._delayedSelectionTimeoutId);
-        }
-    },
-
-    _selectEntryWithDelay: function (entry) {
-        let that = this;
-
-        that._selectMenuItem(entry, false);
-        that._delayedSelectionTimeoutId = Mainloop.timeout_add(
-                TIMEOUT_MS * 0.75, function () {
-
-            that._selectMenuItem(entry);  //select the item
-
-            that._delayedSelectionTimeoutId = null;
-            return false;
-        });
-    },
 
     _previousEntry: function() {
         let that = this;
@@ -865,18 +468,7 @@ const RcloneManager = Lang.Class({
         this.menu.toggle();
     },
 
-    destroy: function () {
-        this._disconnectSettings();
-        this._unbindShortcuts();
-        this._clearClipboardTimeout();
-        this._disconnectSelectionListener();
-        this._clearLabelTimeout();
-        this._clearDelayedSelectionTimeout();
-
-        // Call parent
-        this.parent();
-    },
-
+*/
 
 });
 

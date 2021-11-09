@@ -144,13 +144,14 @@ function parseConfigFile(filepath) {
         } 
     
         let currentSection=''
+        let p;
         fileContents.forEach(function(line){
             if(line.trim().startsWith('#') || line.trim().length == 0) { }
             else if (line.trim().startsWith('[')) {
                 currentSection = line.replace('[','').replace(']','');
                 config[currentSection] = {};
             }
-            else if (p=line.search('=',0)) {
+            else if ((p = line.search('=',0)) > 0) {
                 let key = line.substr(0,p).trim();
                 let value = line.substr(p+1,line.length-1).trim();
                 config[currentSection][key] = value;
