@@ -5,11 +5,6 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Prefs = Me.imports.prefs;
-const SettingsSchema = Prefs.SettingsSchema;
-
 const RC_CREATE_DIR = 'rclone copy "%source" %profile:"%destination" --create-empty-src-dirs';
 const RC_DELETE_DIR = 'rclone purge %profile:"%destination" --ignore-errors';
 const RC_CREATE_FILE = 'rclone copy "%source" %profile:"%destination" --create-empty-src-dirs';
@@ -23,9 +18,8 @@ const RC_COPYTO  = 'rclone copyto %profile:"%destination" %source';
 const RC_ADDCONFIG = 'rclone config';
 const RC_DELETE = 'rclone config delete %profile'
 
-var baseMountPath = SettingsSchema.get_string(Prefs.Fields.BASE_MOUNT_PATH);
-var ignores = SettingsSchema.get_string(Prefs.Fields.IGNORE_PATTERNS).split(',');
 var monitors = []
+var rconfig = {};
 
 var ProfileStatus = {
     DISCONNECTED : '0',
@@ -33,13 +27,43 @@ var ProfileStatus = {
     WATCHED : '2',
 };
 
-function automount(rconfig, callback){
+function parseConfigFile(filepath) {
+	rconfig = {};
+    try {
+        let fileContents = GLib.file_get_contents(filepath)[1];
+        // are we running gnome 3.30 or higher?
+        if (fileContents instanceof Uint8Array) {
+            fileContents = imports.byteArray.toString(fileContents).split("\n");
+        } 
+    
+        let currentSection=''
+        let p;
+        fileContents.forEach(function(line){
+            if(line.trim().startsWith('#') || line.trim().length == 0) { }
+            else if (line.trim().startsWith('[')) {
+                currentSection = line.replace('[','').replace(']','');
+                rconfig[currentSection] = {};
+            }
+            else if ((p = line.search('=',0)) > 0) {
+                let key = line.substr(0,p).trim();
+                let value = line.substr(p+1,line.length-1).trim();
+                rconfig[currentSection][key] = value;
+            }
+        });
+        // print(JSON.stringify(rconfig));
+
+    } catch (e) {
+		printerr("rclone-manager Error: %s\n", e.message);
+        logError(e, 'rclone-manager Error');
+    }
+}
+
+function getConfigs(){ return rconfig;}
+
+function automount(ignores, baseMountPath, callback){
 	for (let profile in rconfig){
 
 		this.monitors[profile] = [];
-
-        baseMountPath = baseMountPath.replace('~',GLib.get_home_dir());
-		if(!baseMountPath.endsWith('/')) baseMountPath = baseMountPath+'/';
 		this.monitors[profile]['basepath'] = baseMountPath + profile;
 
 		if (rconfig[profile]['type'] == 'onedrive')
@@ -50,7 +74,7 @@ function automount(rconfig, callback){
 		else this.monitors[profile]['flags'] = '';
 
 		if (rconfig[profile]['x-multirctray-synctype'] == 'inotify') 
-			init_filemonitor(profile, callback);
+			init_filemonitor(profile, ignores, callback);
 		else if (rconfig[profile]['x-multirctray-synctype'] == 'mount') 
 			mount(profile, callback);
 		else ;
@@ -60,15 +84,20 @@ function automount(rconfig, callback){
 /**
  * https://gjs-docs.gnome.org/gio20~2.66p/gio.filemonitor
  * @param {string} profile 
+ * @param {string} ignores 
  */
-function init_filemonitor(profile, callback){
+function init_filemonitor(profile, ignores, callback){
 	let ok = monitor_directory_recursive(profile, this.monitors[profile]['basepath']);
+	this.monitors[profile]['ignores'] = ignores.split(',');
+	this.monitors[profile]['paths'] = [];
 	if(ok && callback) callback(profile, this.ProfileStatus.WATCHED);
 }
 
 function remove_filemonitor(profile){
 	if(isWatched(profile)){
-		//TODO
+		this.monitors[profile]['paths'].forEach(monitor => {
+			monitor.cancel();
+		});
 	}
 }
 
@@ -85,7 +114,7 @@ function monitor_directory_recursive(profile, path){
 		monitor.connect('changed', function (monitor, file, other_file, event_type) 
 		{ onEvent(profile, monitor, file, other_file, event_type); });
 
-		this.monitors[profile][directory.get_path()] = monitor;
+		this.monitors[profile]['paths'][directory.get_path()] = monitor;
 		print('rclone monitor rec', profile, directory.get_path());
 		let subfolders = directory.enumerate_children('standard::name,standard::type',Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
 		let file_info;
@@ -111,8 +140,8 @@ function monitor_directory_recursive(profile, path){
  */
 function onEvent(profile, monitor, file, other_file, event_type){
 
-	for (const ign in this.ignores) {
-		if (file.get_path().search(this.ignores[ign],0)>0) return;
+	for (const ign in monitors[profile]['ignores']) {
+		if (file.get_path().search(monitors[profile]['ignores'][ign],0)>0) return;
 	}
 
 	print("rclone", profile, file.get_path(), "event_type:", event_type);
@@ -197,9 +226,7 @@ function sync(profile){
 	rclone(RC_SYNC, profile, Gio.file_new_for_path(this.monitors[profile]['basepath']));	
 }
 
-function backup(profile){
-	let configfile = SettingsSchema.get_string(Prefs.Fields.RCONFIG_FILE_PATH);
-	configfile = configfile.replace('~',GLib.get_home_dir());
+function backup(profile, configfilePath){
 	rclone(	RC_COPYTO, profile, Gio.file_new_for_path(configfile), '/.rclone.conf');
 }
 
@@ -215,8 +242,9 @@ function deleteConfig(profile, callback){
 
 	if (isMounted(profile)){
 		umount(profile, function(status, stdoutLines, stderrLines){
-			if(status === 0)
+			if(status === 0){
 				let [stat, stdout, stderr] = spawn_sync(RC_DELETE.replace('%profile', profile).split(' '));
+			}
 		});
 	} else if (isWatched(profile)){
 		remove_filemonitor(profile);

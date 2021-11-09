@@ -1,6 +1,7 @@
 const Clutter    = imports.gi.Clutter;
 const Config     = imports.misc.config;
 const Gio        = imports.gi.Gio;
+const GLib       = imports.gi.GLib;
 const Lang       = imports.lang;
 const Mainloop   = imports.mainloop;
 const Meta       = imports.gi.Meta;
@@ -76,7 +77,6 @@ const RcloneManager = Lang.Class({
     _historyLabelTimeoutId: null,
     _historyLabel: null,
     _disableDownArrow: null,
-    _rconfig: null,
     _mounts: [],
 
     _init: function() {
@@ -107,21 +107,22 @@ const RcloneManager = Lang.Class({
         BASE_MOUNT_PATH = this._settings.get_string(Prefs.Fields.BASE_MOUNT_PATH);
         IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.IGNORE_PATTERNS);
 
-        this._loadConfigs();
+        BASE_MOUNT_PATH = BASE_MOUNT_PATH.replace('~',GLib.get_home_dir());
+		if(!BASE_MOUNT_PATH.endsWith('/')) BASE_MOUNT_PATH = BASE_MOUNT_PATH+'/';
+
+        RCONFIG_FILE_PATH = RCONFIG_FILE_PATH.replace('~',GLib.get_home_dir());
+
+        FileMonitorHelper.parseConfigFile(RCONFIG_FILE_PATH);
         this._buildMenu();
-        FileMonitorHelper.automount(this._rconfig, this._onProfileStatusChanged);
+        FileMonitorHelper.automount(BASE_MOUNT_PATH, IGNORE_PATTERNS, this._onProfileStatusChanged);
     },
 
-    _loadConfigs: function() {
-        this._rconfig = Utils.parseConfigFile(RCONFIG_FILE_PATH);
-    },
-    
     _buildMenu: function () {
         //clean menu
         this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
-        for (let profile in this._rconfig){
-            this.menu.addMenuItem(this._getMenuItem(profile, this._rconfig[profile]));
+        for (let profile in FileMonitorHelper.getConfigs()){
+            this.menu.addMenuItem(this._getMenuItem(profile));
         }
         // Add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -151,36 +152,35 @@ const RcloneManager = Lang.Class({
     /**
      * https://github.com/julio641742/gnome-shell-extension-reference/blob/master/tutorials/POPUPMENU-EXTENSION.md
      * @param {string} profile
-     * @param {Array} rconfig
      * @returns {PopupSubMenuMenuItem}
      */
-    _getMenuItem(profile, rconfig){
+    _getMenuItem(profile){
         let isMounted = this._mounts.some(item => item == profile);
 		let menuItem = new PopupMenu.PopupSubMenuMenuItem(profile, true);
-        this._addSubmenu(menuItem, profile, rconfig, isMounted, false);
+        this._addSubmenu(menuItem, profile, isMounted, false);
         return menuItem
     },
 
-    _addSubmenu: function(menuItem, profile, rconfig, isMounted, isInotify){
+    _addSubmenu: function(menuItem, profile, isMounted, isInotify){
 
         if(isMounted){
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Umount', profile, rconfig));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Umount', profile));
         } else if (isInotify) {
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Unwatch', profile, rconfig));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Unwatch', profile));
         }
         else{
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Mount', profile, rconfig));
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Watch', profile, rconfig));
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Reconnect', profile, rconfig));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Mount', profile));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Watch', profile));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Reconnect', profile));
         }
 
         if (isInotify || isMounted){
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Open', profile, rconfig));
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Backup', profile, rconfig));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Open', profile));
+            menuItem.menu.addMenuItem(this._getSubMenuItem('Backup', profile));
         }
 
-        menuItem.menu.addMenuItem(this._getSubMenuItem('Sync', profile, rconfig));
-        menuItem.menu.addMenuItem(this._getSubMenuItem('Delete', profile, rconfig));
+        menuItem.menu.addMenuItem(this._getSubMenuItem('Sync', profile));
+        menuItem.menu.addMenuItem(this._getSubMenuItem('Delete', profile));
 
 		// The CSS from our file is automatically imported
 		// You can add custom styles like this
@@ -191,10 +191,9 @@ const RcloneManager = Lang.Class({
         // menuItem.menu._getMenuItems().filter(item => item.clipContents === text)[0];
     },
 
-    _getSubMenuItem(action, profile, rconfig){
+    _getSubMenuItem(action, profile){
         let subMenuItem = new PopupMenu.PopupMenuItem(action);
         subMenuItem.profile = profile;
-        subMenuItem.rconfig = rconfig;
         subMenuItem.action = action;
         let icon = new St.Icon({
             icon_name: submenus[action],
@@ -241,7 +240,7 @@ const RcloneManager = Lang.Class({
 
             break;
             case 'Backup':
-                FileMonitorHelper.backup(menuItem.profile);
+                FileMonitorHelper.backup(RCONFIG_FILE_PATH, menuItem.profile);
             break;
             case 'Restore':
                 FileMonitorHelper.restore(menuItem.profile);
@@ -255,7 +254,7 @@ const RcloneManager = Lang.Class({
             case 'Delete':
                 ConfirmDialog.openConfirmDialog( _("Delete?"), 
                     _("Are you sure you want to delte?"), 
-                    _("This action cannot be undoen"), 
+                    _("This action cannot be undone"), 
                     _("Confirm"), _("Cancel"), 
                     function() {
                         FileMonitorHelper.deleteConfig(menuItem.profile, 
@@ -274,7 +273,6 @@ const RcloneManager = Lang.Class({
     _openRemote: function (autoSet) {
         var that = this;
         print(autoSet);
-        print(that.rconfig.type);
     },
 
     _restoreConfig: function() { 
