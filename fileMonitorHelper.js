@@ -218,8 +218,8 @@ function isWatched(profile) {
 	return monitors.some(item => item == profile);
 }
 
-function reconnect(profile){
-	launch_term_cmd(RC_RECONNECT, profile);
+function reconnect(externalTerminal, profile){
+	launch_term_cmd(externalTerminal, RC_RECONNECT, profile);
 }
 
 function sync(profile){
@@ -234,8 +234,8 @@ function restore(profile){
 	this.spawn_async_with_pipes(['ls','-la','.'], this.onRcloneFinished);
 }
 
-function addConfig(){
-	launch_term_cmd(RC_ADDCONFIG, false, false);
+function addConfig(externalTerminal){
+	launch_term_cmd(externalTerminal, RC_ADDCONFIG, false, false);
 }
 
 function deleteConfig(profile, callback){
@@ -394,13 +394,18 @@ function spawn_sync(argv){
 	return [status, out, err]
 }
 
-function launch_term_cmd(cmd, autoclose, sudo){
-    let autoclosecmd = autoclose ? '; echo "Press any key to exit"; read' : '';
-    let sudocmd = sudo ? 'sudo' : '';
-    cmd = "gnome-terminal --window -- {0} bash -c '{1} {2}'"
-		.replace('{0}', sudocmd)
-		.replace('{1}',cmd)
-		.replace('{2}',autoclosecmd);
-	GLib.spawn_command_line_async(cmd);
+function launch_term_cmd(externalTerminal, cmd, autoclose, sudo){
+	try{
+		let autoclosecmd = autoclose ? '; echo "Press any key to exit"; read' : '';
+		let sudocmd = sudo ? 'sudo' : '';
+		cmd = externalTerminal + " {0} bash -c '{1} {2}'"
+			.replace('{0}', sudocmd)
+			.replace('{1}',cmd)
+			.replace('{2}',autoclosecmd);
+		print(cmd);
+		GLib.spawn_command_line_async(cmd);
+	}catch(e){
+		logError(e);
+	}
 
 }

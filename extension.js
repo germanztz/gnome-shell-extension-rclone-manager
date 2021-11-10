@@ -139,7 +139,7 @@ const RcloneManager = Lang.Class({
         // Add 'Add config' button which adds new config to rclone
         let addMenuItem = new PopupMenu.PopupMenuItem(_('Add config')/*,'folder-new-symbolic'*/);
         this.menu.addMenuItem(addMenuItem);
-        addMenuItem.connect('activate', Lang.bind(this, FileMonitorHelper.addConfig));
+        addMenuItem.connect('activate', Lang.bind(this, this._addConfig));
 
         // // Add 'Restore config' button which restores rclonefile from a mount
         // let retoreMenuItem = new PopupMenu.PopupMenuItem(_('Restore config'));
@@ -254,7 +254,7 @@ const RcloneManager = Lang.Class({
                 FileMonitorHelper.restore(menuItem.profile);
             break;
             case 'Reconnect':
-                FileMonitorHelper.reconnect(menuItem.profile);
+                FileMonitorHelper.reconnect(externalTerminal, menuItem.profile);
             break;
             case 'Sync':
                 FileMonitorHelper.sync(menuItem.profile);
@@ -292,7 +292,7 @@ const RcloneManager = Lang.Class({
     },
 
     _addConfig: function() { 
-
+        FileMonitorHelper.addConfig(externalTerminal);
     },
 
     _onProfileStatusChanged: function(status, profile, action){
