@@ -87,9 +87,9 @@ function automount(ignores, baseMountPath, callback){
  * @param {string} ignores 
  */
 function init_filemonitor(profile, ignores, callback){
-	let ok = monitor_directory_recursive(profile, this.monitors[profile]['basepath']);
 	this.monitors[profile]['ignores'] = ignores.split(',');
 	this.monitors[profile]['paths'] = [];
+	let ok = monitor_directory_recursive(profile, this.monitors[profile]['basepath']);
 	if(ok && callback) callback(profile, this.ProfileStatus.WATCHED);
 }
 
@@ -140,8 +140,8 @@ function monitor_directory_recursive(profile, path){
  */
 function onEvent(profile, monitor, file, other_file, event_type){
 
-	for (const ign in monitors[profile]['ignores']) {
-		if (file.get_path().search(monitors[profile]['ignores'][ign],0)>0) return;
+	for (const idx in monitors[profile]['ignores']) {
+		if (file.get_path().search(monitors[profile]['ignores'][idx],0)>0) return;
 	}
 
 	print("rclone", profile, file.get_path(), "event_type:", event_type);

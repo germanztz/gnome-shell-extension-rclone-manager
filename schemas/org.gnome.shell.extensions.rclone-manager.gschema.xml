@@ -26,6 +26,30 @@
         </description>
     </key>
 
+    <key name="external-terminal" type="s">
+      <default>'gnome-terminal --window -- '</default>
+        <summary>Command to call a new terminal window</summary>
+        <description>
+            Command to call a new terminal window in order to perform rclone manager actions
+        </description>
+    </key>
+
+    <key name="external-file-browser" type="s">
+      <default>'nautilus'</default>
+        <summary>Command to call a new file browser window</summary>
+        <description>
+            Command to call a new file browser window in order to explore configuration folders
+        </description>
+    </key>
+
+    <key name="external-text-editor" type="s">
+      <default>'gedit'</default>
+        <summary>Command to call a new text editor window</summary>
+        <description>
+            Command to call a new text editor window in order to manually edit the rclone configuration file
+        </description>
+    </key>
+
     <key name="autosync" type="b">
       <default>true</default>
         <summary>Sync files on start</summary>

@@ -3,8 +3,6 @@ const Gtk = imports.gi.Gtk;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 const Extension = imports.misc.extensionUtils.getCurrentExtension();
-const Utils = Extension.imports.utils;
-const prettyPrint = Utils.prettyPrint;
 
 const Gettext = imports.gettext;
 const _ = Gettext.domain('rclone-manager').gettext;
@@ -13,6 +11,9 @@ var Fields = {
     RCONFIG_FILE_PATH : 'rconfig-file-path',
     BASE_MOUNT_PATH : 'base-mount-path',
     IGNORE_PATTERNS : 'ignore-patterns',
+    EXTERNAL_TERMINAL : 'external-terminal',
+    EXTERNAL_FILE_BROWSER : 'external-file-browser',
+    EXTERNAL_TEXT_EDITOR : 'external-text-editor',
     AUTOSYNC : 'autosync',
 };
 
@@ -46,66 +47,42 @@ const App = new Lang.Class({
             column_homogeneous: true,
             row_homogeneous: false
         });
-        this.field_rconfig = new Gtk.Entry();
-        this.field_base = new Gtk.Entry();
-        this.field_ignore = new Gtk.Entry();
-        this.field_autosync = new Gtk.Switch();
-
-        let rconfigLabel = new Gtk.Label({
-            label: _("Rclone file path"),
-            hexpand: true,
-            halign: Gtk.Align.START
-        });
-
-        let baseLabel = new Gtk.Label({
-            label: _("Base mount path"),
-            hexpand: true,
-            halign: Gtk.Align.START
-        });
-
-        let ignoreLabel = new Gtk.Label({
-            label: _("Filenames to be ignored"),
-            hexpand: true,
-            halign: Gtk.Align.START
-        });
-
-        let field_autosyncLabel = new Gtk.Label({
-            label: _("Sync files on start"),
-            hexpand: true,
-            halign: Gtk.Align.START
-        });
-        
+ 
         const addRow = ((main) => {
             let row = 0;
-            return (label, input) => {
+            return (field, label, schemaKey) => {
                 let inputWidget = input;
-
+                let LabelWidget = new Gtk.Label({
+                    label: _(label),
+                    hexpand: true,
+                    halign: Gtk.Align.START
+                });
+        
+                property = 'text';
+        
                 if (input instanceof Gtk.Switch) {
                     inputWidget = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL,});
-                    inputWidget.append(input);
+                    inputWidget.add(input);
+                    property = 'active';
                 }
 
-                if (label) {
-                    main.attach(label, 0, row, 1, 1);
-                    main.attach(inputWidget, 1, row, 1, 1);
-                }
-                else {
-                    main.attach(inputWidget, 0, row, 2, 1);
-                }
+                main.attach(LabelWidget, 0, row, 1, 1);
+                main.attach(inputWidget, 1, row, 1, 1);
+
+                SettingsSchema.bind(schemaKey, field, property, Gio.SettingsBindFlags.DEFAULT);
 
                 row++;
             };
         })(this.main);
 
-        addRow(rconfigLabel, this.field_rconfig);
-        addRow(baseLabel, this.field_base);
-        addRow(ignoreLabel, this.field_ignore);
-        addRow(field_autosyncLabel, this.field_autosync);
+        // addRow(new Gtk.Entry(), "Rclone file path", Fields.RCONFIG_FILE_PATH);
+        // addRow(new Gtk.Entry(), "Base mount path", Fields.BASE_MOUNT_PATH);
+        // addRow(new Gtk.Entry(), "Filenames to be ignored", Fields.IGNORE_PATTERNS);
+        // addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.EXTERNAL_TERMINAL);
+        // addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.EXTERNAL_FILE_BROWSER);
+        // addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.EXTERNAL_TEXT_EDITOR);  
+        // addRow(new Gtk.Entry(), "Rclone file path", Fields.AUTOSYNC);
 
-        SettingsSchema.bind(Fields.RCONFIG_FILE_PATH, this.field_rconfig, 'text', Gio.SettingsBindFlags.DEFAULT);
-        SettingsSchema.bind(Fields.BASE_MOUNT_PATH, this.field_base, 'text', Gio.SettingsBindFlags.DEFAULT);
-        SettingsSchema.bind(Fields.IGNORE_PATTERNS, this.field_ignore, 'text', Gio.SettingsBindFlags.DEFAULT);
-        SettingsSchema.bind(Fields.AUTOSYNC, this.field_autosync, 'active', Gio.SettingsBindFlags.DEFAULT);
     },
 
 });

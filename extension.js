@@ -35,9 +35,13 @@ const readRegistry = Utils.readRegistry;
 
 const FileMonitorHelper = Me.imports.fileMonitorHelper;
 
-let RCONFIG_FILE_PATH    = "~/.config/rclone/rclone.conf";
-let BASE_MOUNT_PATH    = "~";
-let IGNORE_PATTERNS      = '.remmina.,~lock,.tmp,.log';
+let rconfigFilePath = "~/.config/rclone/rclone.conf";
+let baseMountPath = "~/";
+let ignorePatterns = '.remmina.,~lock,.tmp,.log';
+let externalTerminal = 'gnome-terminal --window -- ';
+let externalFileBrowser = 'nautilus';
+let externalEditor = 'gedit';
+let autosync = true;
 
 const submenus = {
     'Watch': 'folder-saved-search-symbolic',
@@ -103,18 +107,22 @@ const RcloneManager = Lang.Class({
     },
 
     _onSettingsChange: function () {
-        RCONFIG_FILE_PATH = this._settings.get_string(Prefs.Fields.RCONFIG_FILE_PATH);
-        BASE_MOUNT_PATH = this._settings.get_string(Prefs.Fields.BASE_MOUNT_PATH);
-        IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.IGNORE_PATTERNS);
+        rconfigFilePath = this._settings.get_string(Prefs.Fields.RCONFIG_FILE_PATH);
+        baseMountPath = this._settings.get_string(Prefs.Fields.BASE_MOUNT_PATH);
+        ignorePatterns = this._settings.get_string(Prefs.Fields.IGNORE_PATTERNS);
+        externalTerminal = this._settings.get_string(Prefs.Fields.EXTERNAL_TERMINAL);
+        externalFileBrowser = this._settings.get_string(Prefs.Fields.EXTERNAL_FILE_BROWSER);
+        externalEditor = this._settings.get_string(Prefs.Fields.EXTERNAL_TEXT_EDITOR);
+        autosync = this._settings.get_string(Prefs.Fields.AUTOSYNC);
 
-        BASE_MOUNT_PATH = BASE_MOUNT_PATH.replace('~',GLib.get_home_dir());
-		if(!BASE_MOUNT_PATH.endsWith('/')) BASE_MOUNT_PATH = BASE_MOUNT_PATH+'/';
+        baseMountPath = baseMountPath.replace('~',GLib.get_home_dir());
+		if(!baseMountPath.endsWith('/')) baseMountPath = baseMountPath+'/';
 
-        RCONFIG_FILE_PATH = RCONFIG_FILE_PATH.replace('~',GLib.get_home_dir());
+        rconfigFilePath = rconfigFilePath.replace('~',GLib.get_home_dir());
 
-        FileMonitorHelper.parseConfigFile(RCONFIG_FILE_PATH);
+        FileMonitorHelper.parseConfigFile(rconfigFilePath);
         this._buildMenu();
-        FileMonitorHelper.automount(BASE_MOUNT_PATH, IGNORE_PATTERNS, this._onProfileStatusChanged);
+        FileMonitorHelper.automount(ignorePatterns, baseMountPath, this._onProfileStatusChanged);
     },
 
     _buildMenu: function () {
@@ -240,7 +248,7 @@ const RcloneManager = Lang.Class({
 
             break;
             case 'Backup':
-                FileMonitorHelper.backup(RCONFIG_FILE_PATH, menuItem.profile);
+                FileMonitorHelper.backup(rconfigFilePath, menuItem.profile);
             break;
             case 'Restore':
                 FileMonitorHelper.restore(menuItem.profile);
