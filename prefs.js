@@ -11,9 +11,6 @@ const Config = imports.misc.config;
 const [major] = Config.PACKAGE_VERSION.split('.');
 const shellVersion = Number.parseInt(major);
 
-
-
-
 var Fields = {
     RCONFIG_FILE_PATH : 'rconfig-file-path',
     BASE_MOUNT_PATH : 'base-mount-path',
