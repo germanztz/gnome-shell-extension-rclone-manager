@@ -1,11 +1,14 @@
 {
     "shell-version": [
-        "3.34",
-        "3.32",
-        "3.36",
-        "3.38",
-        "40"
-      ],
+      "3.24",
+      "3.26",
+      "3.28",
+      "3.30",
+      "3.34",
+      "3.32",
+      "3.36",
+      "40"
+    ],
     "uuid": "rclone-manager@daimler.com",
     "name": "RClone manager",
     "description": "RClone Manager extension for Gnome-Shell - Adds a rclone indicator to the top panel in roder to manage rclone congifurations",

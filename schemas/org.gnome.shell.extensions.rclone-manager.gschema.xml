@@ -54,7 +54,7 @@
       <default>true</default>
         <summary>Sync files on start</summary>
         <description>
-            If true will execute 'rclone sync' on start watching a profile
+            If is on will execute 'rclone sync' on start watching a profile
         </description>
     </key>
   </schema>

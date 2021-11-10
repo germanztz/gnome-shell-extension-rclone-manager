@@ -28,5 +28,5 @@ Doc
 
 https://gjs.guide/
 
-https://gjs-docs.gnome.org/shell01~0.1_api/
+https://gjs-docs.gnome.org
 

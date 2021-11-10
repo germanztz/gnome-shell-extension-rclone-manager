@@ -7,6 +7,13 @@ const Extension = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext;
 const _ = Gettext.domain('rclone-manager').gettext;
 
+const Config = imports.misc.config;
+const [major] = Config.PACKAGE_VERSION.split('.');
+const shellVersion = Number.parseInt(major);
+
+
+
+
 var Fields = {
     RCONFIG_FILE_PATH : 'rconfig-file-path',
     BASE_MOUNT_PATH : 'base-mount-path',
@@ -50,7 +57,7 @@ const App = new Lang.Class({
  
         const addRow = ((main) => {
             let row = 0;
-            return (field, label, schemaKey) => {
+            return (input, label, schemaKey) => {
                 let inputWidget = input;
                 let LabelWidget = new Gtk.Label({
                     label: _(label),
@@ -60,30 +67,42 @@ const App = new Lang.Class({
         
                 property = 'text';
         
-                if (input instanceof Gtk.Switch) {
-                    inputWidget = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL,});
-                    inputWidget.add(input);
+                if (inputWidget instanceof Gtk.Switch) {
+                    inputWidget = this.fixSwitch(inputWidget)
                     property = 'active';
                 }
 
                 main.attach(LabelWidget, 0, row, 1, 1);
                 main.attach(inputWidget, 1, row, 1, 1);
 
-                SettingsSchema.bind(schemaKey, field, property, Gio.SettingsBindFlags.DEFAULT);
+                SettingsSchema.bind(schemaKey, input, property, Gio.SettingsBindFlags.DEFAULT);
 
                 row++;
             };
         })(this.main);
 
-        // addRow(new Gtk.Entry(), "Rclone file path", Fields.RCONFIG_FILE_PATH);
-        // addRow(new Gtk.Entry(), "Base mount path", Fields.BASE_MOUNT_PATH);
-        // addRow(new Gtk.Entry(), "Filenames to be ignored", Fields.IGNORE_PATTERNS);
-        // addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.EXTERNAL_TERMINAL);
-        // addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.EXTERNAL_FILE_BROWSER);
-        // addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.EXTERNAL_TEXT_EDITOR);  
-        // addRow(new Gtk.Entry(), "Rclone file path", Fields.AUTOSYNC);
+        addRow(new Gtk.Entry(), "Rclone file path", Fields.RCONFIG_FILE_PATH);
+        addRow(new Gtk.Entry(), "Base mount path", Fields.BASE_MOUNT_PATH);
+        addRow(new Gtk.Entry(), "Filenames to be ignored", Fields.IGNORE_PATTERNS);
+        addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.EXTERNAL_TERMINAL);
+        addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.EXTERNAL_FILE_BROWSER);
+        addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.EXTERNAL_TEXT_EDITOR);  
+        addRow(new Gtk.Switch(), "Sync files on start", Fields.AUTOSYNC);
 
     },
+
+    fixSwitch: function(input){
+        let inputWidget = input;
+        if (shellVersion < 40){
+            inputWidget = new Gtk.HBox();
+            inputWidget.pack_end(input, false, false, 0);
+        }else{
+            inputWidget = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL,});
+            inputWidget.append(input);
+        }
+ 
+        return inputWidget;
+    }
 
 });
 
