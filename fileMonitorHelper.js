@@ -9,7 +9,7 @@ const RC_CREATE_DIR = 'rclone copy "%source" %profile:"%destination" --create-em
 const RC_DELETE_DIR = 'rclone purge %profile:"%destination" --ignore-errors';
 const RC_CREATE_FILE = 'rclone copy "%source" %profile:"%destination" --create-empty-src-dirs';
 const RC_DELETE_FILE = 'rclone delete %profile:"%destination" --ignore-errors';
-const RC_MOUNT = 'rclone mount %profile: "%source" --vfs-cache-mode writes --volname "%profile" --file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime --daemon';
+const RC_MOUNT = 'rclone mount %profile: "%source" --volname "%profile"';
 const RC_UMOUNT = 'umount "%source"';
 const RC_GETMOUNTS = 'mount';
 const RC_RECONNECT  = 'rclone config reconnect %profile: %flags';
@@ -60,7 +60,7 @@ function parseConfigFile(filepath) {
 
 function getConfigs(){ return rconfig;}
 
-function automount(ignores, baseMountPath, callback){
+function automount(ignores, baseMountPath, mountFlags, callback){
 	for (let profile in rconfig){
 
 		this.monitors[profile] = [];
@@ -76,7 +76,7 @@ function automount(ignores, baseMountPath, callback){
 		if (rconfig[profile]['x-multirctray-synctype'] == 'inotify') 
 			init_filemonitor(profile, ignores, callback);
 		else if (rconfig[profile]['x-multirctray-synctype'] == 'mount') 
-			mount(profile, callback);
+			mount(profile, mountFlags, callback);
 		else ;
 	}
 }
@@ -181,9 +181,9 @@ function onRcloneFinished(status, stdoutLines, stderrLines, profile, file){
 	print('rclone file',file.get_path());
 }
 
-function mount(profile, callback){
+function mount(profile, mountFlags, callback){
 	let that = this;
-	rclone(RC_MOUNT, profile, Gio.file_new_for_path(this.monitors[profile]['basepath']), null, 
+	rclone(RC_MOUNT+' '+mountFlags, profile, Gio.file_new_for_path(this.monitors[profile]['basepath']), null, 
 		function(status, stdoutLines, stderrLines){
 			if(status === 0) {
 				if(callback) callback(profile, that.ProfileStatus.MOUNTED, '');
