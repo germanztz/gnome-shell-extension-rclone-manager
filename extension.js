@@ -46,6 +46,7 @@ let ignorePatterns = '.remmina.,~lock,.tmp,.log';
 let externalTerminal = 'gnome-terminal --window -- ';
 let externalFileBrowser = 'nautilus';
 let externalEditor = 'gedit';
+let mountFlags = '--file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime';
 let autosync = true;
 
 const submenus = {
@@ -118,6 +119,7 @@ const RcloneManager = Lang.Class({
         externalTerminal = this._settings.get_string(Prefs.Fields.EXTERNAL_TERMINAL);
         externalFileBrowser = this._settings.get_string(Prefs.Fields.EXTERNAL_FILE_BROWSER);
         externalEditor = this._settings.get_string(Prefs.Fields.EXTERNAL_TEXT_EDITOR);
+        mountFlags = this._settings.get_string(Prefs.Fields.MOUNT_FLAGS);
         autosync = this._settings.get_string(Prefs.Fields.AUTOSYNC);
 
         baseMountPath = baseMountPath.replace('~',GLib.get_home_dir());
@@ -127,7 +129,7 @@ const RcloneManager = Lang.Class({
 
         FileMonitorHelper.parseConfigFile(rconfigFilePath);
         this._buildMenu();
-        FileMonitorHelper.automount(ignorePatterns, baseMountPath, this._onProfileStatusChanged);
+        FileMonitorHelper.automount(ignorePatterns, baseMountPath, mountFlags, this._onProfileStatusChanged);
     },
 
     _buildMenu: function () {
@@ -246,7 +248,7 @@ const RcloneManager = Lang.Class({
                 FileMonitorHelper.remove_filemonitor(menuItem.profile);
             break;
             case 'Mount':
-                FileMonitorHelper.mount(menuItem.profile, function(profile, profileStatus, stderrLines){
+                FileMonitorHelper.mount(menuItem.profile, mountFlags, function(profile, profileStatus, stderrLines){
                     print('rclone profile',profile);
                     print('rclone profileStatus',profileStatus);
                     print('rclone stderrLines',stderrLines);

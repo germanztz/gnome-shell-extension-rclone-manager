@@ -18,6 +18,7 @@ var Fields = {
     EXTERNAL_TERMINAL : 'external-terminal',
     EXTERNAL_FILE_BROWSER : 'external-file-browser',
     EXTERNAL_TEXT_EDITOR : 'external-text-editor',
+    MOUNT_FLAGS : 'mount-flags',
     AUTOSYNC : 'autosync',
 };
 
@@ -84,6 +85,7 @@ const App = new Lang.Class({
         addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.EXTERNAL_TERMINAL);
         addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.EXTERNAL_FILE_BROWSER);
         addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.EXTERNAL_TEXT_EDITOR);  
+        addRow(new Gtk.Entry(), "Optional mount flags", Fields.MOUNT_FLAGS);  
         addRow(new Gtk.Switch(), "Sync files on start", Fields.AUTOSYNC);
 
         if (shellVersion < 40){

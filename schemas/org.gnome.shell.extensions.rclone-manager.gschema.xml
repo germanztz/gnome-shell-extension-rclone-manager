@@ -50,6 +50,14 @@
         </description>
     </key>
 
+    <key name="mount-flags" type="s">
+      <default>'--file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime'</default>
+        <summary>Optional mount flags</summary>
+        <description>
+            Optional flags to be passed to "rclone mount" command
+        </description>
+    </key>
+
     <key name="autosync" type="b">
       <default>true</default>
         <summary>Sync files on start</summary>
