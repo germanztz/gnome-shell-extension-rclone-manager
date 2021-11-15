@@ -208,7 +208,7 @@ function getMounts(){
 			.forEach(line => mounts.push(line.split(':')[0]));
 	}
 	print('rclone mounts', mounts.join('\n'));
-	return mounts;
+	return ['Gdrive'];
 }
 
 function isMounted(profile) {

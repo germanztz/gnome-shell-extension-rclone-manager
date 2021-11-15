@@ -10,17 +10,20 @@ const St         = imports.gi.St;
 const PolicyType = imports.gi.Gtk.PolicyType;
 const Util       = imports.misc.util;
 const MessageTray = imports.ui.messageTray;
-
 const Main      = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const CheckBox  = imports.ui.checkBox.CheckBox;
-
 const Gettext = imports.gettext;
 const _ = Gettext.domain('rclone-manager').gettext;
 
-const Clipboard = St.Clipboard.get_default();
-const CLIPBOARD_TYPE = St.ClipboardType.CLIPBOARD;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Prefs = Me.imports.prefs;
+
+const FileMonitorHelper = Me.imports.fileMonitorHelper;
+const Utils = Me.imports.utils;
+const ConfirmDialog = Me.imports.confirmDialog;
 
 const INDICATOR_ICON = 'drive-multidisk-symbolic';
 const PROFILE_IDLE_ICON = 'radio-symbolic';
@@ -28,17 +31,6 @@ const PROFILE_WATCHED_ICON = 'folder-saved-search-symbolic';
 const PROFILE_MOUNTED_ICON = 'folder-remote-symbolic';
 const PROFILE_BUSSY_ICON = 'system-run-symbolic';
 const PROFILE_ERROR_ICON = 'dialog-warning-symbolic';
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Utils = Me.imports.utils;
-const ConfirmDialog = Me.imports.confirmDialog;
-const Prefs = Me.imports.prefs;
-const prettyPrint = Utils.prettyPrint;
-const writeRegistry = Utils.writeRegistry;
-const readRegistry = Utils.readRegistry;
-
-const FileMonitorHelper = Me.imports.fileMonitorHelper;
 
 let rconfigFilePath = "~/.config/rclone/rclone.conf";
 let baseMountPath = "~/";
@@ -61,21 +53,6 @@ const submenus = {
     'Sync': 'mail-send-receive-symbolic',
     'Delete': 'user-trash-symbolic'
 };
-
-let TIMEOUT_MS           = 1000;
-let MAX_REGISTRY_LENGTH  = 15;
-let MAX_ENTRY_LENGTH     = 50;
-let CACHE_ONLY_FAVORITE  = false;
-let DELETE_ENABLED       = true;
-let MOVE_ITEM_FIRST      = false;
-let ENABLE_KEYBINDING    = true;
-let PRIVATEMODE          = false;
-let NOTIFY_ON_COPY       = true;
-let CONFIRM_ON_CLEAR     = true;
-let MAX_TOPBAR_LENGTH    = 15;
-let TOPBAR_DISPLAY_MODE  = 1; //0 - only icon, 1 - only clipbord content, 2 - both
-let DISABLE_DOWN_ARROW   = false;
-let STRIP_TEXT           = false;
 
 const RcloneManager = Lang.Class({
     Name: 'RcloneManager',
@@ -128,15 +105,15 @@ const RcloneManager = Lang.Class({
         rconfigFilePath = rconfigFilePath.replace('~',GLib.get_home_dir());
 
         FileMonitorHelper.parseConfigFile(rconfigFilePath);
-        this._buildMenu();
+        this._buildMenu(FileMonitorHelper.getConfigs());
         FileMonitorHelper.automount(ignorePatterns, baseMountPath, mountFlags, this._onProfileStatusChanged);
     },
 
-    _buildMenu: function () {
+    _buildMenu: function (profiles) {
         //clean menu
         this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
-        for (let profile in FileMonitorHelper.getConfigs()){
+        for (let profile in profiles){
             this.menu.addMenuItem(this._createMenuItem(profile));
         }
         // Add separator
@@ -172,7 +149,7 @@ const RcloneManager = Lang.Class({
     _createMenuItem(profile){
         let isMounted = this._mounts.some(item => item == profile);
 		let menuItem = new PopupMenu.PopupSubMenuMenuItem(profile, true);
-        menuItem.icon.icon_name = 'radio-symbolic';
+        menuItem.icon.icon_name = PROFILE_IDLE_ICON;
         this._createSubmenu(menuItem, profile, isMounted, false);
         // menuItem.menu._getMenuItems().forEach(function (mItem, i, menuItems){});
         // menuItem.menu._getMenuItems().filter(item => item.clipContents === text)[0];
@@ -181,7 +158,10 @@ const RcloneManager = Lang.Class({
 
     _createSubmenu: function(menuItem, profile, isMounted, isInotify){
 
-		menuItem.menu.box.style_class = 'menuitem-menu-box';
+        //clean submenu
+        menuItem.menu._getMenuItems().forEach(function (i) { i.destroy(); });
+
+        menuItem.menu.box.style_class = 'menuitem-menu-box';
 
         if(isMounted){
             menuItem.menu.addMenuItem(this._createSubMenuItem('Umount', profile));
