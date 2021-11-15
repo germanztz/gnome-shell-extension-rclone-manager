@@ -5,6 +5,7 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 
+const RC_LIST_REMOTES = 'rclone listremotes'
 const RC_CREATE_DIR = 'rclone copy "%source" %profile:"%destination" --create-empty-src-dirs';
 const RC_DELETE_DIR = 'rclone purge %profile:"%destination" --ignore-errors';
 const RC_CREATE_FILE = 'rclone copy "%source" %profile:"%destination" --create-empty-src-dirs';
