@@ -10,6 +10,13 @@ const Gettext = imports.gettext;
 const _ = Gettext.domain('clipboard-indicator').gettext;
 
 var Fields = {
+    RCONFIG_FILE_PATH : 'rconfig-file-path',
+    BASE_MOUNT_PATH : 'base-mount-path',
+    IGNORE_PATTERNS : 'ignore-patterns',
+    EXTERNAL_TERMINAL : 'external-terminal',
+    EXTERNAL_FILE_BROWSER : 'external-file-browser',
+    EXTERNAL_TEXT_EDITOR : 'external-text-editor',
+    AUTOSYNC : 'autosync',
     INTERVAL           : 'refresh-interval',
     HISTORY_SIZE       : 'history-size',
     PREVIEW_SIZE       : 'preview-size',
@@ -24,13 +31,12 @@ var Fields = {
     STRIP_TEXT         : 'strip-text'
 };
 
-const SCHEMA_NAME = 'org.gnome.shell.extensions.clipboard-indicator';
+const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
 
 const getSchema = function () {
     let schemaDir = Extension.dir.get_child('schemas').get_path();
     let schemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false);
     let schema = schemaSource.lookup(SCHEMA_NAME, false);
-
     return new Gio.Settings({ settings_schema: schema });
 };
 

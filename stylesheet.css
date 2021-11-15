@@ -19,3 +19,19 @@
 .ci-history-menu-section {
     max-height:450px;
 }
+
+.menuitem-menu-box {
+	/* margin: 3px; */
+	margin-left: 10px;
+}
+/* 
+.settings-main{
+    margin_top: 10;
+    margin_bottom: 10;
+    margin_start: 10;
+    margin_end: 10;
+    row_spacing: 12;
+    column_spacing: 18;
+    column_homogeneous: true;
+    row_homogeneous: false;
+} */

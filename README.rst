@@ -11,6 +11,16 @@ Debugging
 
 make install && make run 2>&1 | grep rclone
 
+	
+
+To Debug the Extension (extension.js), use this in terminal:
+journalctl -f -o cat /usr/bin/gnome-shell
+
+To Debug the Extension Preferences (prefs), use this in terminal:
+journalctl -f -o cat /usr/bin/gnome-shell-extension-prefs
+
+
+
 Installation
 ----------------
 
@@ -30,3 +40,8 @@ https://gjs.guide/
 
 https://gjs-docs.gnome.org
 
+https://wiki.gnome.org/
+
+https://www.codeproject.com/Articles/5271677/How-to-Create-A-GNOME-Extension
+
+https://github.com/julio641742/gnome-shell-extension-reference

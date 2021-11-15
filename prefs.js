@@ -62,7 +62,7 @@ const App = new Lang.Class({
                     halign: Gtk.Align.START
                 });
         
-                property = 'text';
+                let property = 'text';
         
                 if (inputWidget instanceof Gtk.Switch) {
                     inputWidget = this.fixSwitch(inputWidget)
@@ -86,6 +86,9 @@ const App = new Lang.Class({
         addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.EXTERNAL_TEXT_EDITOR);  
         addRow(new Gtk.Switch(), "Sync files on start", Fields.AUTOSYNC);
 
+        if (shellVersion < 40){
+            this.main.show_all();
+        }
     },
 
     fixSwitch: function(input){
@@ -97,7 +100,6 @@ const App = new Lang.Class({
             inputWidget = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL,});
             inputWidget.append(input);
         }
- 
         return inputWidget;
     }
 

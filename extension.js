@@ -23,6 +23,11 @@ const Clipboard = St.Clipboard.get_default();
 const CLIPBOARD_TYPE = St.ClipboardType.CLIPBOARD;
 
 const INDICATOR_ICON = 'drive-multidisk-symbolic';
+const PROFILE_IDLE_ICON = 'radio-symbolic';
+const PROFILE_WATCHED_ICON = 'folder-saved-search-symbolic';
+const PROFILE_MOUNTED_ICON = 'folder-remote-symbolic';
+const PROFILE_BUSSY_ICON = 'system-run-symbolic';
+const PROFILE_ERROR_ICON = 'dialog-warning-symbolic';
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
@@ -130,14 +135,14 @@ const RcloneManager = Lang.Class({
         this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
         for (let profile in FileMonitorHelper.getConfigs()){
-            this.menu.addMenuItem(this._getMenuItem(profile));
+            this.menu.addMenuItem(this._createMenuItem(profile));
         }
         // Add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
 
         // Add 'Add config' button which adds new config to rclone
-        let addMenuItem = new PopupMenu.PopupMenuItem(_('Add config')/*,'folder-new-symbolic'*/);
+        let addMenuItem = new PopupMenu.PopupImageMenuItem(_('Add config'),'folder-new-symbolic');
         this.menu.addMenuItem(addMenuItem);
         addMenuItem.connect('activate', Lang.bind(this, this._addConfig));
 
@@ -147,12 +152,12 @@ const RcloneManager = Lang.Class({
         // retoreMenuItem.connect('activate', Lang.bind(this, this._restoreConfig));
 
         // Add 'Edit config' button which edits an existing rclone config
-        let editMenuItem = new PopupMenu.PopupMenuItem(_('Edit config')/*,'gedit-symbolic'*/);
+        let editMenuItem = new PopupMenu.PopupImageMenuItem(_('Edit config'),'gedit-symbolic');
         this.menu.addMenuItem(editMenuItem);
         editMenuItem.connect('activate', Lang.bind(this, this._editConfig));
 
         // Add 'Settings' menu item to open settings
-        let settingsMenuItem = new PopupMenu.PopupMenuItem(_('Settings')/*,'gnome-tweak-tool-symbolic'*/);
+        let settingsMenuItem = new PopupMenu.PopupImageMenuItem(_('Settings'),'gnome-tweak-tool-symbolic');
         this.menu.addMenuItem(settingsMenuItem);
         settingsMenuItem.connect('activate', Lang.bind(this, this._openSettings));
     },
@@ -162,47 +167,53 @@ const RcloneManager = Lang.Class({
      * @param {string} profile
      * @returns {PopupSubMenuMenuItem}
      */
-    _getMenuItem(profile){
+    _createMenuItem(profile){
         let isMounted = this._mounts.some(item => item == profile);
 		let menuItem = new PopupMenu.PopupSubMenuMenuItem(profile, true);
-        this._addSubmenu(menuItem, profile, isMounted, false);
+        menuItem.icon.icon_name = 'radio-symbolic';
+        this._createSubmenu(menuItem, profile, isMounted, false);
+        // menuItem.menu._getMenuItems().forEach(function (mItem, i, menuItems){});
+        // menuItem.menu._getMenuItems().filter(item => item.clipContents === text)[0];
         return menuItem
     },
 
-    _addSubmenu: function(menuItem, profile, isMounted, isInotify){
+    _createSubmenu: function(menuItem, profile, isMounted, isInotify){
+
+		menuItem.menu.box.style_class = 'menuitem-menu-box';
 
         if(isMounted){
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Umount', profile));
+            menuItem.menu.addMenuItem(this._createSubMenuItem('Umount', profile));
         } else if (isInotify) {
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Unwatch', profile));
+            menuItem.menu.addMenuItem(this._createSubMenuItem('Unwatch', profile));
         }
         else{
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Mount', profile));
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Watch', profile));
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Reconnect', profile));
+            menuItem.menu.addMenuItem(this._createSubMenuItem('Mount', profile));
+            menuItem.menu.addMenuItem(this._createSubMenuItem('Watch', profile));
+            menuItem.menu.addMenuItem(this._createSubMenuItem('Reconnect', profile));
         }
 
         if (isInotify || isMounted){
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Open', profile));
-            menuItem.menu.addMenuItem(this._getSubMenuItem('Backup', profile));
+            menuItem.menu.addMenuItem(this._createSubMenuItem('Open', profile));
+            menuItem.menu.addMenuItem(this._createSubMenuItem('Backup', profile));
         }
 
-        menuItem.menu.addMenuItem(this._getSubMenuItem('Sync', profile));
-        menuItem.menu.addMenuItem(this._getSubMenuItem('Delete', profile));
-
-		// The CSS from our file is automatically imported
-		// You can add custom styles like this
-		// REMOVE THIS AND SEE WHAT HAPPENS
-		menuItem.menu.box.style_class = 'PopupSubMenuMenuItemStyle';
-
-        // menuItem.menu._getMenuItems().forEach(function (mItem, i, menuItems){});
-        // menuItem.menu._getMenuItems().filter(item => item.clipContents === text)[0];
+        menuItem.menu.addMenuItem(this._createSubMenuItem('Sync', profile));
+        menuItem.menu.addMenuItem(this._createSubMenuItem('Delete', profile));
     },
 
-    _getSubMenuItem(action, profile){
+    _createSubMenuItem(action, profile){
+        let subMenuItem = new PopupMenu.PopupImageMenuItem(_(action),submenus[action]);
+        subMenuItem.profile = profile;
+        subMenuItem.action = action;
+        subMenuItem.connect('activate', this._subMenuActivated);
+        return subMenuItem;
+    },
+
+    _createSubMenuItemOld(action, profile){
         let subMenuItem = new PopupMenu.PopupMenuItem(action);
         subMenuItem.profile = profile;
         subMenuItem.action = action;
+        subMenuItem.style_class = 'sub-menu-item';
         let icon = new St.Icon({
             icon_name: submenus[action],
             style_class: 'system-status-icon'
@@ -301,9 +312,11 @@ const RcloneManager = Lang.Class({
 
     _openSettings: function () {
         if (typeof ExtensionUtils.openPrefs === 'function') {
+            print('rclone openPrefs');
             ExtensionUtils.openPrefs();
         } else {
             Util.spawn(["gnome-shell-extension-prefs",Me.uuid]);
+            print('rclone Util.spawn');
         }
     },
 
