@@ -83,7 +83,7 @@ const RcloneManager = Lang.Class({
 
         this._loadSettings();
         // fmh.parseConfigFile(rconfigFilePath);
-        this._buildMenu(this._configs, ["Gdrive"], ["Dropbox"]);
+        this._buildMenu(this._configs);
         fmh.automount(ignorePatterns, baseMountPath, mountFlags, this._onProfileStatusChanged);
     },
 
@@ -111,14 +111,12 @@ const RcloneManager = Lang.Class({
         rconfigFilePath = rconfigFilePath.replace('~',GLib.get_home_dir());
     },
 
-    _buildMenu: function (profiles, mounts, watchs) {
+    _buildMenu: function (profiles) {
         //clean menu
         this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
         for (let profile in profiles){
-            let isMounted = mounts ? mounts.some(item => item === profiles[profile]) : false;
-            let isWatched = watchs ? watchs.some(item => item === profiles[profile]) : false;
-            this.menu.addMenuItem(this._buildMenuItem(profiles[profile], isMounted, isWatched));
+            this.menu.addMenuItem(this._buildMenuItem(profiles[profile], fmh.getStatus(profiles[profile])));
         }
         // Add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -150,27 +148,24 @@ const RcloneManager = Lang.Class({
      * @param {string} profile
      * @returns {PopupSubMenuMenuItem}
      */
-    _buildMenuItem(profile, isMounted, isWatched){
+    _buildMenuItem(profile, status){
 		let menuItem = new PopupMenu.PopupSubMenuMenuItem(profile, true);
-        print('rclone _buildMenuItem',profile,isMounted,isWatched)
-        this._setMenuIcon(menuItem, 
-                isMounted?fmh.ProfileStatus.MOUNTED:
-                isWatched?fmh.ProfileStatus.WATCHED:
-                fmh.ProfileStatus.DISCONNECTED)
-        this._buildSubmenu(menuItem, profile, isMounted, isWatched);
+        menuItem.profile = profile;
+        this._setMenuIcon(menuItem, status)
+        this._buildSubmenu(menuItem, profile, status);
         return menuItem
     },
 
-    _buildSubmenu: function(menuItem, profile, isMounted, isWatched){
+    _buildSubmenu: function(menuItem, profile, status){
 
         //clean submenu
         menuItem.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
         menuItem.menu.box.style_class = 'menuitem-menu-box';
 
-        if(isMounted){
+        if(status == fmh.ProfileStatus.MOUNTED){
             menuItem.menu.addMenuItem(this._buildSubMenuItem('Umount', profile));
-        } else if (isWatched) {
+        } else if (status == fmh.ProfileStatus.WATCHED) {
             menuItem.menu.addMenuItem(this._buildSubMenuItem('Unwatch', profile));
         }
         else{
@@ -179,7 +174,7 @@ const RcloneManager = Lang.Class({
             menuItem.menu.addMenuItem(this._buildSubMenuItem('Reconnect', profile));
         }
 
-        if (isWatched || isMounted){
+        if (status == fmh.ProfileStatus.MOUNTED || status == fmh.ProfileStatus.WATCHED){
             menuItem.menu.addMenuItem(this._buildSubMenuItem('Open', profile));
             menuItem.menu.addMenuItem(this._buildSubMenuItem('Backup', profile));
         }
@@ -192,7 +187,7 @@ const RcloneManager = Lang.Class({
         let subMenuItem = new PopupMenu.PopupImageMenuItem(_(action),submenus[action]);
         subMenuItem.profile = profile;
         subMenuItem.action = action;
-        subMenuItem.connect('activate', this._subMenuActivated);
+        subMenuItem.connect('activate', Lang.bind(this, this._subMenuActivated));
         return subMenuItem;
     },
 
@@ -227,20 +222,20 @@ const RcloneManager = Lang.Class({
         const that = this;
         switch (menuItem.action) {
             case 'Watch':
-                fmh.init_filemonitor(menuItem.profile);
+                fmh.init_filemonitor(menuItem.profile, ignorePatterns, baseMountPath, 
+                    (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Unwatch':
-                fmh.remove_filemonitor(menuItem.profile);
+                fmh.remove_filemonitor(menuItem.profile,
+                    (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Mount':
-                fmh.mount(menuItem.profile, mountFlags, function(profile, profileStatus, stderrLines){
-                    print('rclone profile',profile);
-                    print('rclone profileStatus',profileStatus);
-                    print('rclone stderrLines',stderrLines);
-                });
+                fmh.mount(menuItem.profile, mountFlags,
+                    (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Umount':
-                fmh.umount(menuItem.profile);
+                fmh.umount(menuItem.profile,
+                    (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Open':
 
@@ -263,10 +258,8 @@ const RcloneManager = Lang.Class({
                     _("This action cannot be undone"), 
                     _("Confirm"), _("Cancel"), 
                     function() {
-                        fmh.deleteConfig(menuItem.profile, 
-                            function(){
-                                that._buildMenu();
-                        })
+                        fmh.deleteConfig(menuItem.profile,
+                            (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
                     }
                 );
             break;
@@ -294,14 +287,17 @@ const RcloneManager = Lang.Class({
     },
 
     _onProfileStatusChanged: function(profile, newStatus, message){
+        print('rclone _onProfileStatusChanged', profile, newStatus, message);
+        let that = this;
         this.menu._getMenuItems().forEach(function (mItem, i, menuItems){
-            if (mItem.profile == profile){
+            if (mItem.profile && mItem.profile == profile){
                 switch (newStatus) {
                 case fmh.ProfileStatus.DELETED:
                     mItem.destroy();
                 break;
                 default:
-                    this._setMenuIcon(mItem, newStatus);
+                    that._setMenuIcon(mItem, newStatus);
+                    that._buildSubmenu(mItem, profile, newStatus);
                 break;
                 }
             }

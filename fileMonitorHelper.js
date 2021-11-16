@@ -19,7 +19,8 @@ const RC_COPYTO  = 'rclone copyto %profile:"%destination" %source';
 const RC_ADDCONFIG = 'rclone config';
 const RC_DELETE = 'rclone config delete %profile'
 
-var monitors = []
+var monitors = [];
+var mounts = [];
 var rconfig = {};
 
 var ProfileStatus = {
@@ -74,18 +75,15 @@ function listremotes(){
 function automount(ignores, baseMountPath, mountFlags, onProfileStatusChanged){
 	for (let profile in rconfig){
 
-		this.monitors[profile] = [];
-		this.monitors[profile]['basepath'] = baseMountPath + profile;
-
 		if (rconfig[profile]['type'] == 'onedrive')
-			this.monitors[profile]['flags'] = 
+			monitors[profile]['flags'] = 
 				'--onedrive-drive-id '+rconfig[profile]['drive_id']+
 				' --onedrive-drive-type '+rconfig[profile]['drive_type']+
 				' --auto-confirm';
-		else this.monitors[profile]['flags'] = '';
+		else monitors[profile]['flags'] = '';
 
 		if (rconfig[profile]['x-multirctray-synctype'] == 'inotify') 
-			init_filemonitor(profile, ignores, onProfileStatusChanged);
+			init_filemonitor(profile, ignores, baseMountPath, onProfileStatusChanged);
 		else if (rconfig[profile]['x-multirctray-synctype'] == 'mount') 
 			mount(profile, mountFlags, onProfileStatusChanged);
 		else ;
@@ -97,18 +95,25 @@ function automount(ignores, baseMountPath, mountFlags, onProfileStatusChanged){
  * @param {string} profile 
  * @param {string} ignores 
  */
-function init_filemonitor(profile, ignores, onProfileStatusChanged){
-	this.monitors[profile]['ignores'] = ignores.split(',');
-	this.monitors[profile]['paths'] = [];
-	let ok = monitor_directory_recursive(profile, this.monitors[profile]['basepath']);
+function init_filemonitor(profile, ignores, baseMountPath, onProfileStatusChanged){
+	monitors[profile] = [];
+	monitors[profile]['ignores'] = ignores.split(',');
+	monitors[profile]['paths'] = [];
+	monitors[profile]['basepath'] = baseMountPath + profile;
+	print('rclone init_filemonitor monitors',JSON.stringify(monitors));
+
+	let ok = monitor_directory_recursive(profile, monitors[profile]['basepath']);
 	if(ok && onProfileStatusChanged) onProfileStatusChanged(profile, this.ProfileStatus.WATCHED);
 }
 
-function remove_filemonitor(profile){
-	if(isWatched(profile)){
-		this.monitors[profile]['paths'].forEach(monitor => {
+function remove_filemonitor(profile, onProfileStatusChanged){
+	print('rclone remove_filemonitor', profile)
+	if(getStatus(profile) == ProfileStatus.WATCHED){
+		monitors[profile]['paths'].forEach(monitor => {
 			monitor.cancel();
 		});
+
+		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.DISCONNECTED);
 	}
 }
 
@@ -125,7 +130,7 @@ function monitor_directory_recursive(profile, path){
 		monitor.connect('changed', function (monitor, file, other_file, event_type) 
 		{ onEvent(profile, monitor, file, other_file, event_type); });
 
-		this.monitors[profile]['paths'][directory.get_path()] = monitor;
+		monitors[profile]['paths'][directory.get_path()] = monitor;
 		print('rclone monitor rec', profile, directory.get_path());
 		let subfolders = directory.enumerate_children('standard::name,standard::type',Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
 		let file_info;
@@ -194,7 +199,7 @@ function onRcloneFinished(status, stdoutLines, stderrLines, profile, file){
 
 function mount(profile, mountFlags, onProfileStatusChanged){
 	let that = this;
-	rclone(RC_MOUNT+' '+mountFlags, profile, Gio.file_new_for_path(this.monitors[profile]['basepath']), null, 
+	rclone(RC_MOUNT+' '+mountFlags, profile, Gio.file_new_for_path(monitors[profile]['basepath']), null, 
 		function(status, stdoutLines, stderrLines){
 			if(status === 0) {
 				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
@@ -206,7 +211,7 @@ function mount(profile, mountFlags, onProfileStatusChanged){
 }
 
 function umount(profile, callback){
-	rclone(RC_UMOUNT, profile, Gio.file_new_for_path(this.monitors[profile]['basepath']), callback);
+	rclone(RC_UMOUNT, profile, Gio.file_new_for_path(monitors[profile]['basepath']), callback);
 }
 
 function getMounts(){
@@ -220,12 +225,11 @@ function getMounts(){
 	return mounts;
 }
 
-function isMounted(profile) {
-	return getMounts().some(item => item == profile);
-}
-
-function isWatched(profile) {
-	return monitors.some(item => item == profile);
+function getStatus(profile){
+	print('rclone monitors',JSON.stringify(monitors));
+	if(mounts.some(item => item === profile)) return ProfileStatus.MOUNTED;
+	else if(monitors.some(item => item === profile)) return ProfileStatus.WATCHED;
+	else return ProfileStatus.DISCONNECTED;
 }
 
 function reconnect(externalTerminal, profile){
@@ -233,7 +237,7 @@ function reconnect(externalTerminal, profile){
 }
 
 function sync(profile){
-	rclone(RC_SYNC, profile, Gio.file_new_for_path(this.monitors[profile]['basepath']));	
+	rclone(RC_SYNC, profile, Gio.file_new_for_path(monitors[profile]['basepath']));	
 }
 
 function backup(profile, configfilePath){
@@ -244,32 +248,39 @@ function restore(profile){
 	this.spawn_async_with_pipes(['ls','-la','.'], this.onRcloneFinished);
 }
 
-function addConfig(externalTerminal){
+function addConfig(externalTerminal, onProfileStatusChanged){
 	launch_term_cmd(externalTerminal, RC_ADDCONFIG, false, false);
+	onProfileStatusChanged && onProfileStatusChanged("", ProfileStatus.CREATED);
 }
 
-function deleteConfig(profile, callback){
+function deleteConfig(profile, onProfileStatusChanged){
 
-	if (isMounted(profile)){
-		umount(profile, function(status, stdoutLines, stderrLines){
-			if(status === 0){
-				let [stat, stdout, stderr] = spawn_sync(RC_DELETE.replace('%profile', profile).split(' '));
-			}
-		});
-	} else if (isWatched(profile)){
-		remove_filemonitor(profile);
+	switch (getStatus(profile)) {
+		case ProfileStatus.MOUNTED:
+			umount(profile, function(status, stdoutLines, stderrLines){
+				if(status === 0){
+					let [stat, stdout, stderr] = spawn_sync(RC_DELETE.replace('%profile', profile).split(' '));
+				}
+			});
+			break;
+	
+		case ProfileStatus.WATCHED:
+			remove_filemonitor(profile);
+			break;
 	}
+
+	onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DELETED);
 }
 
 function rclone(cmd, profile, file, destination, callback){
-	const basepath = this.monitors[profile]['basepath'];
+	const basepath = monitors[profile]['basepath'];
 	if(!destination && file) 
 		destination = file.get_path().replace(basepath,'');
 	
 	cmd = cmd.replace(new RegExp('%profile', 'g'), profile)
 			.replace(new RegExp('%source', 'g'), (file === undefined) ? '':file.get_path())
 			.replace('%destination', destination)
-			.replace('%flags', this.monitors[profile]['flags']);
+			.replace('%flags', monitors[profile]['flags']);
 	spawn_async_with_pipes(cmd.split(' '), callback);
 }
 
