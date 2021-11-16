@@ -23,9 +23,11 @@ var monitors = []
 var rconfig = {};
 
 var ProfileStatus = {
-    DISCONNECTED : '0',
-    MOUNTED : '1',
-    WATCHED : '2',
+	CREATED: 0,
+	DELETED: 1,
+    DISCONNECTED : 2,
+    MOUNTED : 3,
+    WATCHED : 4,
 };
 
 function parseConfigFile(filepath) {
@@ -61,7 +63,15 @@ function parseConfigFile(filepath) {
 
 function getConfigs(){ return rconfig;}
 
-function automount(ignores, baseMountPath, mountFlags, callback){
+function listremotes(){
+	let [, stdout] = spawn_sync(RC_LIST_REMOTES.split(' '));
+	return stdout
+		.replace(new RegExp(':', 'g'), '')
+		.split('\n')
+		.filter(item => item.length > 1);
+}
+
+function automount(ignores, baseMountPath, mountFlags, onProfileStatusChanged){
 	for (let profile in rconfig){
 
 		this.monitors[profile] = [];
@@ -75,9 +85,9 @@ function automount(ignores, baseMountPath, mountFlags, callback){
 		else this.monitors[profile]['flags'] = '';
 
 		if (rconfig[profile]['x-multirctray-synctype'] == 'inotify') 
-			init_filemonitor(profile, ignores, callback);
+			init_filemonitor(profile, ignores, onProfileStatusChanged);
 		else if (rconfig[profile]['x-multirctray-synctype'] == 'mount') 
-			mount(profile, mountFlags, callback);
+			mount(profile, mountFlags, onProfileStatusChanged);
 		else ;
 	}
 }
@@ -87,11 +97,11 @@ function automount(ignores, baseMountPath, mountFlags, callback){
  * @param {string} profile 
  * @param {string} ignores 
  */
-function init_filemonitor(profile, ignores, callback){
+function init_filemonitor(profile, ignores, onProfileStatusChanged){
 	this.monitors[profile]['ignores'] = ignores.split(',');
 	this.monitors[profile]['paths'] = [];
 	let ok = monitor_directory_recursive(profile, this.monitors[profile]['basepath']);
-	if(ok && callback) callback(profile, this.ProfileStatus.WATCHED);
+	if(ok && onProfileStatusChanged) onProfileStatusChanged(profile, this.ProfileStatus.WATCHED);
 }
 
 function remove_filemonitor(profile){
@@ -182,14 +192,14 @@ function onRcloneFinished(status, stdoutLines, stderrLines, profile, file){
 	print('rclone file',file.get_path());
 }
 
-function mount(profile, mountFlags, callback){
+function mount(profile, mountFlags, onProfileStatusChanged){
 	let that = this;
 	rclone(RC_MOUNT+' '+mountFlags, profile, Gio.file_new_for_path(this.monitors[profile]['basepath']), null, 
 		function(status, stdoutLines, stderrLines){
 			if(status === 0) {
-				if(callback) callback(profile, that.ProfileStatus.MOUNTED, '');
+				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
 			} else {
-				if(callback) callback(profile, that.ProfileStatus.DISCONNECTED, stderrLines);
+				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.DISCONNECTED, stderrLines);
 			}
 	});
 
@@ -207,8 +217,7 @@ function getMounts(){
 			.filter(line => line.search('rclone') > 0)
 			.forEach(line => mounts.push(line.split(':')[0]));
 	}
-	print('rclone mounts', mounts.join('\n'));
-	return ['Gdrive'];
+	return mounts;
 }
 
 function isMounted(profile) {
@@ -385,9 +394,9 @@ function spawn_sync(argv){
 
 		status = exit_status;
 
-		print('rclone ok', ok);
-		print('rclone stdout', out);
-		print('rclone stderr', err);
+		// print('rclone ok', ok);
+		// print('rclone stdout', out);
+		// print('rclone stderr', err);
 
 	} catch (e) {
 		logError(e);

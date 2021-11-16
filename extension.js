@@ -21,7 +21,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Prefs = Me.imports.prefs;
 
-const FileMonitorHelper = Me.imports.fileMonitorHelper;
+const fmh = Me.imports.fileMonitorHelper;
 const Utils = Me.imports.utils;
 const ConfirmDialog = Me.imports.confirmDialog;
 
@@ -64,6 +64,7 @@ const RcloneManager = Lang.Class({
     _historyLabelTimeoutId: null,
     _historyLabel: null,
     _disableDownArrow: null,
+    _configs: [],
     _mounts: [],
 
     _init: function() {
@@ -77,8 +78,13 @@ const RcloneManager = Lang.Class({
         hbox.add_child(this.icon);
         this.add_child(hbox);
 
-        this._mounts = FileMonitorHelper.getMounts();
+        this._configs = fmh.listremotes();
+        this._mounts = fmh.getMounts();
+
         this._loadSettings();
+        // fmh.parseConfigFile(rconfigFilePath);
+        this._buildMenu(this._configs, ["Gdrive"], ["Dropbox"]);
+        fmh.automount(ignorePatterns, baseMountPath, mountFlags, this._onProfileStatusChanged);
     },
 
     _loadSettings: function () {
@@ -103,18 +109,16 @@ const RcloneManager = Lang.Class({
 		if(!baseMountPath.endsWith('/')) baseMountPath = baseMountPath+'/';
 
         rconfigFilePath = rconfigFilePath.replace('~',GLib.get_home_dir());
-
-        FileMonitorHelper.parseConfigFile(rconfigFilePath);
-        this._buildMenu(FileMonitorHelper.getConfigs());
-        FileMonitorHelper.automount(ignorePatterns, baseMountPath, mountFlags, this._onProfileStatusChanged);
     },
 
-    _buildMenu: function (profiles) {
+    _buildMenu: function (profiles, mounts, watchs) {
         //clean menu
         this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
         for (let profile in profiles){
-            this.menu.addMenuItem(this._createMenuItem(profile));
+            let isMounted = mounts ? mounts.some(item => item === profiles[profile]) : false;
+            let isWatched = watchs ? watchs.some(item => item === profiles[profile]) : false;
+            this.menu.addMenuItem(this._buildMenuItem(profiles[profile], isMounted, isWatched));
         }
         // Add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -146,17 +150,18 @@ const RcloneManager = Lang.Class({
      * @param {string} profile
      * @returns {PopupSubMenuMenuItem}
      */
-    _createMenuItem(profile){
-        let isMounted = this._mounts.some(item => item == profile);
+    _buildMenuItem(profile, isMounted, isWatched){
 		let menuItem = new PopupMenu.PopupSubMenuMenuItem(profile, true);
-        menuItem.icon.icon_name = PROFILE_IDLE_ICON;
-        this._createSubmenu(menuItem, profile, isMounted, false);
-        // menuItem.menu._getMenuItems().forEach(function (mItem, i, menuItems){});
-        // menuItem.menu._getMenuItems().filter(item => item.clipContents === text)[0];
+        print('rclone _buildMenuItem',profile,isMounted,isWatched)
+        this._setMenuIcon(menuItem, 
+                isMounted?fmh.ProfileStatus.MOUNTED:
+                isWatched?fmh.ProfileStatus.WATCHED:
+                fmh.ProfileStatus.DISCONNECTED)
+        this._buildSubmenu(menuItem, profile, isMounted, isWatched);
         return menuItem
     },
 
-    _createSubmenu: function(menuItem, profile, isMounted, isInotify){
+    _buildSubmenu: function(menuItem, profile, isMounted, isWatched){
 
         //clean submenu
         menuItem.menu._getMenuItems().forEach(function (i) { i.destroy(); });
@@ -164,26 +169,26 @@ const RcloneManager = Lang.Class({
         menuItem.menu.box.style_class = 'menuitem-menu-box';
 
         if(isMounted){
-            menuItem.menu.addMenuItem(this._createSubMenuItem('Umount', profile));
-        } else if (isInotify) {
-            menuItem.menu.addMenuItem(this._createSubMenuItem('Unwatch', profile));
+            menuItem.menu.addMenuItem(this._buildSubMenuItem('Umount', profile));
+        } else if (isWatched) {
+            menuItem.menu.addMenuItem(this._buildSubMenuItem('Unwatch', profile));
         }
         else{
-            menuItem.menu.addMenuItem(this._createSubMenuItem('Mount', profile));
-            menuItem.menu.addMenuItem(this._createSubMenuItem('Watch', profile));
-            menuItem.menu.addMenuItem(this._createSubMenuItem('Reconnect', profile));
+            menuItem.menu.addMenuItem(this._buildSubMenuItem('Mount', profile));
+            menuItem.menu.addMenuItem(this._buildSubMenuItem('Watch', profile));
+            menuItem.menu.addMenuItem(this._buildSubMenuItem('Reconnect', profile));
         }
 
-        if (isInotify || isMounted){
-            menuItem.menu.addMenuItem(this._createSubMenuItem('Open', profile));
-            menuItem.menu.addMenuItem(this._createSubMenuItem('Backup', profile));
+        if (isWatched || isMounted){
+            menuItem.menu.addMenuItem(this._buildSubMenuItem('Open', profile));
+            menuItem.menu.addMenuItem(this._buildSubMenuItem('Backup', profile));
         }
 
-        menuItem.menu.addMenuItem(this._createSubMenuItem('Sync', profile));
-        menuItem.menu.addMenuItem(this._createSubMenuItem('Delete', profile));
+        menuItem.menu.addMenuItem(this._buildSubMenuItem('Sync', profile));
+        menuItem.menu.addMenuItem(this._buildSubMenuItem('Delete', profile));
     },
 
-    _createSubMenuItem(action, profile){
+    _buildSubMenuItem(action, profile){
         let subMenuItem = new PopupMenu.PopupImageMenuItem(_(action),submenus[action]);
         subMenuItem.profile = profile;
         subMenuItem.action = action;
@@ -191,7 +196,7 @@ const RcloneManager = Lang.Class({
         return subMenuItem;
     },
 
-    _createSubMenuItemOld(action, profile){
+    _buildSubMenuItemOld(action, profile){
         let subMenuItem = new PopupMenu.PopupMenuItem(action);
         subMenuItem.profile = profile;
         subMenuItem.action = action;
@@ -222,35 +227,35 @@ const RcloneManager = Lang.Class({
         const that = this;
         switch (menuItem.action) {
             case 'Watch':
-                FileMonitorHelper.init_filemonitor(menuItem.profile);
+                fmh.init_filemonitor(menuItem.profile);
             break;
             case 'Unwatch':
-                FileMonitorHelper.remove_filemonitor(menuItem.profile);
+                fmh.remove_filemonitor(menuItem.profile);
             break;
             case 'Mount':
-                FileMonitorHelper.mount(menuItem.profile, mountFlags, function(profile, profileStatus, stderrLines){
+                fmh.mount(menuItem.profile, mountFlags, function(profile, profileStatus, stderrLines){
                     print('rclone profile',profile);
                     print('rclone profileStatus',profileStatus);
                     print('rclone stderrLines',stderrLines);
                 });
             break;
             case 'Umount':
-                FileMonitorHelper.umount(menuItem.profile);
+                fmh.umount(menuItem.profile);
             break;
             case 'Open':
 
             break;
             case 'Backup':
-                FileMonitorHelper.backup(rconfigFilePath, menuItem.profile);
+                fmh.backup(rconfigFilePath, menuItem.profile);
             break;
             case 'Restore':
-                FileMonitorHelper.restore(menuItem.profile);
+                fmh.restore(menuItem.profile);
             break;
             case 'Reconnect':
-                FileMonitorHelper.reconnect(externalTerminal, menuItem.profile);
+                fmh.reconnect(externalTerminal, menuItem.profile);
             break;
             case 'Sync':
-                FileMonitorHelper.sync(menuItem.profile);
+                fmh.sync(menuItem.profile);
             break;
             case 'Delete':
                 ConfirmDialog.openConfirmDialog( _("Delete?"), 
@@ -258,7 +263,7 @@ const RcloneManager = Lang.Class({
                     _("This action cannot be undone"), 
                     _("Confirm"), _("Cancel"), 
                     function() {
-                        FileMonitorHelper.deleteConfig(menuItem.profile, 
+                        fmh.deleteConfig(menuItem.profile, 
                             function(){
                                 that._buildMenu();
                         })
@@ -285,11 +290,37 @@ const RcloneManager = Lang.Class({
     },
 
     _addConfig: function() { 
-        FileMonitorHelper.addConfig(externalTerminal);
+        fmh.addConfig(externalTerminal);
     },
 
-    _onProfileStatusChanged: function(status, profile, action){
-        
+    _onProfileStatusChanged: function(profile, newStatus, message){
+        this.menu._getMenuItems().forEach(function (mItem, i, menuItems){
+            if (mItem.profile == profile){
+                switch (newStatus) {
+                case fmh.ProfileStatus.DELETED:
+                    mItem.destroy();
+                break;
+                default:
+                    this._setMenuIcon(mItem, newStatus);
+                break;
+                }
+            }
+        });
+
+    },
+
+    _setMenuIcon: function(menuItem, status){
+        switch (status) {
+            case fmh.ProfileStatus.MOUNTED:                        
+                menuItem.icon.icon_name = PROFILE_MOUNTED_ICON
+            break;
+            case fmh.ProfileStatus.WATCHED:                        
+                menuItem.icon.icon_name = PROFILE_WATCHED_ICON
+            break;
+            default:
+                menuItem.icon.icon_name = PROFILE_IDLE_ICON
+            break;
+        }
     },
 
     _openSettings: function () {
