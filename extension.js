@@ -218,7 +218,7 @@ const RcloneManager = Lang.Class({
     },
 
     _subMenuActivated: function (menuItem){
-        print(menuItem.profile, menuItem.action);
+        print('_subMenuActivated', menuItem.profile, menuItem.action);
         const that = this;
         switch (menuItem.action) {
             case 'Watch':
@@ -250,7 +250,8 @@ const RcloneManager = Lang.Class({
                 fmh.reconnect(externalTerminal, menuItem.profile);
             break;
             case 'Sync':
-                fmh.sync(menuItem.profile);
+                fmh.sync(menuItem.profile, baseMountPath,
+                    (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Delete':
                 ConfirmDialog.openConfirmDialog( _("Delete?"), 
@@ -287,7 +288,7 @@ const RcloneManager = Lang.Class({
     },
 
     _onProfileStatusChanged: function(profile, newStatus, message){
-        print('rclone _onProfileStatusChanged', profile, newStatus, message);
+        print('_onProfileStatusChanged', profile, newStatus, message);
         let that = this;
         this.menu._getMenuItems().forEach(function (mItem, i, menuItems){
             if (mItem.profile && mItem.profile == profile){
@@ -295,6 +296,8 @@ const RcloneManager = Lang.Class({
                 case fmh.ProfileStatus.DELETED:
                     mItem.destroy();
                 break;
+                case fmh.ProfileStatus.ERROR:
+                    //notification
                 default:
                     that._setMenuIcon(mItem, newStatus);
                     that._buildSubmenu(mItem, profile, newStatus);
@@ -306,12 +309,19 @@ const RcloneManager = Lang.Class({
     },
 
     _setMenuIcon: function(menuItem, status){
+        print('_setMenuIcon', status);
         switch (status) {
             case fmh.ProfileStatus.MOUNTED:                        
                 menuItem.icon.icon_name = PROFILE_MOUNTED_ICON
             break;
             case fmh.ProfileStatus.WATCHED:                        
                 menuItem.icon.icon_name = PROFILE_WATCHED_ICON
+            break;
+            case fmh.ProfileStatus.BUSSY:                        
+                menuItem.icon.icon_name = PROFILE_BUSSY_ICON
+            break;
+            case fmh.ProfileStatus.ERROR:                        
+                menuItem.icon.icon_name = PROFILE_ERROR_ICON
             break;
             default:
                 menuItem.icon.icon_name = PROFILE_IDLE_ICON
