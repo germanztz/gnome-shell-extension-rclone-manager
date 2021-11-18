@@ -230,11 +230,11 @@ const RcloneManager = Lang.Class({
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Mount':
-                fmh.mount(menuItem.profile, mountFlags,
+                fmh.mount(menuItem.profile, baseMountPath, mountFlags,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Umount':
-                fmh.umount(menuItem.profile,
+                fmh.umount(menuItem.profile, baseMountPath, 
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Open':
@@ -259,7 +259,7 @@ const RcloneManager = Lang.Class({
                     _("This action cannot be undone"), 
                     _("Confirm"), _("Cancel"), 
                     function() {
-                        fmh.deleteConfig(menuItem.profile,
+                        fmh.deleteConfig(menuItem.profile, baseMountPath, 
                             (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
                     }
                 );

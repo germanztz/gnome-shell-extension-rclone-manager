@@ -6,10 +6,10 @@ const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 
 const RC_LIST_REMOTES = 'rclone listremotes'
-const RC_CREATE_DIR = 'rclone copy "%source" %profile:"%destination" --create-empty-src-dirs';
-const RC_DELETE_DIR = 'rclone purge %profile:"%destination" --ignore-errors';
-const RC_CREATE_FILE = 'rclone copy "%source" %profile:"%destination" --create-empty-src-dirs';
-const RC_DELETE_FILE = 'rclone delete %profile:"%destination" --ignore-errors';
+const RC_CREATE_DIR = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
+const RC_DELETE_DIR = 'rclone purge %profile:%destination --ignore-errors';
+// const RC_CREATE_FILE = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
+// const RC_DELETE_FILE = 'rclone delete %profile:"%destination" --ignore-errors';
 const RC_MOUNT = 'rclone mount %profile: "%source" --volname "%profile"';
 const RC_UMOUNT = 'umount "%source"';
 const RC_GETMOUNTS = 'mount';
@@ -87,7 +87,7 @@ function automount(ignores, baseMountPath, mountFlags, onProfileStatusChanged){
 		if (rconfig[profile]['x-multirctray-synctype'] == 'inotify') 
 			init_filemonitor(profile, ignores, baseMountPath, onProfileStatusChanged);
 		else if (rconfig[profile]['x-multirctray-synctype'] == 'mount') 
-			mount(profile, mountFlags, onProfileStatusChanged);
+			mount(profile, baseMountPath, mountFlags, onProfileStatusChanged);
 		else ;
 	}
 }
@@ -164,9 +164,9 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 		if (file.get_path().search(monitors[profile]['ignores'][idx],0)>0) return;
 	}
 
-	print("rclone", profile, file.get_path(), "event_type:", event_type);
-	let file_info = file.query_info('*', Gio.FileQueryInfoFlags.NONE, null);
-	const is_dir = file_info.get_file_type() == Gio.FileType.DIRECTORY;
+	print("onEvent", profile, file.get_path(), "event_type:", event_type);
+	// let file_info = file.query_info('*', Gio.FileQueryInfoFlags.NONE, null);
+	// const is_dir = file_info.get_file_type() == Gio.FileType.DIRECTORY;
 	let destinationFilePath = file.get_path().replace(profileMountPath,'');
 	
 
@@ -176,12 +176,14 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 
 	switch (event_type) {
 		case Gio.FileMonitorEvent.CHANGES_DONE_HINT:
-			if (is_dir) rclone(RC_CREATE_DIR, profile, file, destinationFilePath, callback);
-			else rclone(RC_CREATE_FILE, profile, file, destinationFilePath, callback);
+			// if (is_dir) 
+				rclone(RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
+			// else rclone(RC_CREATE_FILE, profile, file.get_path(), destinationFilePath, callback);
 		break;
 		case Gio.FileMonitorEvent.DELETED:
-			if (is_dir) rclone(RC_DELETE_DIR, profile, null, destinationFilePath, callback);
-			else rclone(RC_DELETE_FILE, profile, null, destinationFilePath, callback);
+			// if (is_dir) 
+				rclone(RC_DELETE_DIR, profile, '', destinationFilePath, callback);
+			// else rclone(RC_DELETE_FILE, profile, '', destinationFilePath, callback);
 		break;
 		case Gio.FileMonitorEvent.CHANGED:
 		case Gio.FileMonitorEvent.ATTRIBUTE_CHANGED:
@@ -212,9 +214,9 @@ function onRcloneFinished(status, stdoutLines, stderrLines, profile, file, onPro
  * @param {string} mountFlags 
  * @param {CallableFunction} onProfileStatusChanged 
  */
-function mount(profile, mountFlags, onProfileStatusChanged){
+function mount(profile, baseMountPath, mountFlags, onProfileStatusChanged){
 	let that = this;
-	rclone(RC_MOUNT+' '+mountFlags, profile, Gio.file_new_for_path(monitors[profile]['basepath']), null, 
+	rclone(RC_MOUNT+' '+mountFlags, profile, baseMountPath + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			if(status === 0) {
 				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
@@ -225,8 +227,8 @@ function mount(profile, mountFlags, onProfileStatusChanged){
 
 }
 
-function umount(profile, onProfileStatusChanged){
-	rclone(RC_UMOUNT, profile, Gio.file_new_for_path(monitors[profile]['basepath']), null, 
+function umount(profile, baseMountPath, onProfileStatusChanged){
+	rclone(RC_UMOUNT, profile, baseMountPath + profile, null, 
 	function(status, stdoutLines, stderrLines){
 		if(status === 0) {
 			if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
@@ -264,11 +266,11 @@ function sync(profile, baseMountPath,  onProfileStatusChanged){
 	let callback = function (status, stdoutLines, stderrLines) { 
 		onRcloneFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged);}
 
-	rclone(RC_SYNC, profile, Gio.file_new_for_path(baseMountPath + profile), null, callback);	
+	rclone(RC_SYNC, profile, baseMountPath + profile, null, callback);	
 }
 
 function backup(profile, configfilePath, onProfileStatusChanged){
-	rclone(	RC_COPYTO, profile, Gio.file_new_for_path(configfilePath), '/.rclone.conf',
+	rclone(	RC_COPYTO, profile, configfilePath, '/.rclone.conf',
 	function(status, stdoutLines, stderrLines){
 		if(status === 0) {
 			if(onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), '');
@@ -287,11 +289,11 @@ function addConfig(externalTerminal, onProfileStatusChanged){
 	onProfileStatusChanged && onProfileStatusChanged("", ProfileStatus.CREATED);
 }
 
-function deleteConfig(profile, onProfileStatusChanged){
+function deleteConfig(profile, baseMountPath, onProfileStatusChanged){
 
 	switch (getStatus(profile)) {
 		case ProfileStatus.MOUNTED:
-			umount(profile, function(status, stdoutLines, stderrLines){
+			umount(profile, baseMountPath, function(status, stdoutLines, stderrLines){
 				if(status === 0){
 					let [stat, stdout, stderr] = spawn_sync(RC_DELETE.replace('%profile', profile).split(' '));
 				}
@@ -306,9 +308,18 @@ function deleteConfig(profile, onProfileStatusChanged){
 	onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DELETED);
 }
 
+/**
+ * 
+ * @param {string} cmd 
+ * @param {string} profile 
+ * @param {string} file 
+ * @param {string} destination 
+ * @param {string} callback 
+ * @param {string} flags 
+ */
 function rclone(cmd, profile, file, destination, callback, flags){
 	cmd = cmd.replace(new RegExp('%profile', 'g'), profile)
-			.replace(new RegExp('%source', 'g'), (file === undefined) ? '':file.get_path())
+			.replace(new RegExp('%source', 'g'), file)
 			.replace('%destination', destination)
 			.replace('%flags', flags);
 	spawn_async_with_pipes(cmd.split(' '), callback);
