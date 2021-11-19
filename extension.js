@@ -81,9 +81,7 @@ const RcloneManager = Lang.Class({
 
         this._configs = fmh.listremotes();
         this._mounts = fmh.getMounts();
-
         this._loadSettings();
-        // fmh.parseConfigFile(rconfigFilePath);
         this._buildMenu(this._configs);
 
         let that = this;
