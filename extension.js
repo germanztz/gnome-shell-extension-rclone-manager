@@ -88,7 +88,6 @@ const RcloneManager = Lang.Class({
 
         let that = this;
         Utils.readRegistry(function(registry){
-            log('Utils.readRegistry',JSON.stringify(registry));
             that._registry = registry;
             Object.entries(that._registry).forEach( profile => {
                 if(that._registry[profile]['syncType'] === 'Watch'){
