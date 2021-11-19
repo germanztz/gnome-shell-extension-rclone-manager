@@ -56,7 +56,7 @@ function parseConfigFile(filepath) {
                 rconfig[currentSection][key] = value;
             }
         });
-        // print(JSON.stringify(rconfig));
+        // log(JSON.stringify(rconfig));
 
     } catch (e) {
 		printerr("rclone-manager Error: %s\n", e.message);
@@ -164,7 +164,7 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 		if (file.get_path().search(monitors[profile]['ignores'][idx],0)>0) return;
 	}
 
-	print("onEvent", profile, file.get_path(), "event_type:", event_type);
+	log("onEvent", profile, file.get_path(), "event_type:", event_type);
 	// let file_info = file.query_info('*', Gio.FileQueryInfoFlags.NONE, null);
 	// const is_dir = file_info.get_file_type() == Gio.FileType.DIRECTORY;
 	let destinationFilePath = file.get_path().replace(profileMountPath,'');
@@ -198,13 +198,13 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 }
 
 function onRcloneFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged){
-	print('rclone onRcloneFinished',profile,file.get_path(),status);
+	log(' onRcloneFinished',profile,file.get_path(),status);
 	if(status === 0){
 		onProfileStatusChanged && onProfileStatusChanged(profile, getStatus(profile));
-		print('rclone stdoutLines',stdoutLines.join('\n'));
+		log(' stdoutLines',stdoutLines.join('\n'));
 	} else {
 		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.ERROR, stderrLines.join('\n'));
-		print('rclone stderrLines',stderrLines.join('\n'));
+		log(' stderrLines',stderrLines.join('\n'));
 	}
 }
 
@@ -260,7 +260,7 @@ function reconnect(externalTerminal, profile){
 }
 
 function sync(profile, baseMountPath,  onProfileStatusChanged){
-	print('sync', profile);
+	log('sync', profile);
 
 	onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
 	let callback = function (status, stdoutLines, stderrLines) { 
@@ -446,9 +446,9 @@ function spawn_sync(argv){
 
 		status = exit_status;
 
-		// print('rclone ok', ok);
-		// print('rclone stdout', out);
-		// print('rclone stderr', err);
+		// log(' ok', ok);
+		// log(' stdout', out);
+		// log(' stderr', err);
 
 	} catch (e) {
 		logError(e);
@@ -464,7 +464,7 @@ function launch_term_cmd(externalTerminal, cmd, autoclose, sudo){
 			.replace('{0}', sudocmd)
 			.replace('{1}',cmd)
 			.replace('{2}',autoclosecmd);
-		print(cmd);
+		log(cmd);
 		GLib.spawn_command_line_async(cmd);
 	}catch(e){
 		logError(e);

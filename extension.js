@@ -66,6 +66,7 @@ const RcloneManager = Lang.Class({
     _disableDownArrow: null,
     _configs: [],
     _mounts: [],
+    _registry: {},
 
     _init: function() {
         this.parent(0.0, "RcloneManager");
@@ -84,7 +85,21 @@ const RcloneManager = Lang.Class({
         this._loadSettings();
         // fmh.parseConfigFile(rconfigFilePath);
         this._buildMenu(this._configs);
-        fmh.automount(ignorePatterns, baseMountPath, mountFlags, this._onProfileStatusChanged);
+
+        let that = this;
+        Utils.readRegistry(function(registry){
+            log('Utils.readRegistry',JSON.stringify(registry));
+            that._registry = registry;
+            Object.entries(that._registry).forEach( profile => {
+                if(that._registry[profile]['syncType'] === 'Watch'){
+                    fmh.init_filemonitor(profile, ignorePatterns, baseMountPath, 
+                        (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
+                } else if(that._registry[profile]['syncType'] === 'Mount'){
+                    fmh.mount(profile, baseMountPath, mountFlags,
+                        (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
+                }
+            });
+        });
     },
 
     _loadSettings: function () {
@@ -187,7 +202,7 @@ const RcloneManager = Lang.Class({
         let subMenuItem = new PopupMenu.PopupImageMenuItem(_(action),submenus[action]);
         subMenuItem.profile = profile;
         subMenuItem.action = action;
-        subMenuItem.connect('activate', Lang.bind(this, this._subMenuActivated));
+        subMenuItem.connect('activate', Lang.bind(this, this._onSubMenuActivated));
         return subMenuItem;
     },
 
@@ -213,27 +228,31 @@ const RcloneManager = Lang.Class({
         subMenuItem.actor.add_child(icoBtn);
         // subMenuItem.icoBtn = icoBtn;
 
-        subMenuItem.connect('activate', this._subMenuActivated);
+        subMenuItem.connect('activate', this._onSubMenuActivated);
         return subMenuItem;
     },
 
-    _subMenuActivated: function (menuItem){
-        print('_subMenuActivated', menuItem.profile, menuItem.action);
+    _onSubMenuActivated: function (menuItem){
+        log('_onSubMenuActivated', menuItem.profile, menuItem.action);
         const that = this;
         switch (menuItem.action) {
             case 'Watch':
+                this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
                 fmh.init_filemonitor(menuItem.profile, ignorePatterns, baseMountPath, 
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Unwatch':
+                this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
                 fmh.remove_filemonitor(menuItem.profile,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Mount':
+                this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
                 fmh.mount(menuItem.profile, baseMountPath, mountFlags,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Umount':
+                this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
                 fmh.umount(menuItem.profile, baseMountPath, 
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
@@ -270,9 +289,14 @@ const RcloneManager = Lang.Class({
         }
     },
 
+    _updateRegistry: function(key, value){
+        this._registry[key]=value;
+        Utils.writeRegistry(this._registry);
+    },
+
     _openRemote: function (autoSet) {
         var that = this;
-        print(autoSet);
+        log(autoSet);
     },
 
     _restoreConfig: function() { 
@@ -288,7 +312,7 @@ const RcloneManager = Lang.Class({
     },
 
     _onProfileStatusChanged: function(profile, newStatus, message){
-        print('_onProfileStatusChanged', profile, newStatus, message);
+        log('_onProfileStatusChanged', profile, newStatus, message);
         let that = this;
         this.menu._getMenuItems().forEach(function (mItem, i, menuItems){
             if (mItem.profile && mItem.profile == profile){
@@ -309,7 +333,7 @@ const RcloneManager = Lang.Class({
     },
 
     _setMenuIcon: function(menuItem, status){
-        print('_setMenuIcon', status);
+        log('_setMenuIcon', status);
         switch (status) {
             case fmh.ProfileStatus.MOUNTED:                        
                 menuItem.icon.icon_name = PROFILE_MOUNTED_ICON
@@ -331,11 +355,11 @@ const RcloneManager = Lang.Class({
 
     _openSettings: function () {
         if (typeof ExtensionUtils.openPrefs === 'function') {
-            print('rclone openPrefs');
+            log(' openPrefs');
             ExtensionUtils.openPrefs();
         } else {
             Util.spawn(["gnome-shell-extension-prefs",Me.uuid]);
-            print('rclone Util.spawn');
+            log(' Util.spawn');
         }
     },
 
