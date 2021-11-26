@@ -59,8 +59,7 @@ function parseConfigFile(filepath) {
         // log(JSON.stringify(rconfig));
 
     } catch (e) {
-		printerr("rclone-manager Error: %s\n", e.message);
-        logError(e, 'rclone-manager Error');
+        logError(e, e.message);
     }
 }
 
@@ -144,8 +143,7 @@ function monitor_directory_recursive(profile, path, profileMountPath, onProfileS
 		}
 		return true;
 	} catch (e) {
-		printerr("rclone-manager Error:", e.message);
-		logError(e, 'rclone-manager Error');
+		logError(e, e.message);
 		return false;
 	}
 }

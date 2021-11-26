@@ -87,13 +87,13 @@ const RcloneManager = Lang.Class({
         let that = this;
         Utils.readRegistry(function(registry){
             that._registry = registry;
-            Object.entries(that._registry).forEach( profile => {
-                if(that._registry[profile]['syncType'] === 'Watch'){
-                    fmh.init_filemonitor(profile, ignorePatterns, baseMountPath, 
-                        (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
-                } else if(that._registry[profile]['syncType'] === 'Mount'){
-                    fmh.mount(profile, baseMountPath, mountFlags,
-                        (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
+            Object.entries(that._registry).forEach( item => {
+                if(item[1]['syncType'] === 'Watch'){
+                    fmh.init_filemonitor(item[0], ignorePatterns, baseMountPath, 
+                        (profile, status, message) => {that._onProfileStatusChanged(profile, status, message);});
+                } else if(item[1]['syncType'] === 'Mount'){
+                    fmh.mount(item[0], baseMountPath, mountFlags,
+                        (profile, status, message) => {that._onProfileStatusChanged(profile, status, message);});
                 }
             });
         });
