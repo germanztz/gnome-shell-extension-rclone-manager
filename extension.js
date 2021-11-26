@@ -39,7 +39,7 @@ let externalTerminal = 'gnome-terminal --window -- ';
 let externalFileBrowser = 'nautilus';
 let externalEditor = 'gedit';
 let mountFlags = '--file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime';
-let autosync = true;
+let autosyncOption = true;
 
 const submenus = {
     'Watch': 'folder-saved-search-symbolic',
@@ -89,8 +89,13 @@ const RcloneManager = Lang.Class({
             that._registry = registry;
             Object.entries(that._registry).forEach( item => {
                 if(item[1]['syncType'] === 'Watch'){
+                    if(autosyncOption) 
+                        fmh.sync(item[0], baseMountPath,  
+                            (profile, status, message) => {that._onProfileStatusChanged(profile, status, message);});
+
                     fmh.init_filemonitor(item[0], ignorePatterns, baseMountPath, 
                         (profile, status, message) => {that._onProfileStatusChanged(profile, status, message);});
+
                 } else if(item[1]['syncType'] === 'Mount'){
                     fmh.mount(item[0], baseMountPath, mountFlags,
                         (profile, status, message) => {that._onProfileStatusChanged(profile, status, message);});
@@ -115,7 +120,7 @@ const RcloneManager = Lang.Class({
         externalFileBrowser = this._settings.get_string(Prefs.Fields.EXTERNAL_FILE_BROWSER);
         externalEditor = this._settings.get_string(Prefs.Fields.EXTERNAL_TEXT_EDITOR);
         mountFlags = this._settings.get_string(Prefs.Fields.MOUNT_FLAGS);
-        autosync = this._settings.get_string(Prefs.Fields.AUTOSYNC);
+        autosyncOption = this._settings.get_boolean(Prefs.Fields.AUTOSYNC);
 
         baseMountPath = baseMountPath.replace('~',GLib.get_home_dir());
 		if(!baseMountPath.endsWith('/')) baseMountPath = baseMountPath+'/';

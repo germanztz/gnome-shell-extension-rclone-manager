@@ -24,13 +24,13 @@ var mounts = {};
 var rconfig = {};
 
 var ProfileStatus = {
-	CREATED: 0,
-	DELETED: 1,
-    DISCONNECTED : 2,
-    MOUNTED : 3,
-    WATCHED : 4,
-    BUSSY : 5,
-    ERROR : 6,
+	CREATED: 'CREATED',
+	DELETED: 'DELETED',
+    DISCONNECTED : 'DISCONNECTED',
+    MOUNTED : 'MOUNTED',
+    WATCHED : 'WATCHED',
+    BUSSY : 'BUSSY',
+    ERROR : 'ERROR',
 };
 
 function parseConfigFile(filepath) {
@@ -67,10 +67,12 @@ function getConfigs(){ return rconfig;}
 
 function listremotes(){
 	let [, stdout] = spawn_sync(RC_LIST_REMOTES.split(' '));
-	return stdout
+	let ret = stdout
 		.replace(new RegExp(':', 'g'), '')
 		.split('\n')
 		.filter(item => item.length > 1);
+	log('listremotes', JSON.stringify(ret));
+	return ret
 }
 
 function automount(ignores, baseMountPath, mountFlags, onProfileStatusChanged){
@@ -244,6 +246,7 @@ function getMounts(){
 			.filter(line => line.search('rclone') > 0)
 			.forEach(line => mounts.push(line.split(':')[0]));
 	}
+	log('getMounts', JSON.stringify(mounts));
 	return mounts;
 }
 
@@ -347,7 +350,7 @@ function readOutput(stream, lineBuffer) {
  */
 function spawn_async_with_pipes(argv, callback){
 	try {
-		log(argv.join(' '));
+		log('spawn_async_with_pipes',argv.join(' '));
 		let [, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
 			// Working directory, passing %null to use the parent's
 			null,
@@ -417,7 +420,7 @@ function spawn_async_with_pipes(argv, callback){
 function spawn_sync(argv){
 	let out, err, status;
 	try {
-		log(argv.join(' '));
+		log('spawn_sync', argv.join(' '));
 		let [ok, stdout, stderr, exit_status] =  GLib.spawn_sync(
 			// Working directory, passing %null to use the parent's
 			null,
