@@ -9,7 +9,7 @@ https://extensions.gnome.org/extension/xxx
 
 Debugging
 
-make install && make run 2>&1 | grep rclone
+make install && make run 2>&1 | grep RClone
 
 	
 
