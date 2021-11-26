@@ -83,24 +83,11 @@ const RcloneManager = Lang.Class({
         this._mounts = fmh.getMounts();
         this._loadSettings();
         this._buildMenu(this._configs);
-
-        let that = this;
-        Utils.readRegistry(function(registry){
+        const that = this;
+        Utils.readRegistry(function (registry) {
             that._registry = registry;
-            Object.entries(that._registry).forEach( item => {
-                if(item[1]['syncType'] === 'Watch'){
-                    if(autosyncOption) 
-                        fmh.sync(item[0], baseMountPath,  
-                            (profile, status, message) => {that._onProfileStatusChanged(profile, status, message);});
-
-                    fmh.init_filemonitor(item[0], ignorePatterns, baseMountPath, 
-                        (profile, status, message) => {that._onProfileStatusChanged(profile, status, message);});
-
-                } else if(item[1]['syncType'] === 'Mount'){
-                    fmh.mount(item[0], baseMountPath, mountFlags,
-                        (profile, status, message) => {that._onProfileStatusChanged(profile, status, message);});
-                }
-            });
+            Object.entries(that._registry).forEach( registryProfile => 
+                that._initProfile(registryProfile[0], registryProfile[1]));
         });
     },
 
@@ -126,6 +113,28 @@ const RcloneManager = Lang.Class({
 		if(!baseMountPath.endsWith('/')) baseMountPath = baseMountPath+'/';
 
         rconfigFilePath = rconfigFilePath.replace('~',GLib.get_home_dir());
+    },
+
+    _initProfile: function(profile, regProf){
+        log('_initProfile', profile, JSON.stringify(regProf))
+        const that = this;
+        if(regProf['syncType'] === 'Watch'){
+
+            if(autosyncOption) {
+                that._onProfileStatusChanged(profile, fmh.ProfileStatus.BUSSY);
+                fmh.sync(profile, baseMountPath, function (profile, status, message){
+                    fmh.init_filemonitor(profile, ignorePatterns, baseMountPath, 
+                        function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
+                });
+            } else {
+                fmh.init_filemonitor(profile, ignorePatterns, baseMountPath, 
+                    function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
+            }
+        } else if(regProf['syncType'] === 'Mount'){
+            fmh.mount(regProf, baseMountPath, mountFlags, 
+                function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
+        }
+
     },
 
     _buildMenu: function (profiles) {
@@ -200,7 +209,7 @@ const RcloneManager = Lang.Class({
         menuItem.menu.addMenuItem(this._buildSubMenuItem('Delete', profile));
     },
 
-    _buildSubMenuItem(action, profile){
+    _buildSubMenuItem: function(action, profile){
         let subMenuItem = new PopupMenu.PopupImageMenuItem(_(action),submenus[action]);
         subMenuItem.profile = profile;
         subMenuItem.action = action;
@@ -208,7 +217,7 @@ const RcloneManager = Lang.Class({
         return subMenuItem;
     },
 
-    _buildSubMenuItemOld(action, profile){
+    _buildSubMenuItemOld: function(action, profile){
         let subMenuItem = new PopupMenu.PopupMenuItem(action);
         subMenuItem.profile = profile;
         subMenuItem.action = action;
@@ -271,6 +280,7 @@ const RcloneManager = Lang.Class({
                 fmh.reconnect(externalTerminal, menuItem.profile);
             break;
             case 'Sync':
+                this._onProfileStatusChanged(profile, fmh.ProfileStatus.BUSSY);
                 fmh.sync(menuItem.profile, baseMountPath,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
@@ -313,25 +323,41 @@ const RcloneManager = Lang.Class({
         fmh.addConfig(externalTerminal);
     },
 
-    _onProfileStatusChanged: function(profile, newStatus, message){
-        log('_onProfileStatusChanged', profile, newStatus, message);
-        let that = this;
+    _onProfileStatusChanged: function(profile, status, message){
+        log('_onProfileStatusChanged', profile, status, message);
+        mItem = this._findProfileMenu(profile);
+        switch (status) {
+        case fmh.ProfileStatus.DELETED:
+            mItem.destroy();
+        break;
+        case fmh.ProfileStatus.ERROR:
+            this.icon.icon_name=PROFILE_ERROR_ICON;
+            //notification
+            this._setMenuIcon(mItem, status);
+            this._buildSubmenu(mItem, profile, status);
+            break;
+        case fmh.ProfileStatus.BUSSY:
+            this.icon.icon_name=PROFILE_BUSSY_ICON;
+            this._setMenuIcon(mItem, status);
+            this._buildSubmenu(mItem, profile, status);
+            break;
+        default:
+            this.icon.icon_name=INDICATOR_ICON;
+            this._setMenuIcon(mItem, status);
+            this._buildSubmenu(mItem, profile, status);
+        break;
+        }
+
+    },
+
+    _findProfileMenu: function(profile){
+        let retItem = null;
         this.menu._getMenuItems().forEach(function (mItem, i, menuItems){
             if (mItem.profile && mItem.profile == profile){
-                switch (newStatus) {
-                case fmh.ProfileStatus.DELETED:
-                    mItem.destroy();
-                break;
-                case fmh.ProfileStatus.ERROR:
-                    //notification
-                default:
-                    that._setMenuIcon(mItem, newStatus);
-                    that._buildSubmenu(mItem, profile, newStatus);
-                break;
-                }
+                retItem = mItem;
             }
         });
-
+        return retItem;
     },
 
     _setMenuIcon: function(menuItem, status){

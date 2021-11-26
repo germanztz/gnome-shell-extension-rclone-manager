@@ -198,7 +198,7 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 }
 
 function onRcloneFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged){
-	log(' onRcloneFinished',profile,file.get_path(),status);
+	log(' onRcloneFinished',profile,file,status);
 	if(status === 0){
 		onProfileStatusChanged && onProfileStatusChanged(profile, getStatus(profile));
 		log(' stdoutLines',stdoutLines.join('\n'));
@@ -263,9 +263,8 @@ function reconnect(externalTerminal, profile){
 function sync(profile, baseMountPath,  onProfileStatusChanged){
 	log('sync', profile);
 
-	onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
 	let callback = function (status, stdoutLines, stderrLines) { 
-		onRcloneFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged);}
+		onRcloneFinished(status, stdoutLines, stderrLines, profile, null, onProfileStatusChanged);}
 
 	spawn_async_cmd(RC_SYNC, profile, baseMountPath + profile, null, callback);	
 }
