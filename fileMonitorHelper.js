@@ -33,36 +33,6 @@ var ProfileStatus = {
     ERROR : 'ERROR',
 };
 
-// function parseConfigFile(filepath) {
-// 	rconfig = {};
-//     try {
-//         let fileContents = GLib.file_get_contents(filepath)[1];
-//         // are we running gnome 3.30 or higher?
-//         if (fileContents instanceof Uint8Array) {
-//             fileContents = imports.byteArray.toString(fileContents).split("\n");
-//         } 
-    
-//         let currentSection=''
-//         let p;
-//         fileContents.forEach(function(line){
-//             if(line.trim().startsWith('#') || line.trim().length == 0) { }
-//             else if (line.trim().startsWith('[')) {
-//                 currentSection = line.replace('[','').replace(']','');
-//                 rconfig[currentSection] = {};
-//             }
-//             else if ((p = line.search('=',0)) > 0) {
-//                 let key = line.substr(0,p).trim();
-//                 let value = line.substr(p+1,line.length-1).trim();
-//                 rconfig[currentSection][key] = value;
-//             }
-//         });
-//         // log(JSON.stringify(rconfig));
-
-//     } catch (e) {
-//         logError(e, e.message);
-//     }
-// }
-
 function getConfigs(){ return rconfig;}
 
 function listremotes(){
