@@ -33,35 +33,35 @@ var ProfileStatus = {
     ERROR : 'ERROR',
 };
 
-function parseConfigFile(filepath) {
-	rconfig = {};
-    try {
-        let fileContents = GLib.file_get_contents(filepath)[1];
-        // are we running gnome 3.30 or higher?
-        if (fileContents instanceof Uint8Array) {
-            fileContents = imports.byteArray.toString(fileContents).split("\n");
-        } 
+// function parseConfigFile(filepath) {
+// 	rconfig = {};
+//     try {
+//         let fileContents = GLib.file_get_contents(filepath)[1];
+//         // are we running gnome 3.30 or higher?
+//         if (fileContents instanceof Uint8Array) {
+//             fileContents = imports.byteArray.toString(fileContents).split("\n");
+//         } 
     
-        let currentSection=''
-        let p;
-        fileContents.forEach(function(line){
-            if(line.trim().startsWith('#') || line.trim().length == 0) { }
-            else if (line.trim().startsWith('[')) {
-                currentSection = line.replace('[','').replace(']','');
-                rconfig[currentSection] = {};
-            }
-            else if ((p = line.search('=',0)) > 0) {
-                let key = line.substr(0,p).trim();
-                let value = line.substr(p+1,line.length-1).trim();
-                rconfig[currentSection][key] = value;
-            }
-        });
-        // log(JSON.stringify(rconfig));
+//         let currentSection=''
+//         let p;
+//         fileContents.forEach(function(line){
+//             if(line.trim().startsWith('#') || line.trim().length == 0) { }
+//             else if (line.trim().startsWith('[')) {
+//                 currentSection = line.replace('[','').replace(']','');
+//                 rconfig[currentSection] = {};
+//             }
+//             else if ((p = line.search('=',0)) > 0) {
+//                 let key = line.substr(0,p).trim();
+//                 let value = line.substr(p+1,line.length-1).trim();
+//                 rconfig[currentSection][key] = value;
+//             }
+//         });
+//         // log(JSON.stringify(rconfig));
 
-    } catch (e) {
-        logError(e, e.message);
-    }
-}
+//     } catch (e) {
+//         logError(e, e.message);
+//     }
+// }
 
 function getConfigs(){ return rconfig;}
 
@@ -105,21 +105,9 @@ function init_filemonitor(profile, ignores, baseMountPath, onProfileStatusChange
 	monitors[profile]['basepath'] = baseMountPath + profile;
 	log('init_filemonitor',profile, monitors[profile]['basepath']);
 
-	let ok = monitor_directory_recursive(profile, monitors[profile]['basepath'], monitors[profile]['basepath'], onProfileStatusChanged);
+	let ok = addMonitorRecursive(profile, monitors[profile]['basepath'], monitors[profile]['basepath'], onProfileStatusChanged);
 	if(ok && onProfileStatusChanged) onProfileStatusChanged(profile, this.ProfileStatus.WATCHED);
 }
-
-function remove_filemonitor(profile, onProfileStatusChanged){
-	if(getStatus(profile) == ProfileStatus.WATCHED){
-		Object.entries(monitors[profile]['paths']).forEach(([,monitor]) => {
-			monitor.cancel();
-		});
-		delete monitors[profile];
-		log('remove_filemonitor',profile);
-		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.DISCONNECTED);
-	}
-}
-
 
 /**
  * 
@@ -128,7 +116,7 @@ function remove_filemonitor(profile, onProfileStatusChanged){
  * @param {string} profileMountPath 
  * @param {CallableFunction} onProfileStatusChanged 
  */
-function monitor_directory_recursive(profile, path, profileMountPath, onProfileStatusChanged){
+function addMonitorRecursive(profile, path, profileMountPath, onProfileStatusChanged){
 	try {
 		const directory = Gio.file_new_for_path(path);
 		let monitor = directory.monitor_directory(Gio.FileMonitorFlags.NONE, null);
@@ -136,12 +124,12 @@ function monitor_directory_recursive(profile, path, profileMountPath, onProfileS
 		{ onEvent(profile, monitor, file, other_file, event_type, profileMountPath, onProfileStatusChanged); });
 
 		monitors[profile]['paths'][directory.get_path()] = monitor;
-		log('monitor_directory_recursive', profile, directory.get_path());
+		log('addMonitorRecursive', profile, directory.get_path());
 		let subfolders = directory.enumerate_children('standard::name,standard::type',Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
 		let file_info;
 		while ((file_info = subfolders.next_file(null)) != null) {
 			if(file_info.get_file_type() == Gio.FileType.DIRECTORY)
-				monitor_directory_recursive(profile, path+'/'+file_info.get_name(), profileMountPath, onProfileStatusChanged);
+				addMonitorRecursive(profile, path+'/'+file_info.get_name(), profileMountPath, onProfileStatusChanged);
 		}
 		return true;
 	} catch (e) {
@@ -164,26 +152,22 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 		if (file.get_path().search(monitors[profile]['ignores'][idx],0)>0) return;
 	}
 
-	log("onEvent", profile, file.get_path(), "event_type:", event_type);
-	// let file_info = file.query_info('*', Gio.FileQueryInfoFlags.NONE, null);
-	// const is_dir = file_info.get_file_type() == Gio.FileType.DIRECTORY;
+	log("onEvent", profile, file.get_basename(), "event_type:", event_type);
 	let destinationFilePath = file.get_path().replace(profileMountPath,'');
-	
-
-	onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
 	let callback = function (status, stdoutLines, stderrLines) { 
-		onRcloneFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged);}
+		onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged);}
 
 	switch (event_type) {
 		case Gio.FileMonitorEvent.CHANGES_DONE_HINT:
-			// if (is_dir) 
-				spawn_async_cmd(RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
-			// else spawn_async_cmd(RC_CREATE_FILE, profile, file.get_path(), destinationFilePath, callback);
+			if (isDir(file)) addMonitorRecursive(profile, file.get_path(), profileMountPath, onProfileStatusChanged);
+			destinationFilePath = destinationFilePath.replace(file.get_basename(),'');
+			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
+			spawn_async_cmd(RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
 		break;
 		case Gio.FileMonitorEvent.DELETED:
-			// if (is_dir) 
-				spawn_async_cmd(RC_DELETE_DIR, profile, '', destinationFilePath, callback);
-			// else spawn_async_cmd(RC_DELETE_FILE, profile, '', destinationFilePath, callback);
+			if (isDir(file)) deleteFileMonitor(profile, file.get_path());
+			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
+			spawn_async_cmd(RC_DELETE_DIR, profile, '', destinationFilePath, callback);
 		break;
 		case Gio.FileMonitorEvent.CHANGED:
 		case Gio.FileMonitorEvent.ATTRIBUTE_CHANGED:
@@ -197,8 +181,43 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 	}
 }
 
-function onRcloneFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged){
-	log(' onRcloneFinished',profile,file,status);
+function isDir(file){
+	let isdir = false;
+    if (GLib.file_test(file.get_path(), GLib.FileTest.EXISTS)) {
+		isdir = GLib.file_test(file.get_path(), GLib.FileTest.IS_DIR);
+	} else {
+		Object.entries(monitors).forEach(entry => {
+			if(!isdir) isdir = getFileMonitor(entry[0], file.get_path());
+		});
+	}
+	log('isDir', file.get_path(), JSON.stringify(isdir));
+	return isdir;
+}
+
+function remove_filemonitor(profile, onProfileStatusChanged){
+	if(getStatus(profile) == ProfileStatus.WATCHED){
+		Object.entries(monitors[profile]['paths']).forEach( entry => {
+			deleteFileMonitor(profile, entry[0])
+		});
+		delete monitors[profile];
+		log('remove_filemonitor',profile);
+		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.DISCONNECTED);
+	}
+}
+
+function deleteFileMonitor(profile, path){
+	getFileMonitor(profile, path).cancel();
+	delete monitors[profile]['paths'][path];
+}
+
+function getFileMonitor(profile, path){
+	let fm = monitors[profile]['paths'][path];
+	log('getFileMonitor', profile, path, 'FileMonitor:', fm)
+	return fm;
+}
+
+function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged){
+	log('onCmdFinished',profile,file,status);
 	if(status === 0){
 		onProfileStatusChanged && onProfileStatusChanged(profile, getStatus(profile));
 		log(' stdoutLines',stdoutLines.join('\n'));
@@ -264,7 +283,7 @@ function sync(profile, baseMountPath,  onProfileStatusChanged){
 	log('sync', profile);
 
 	let callback = function (status, stdoutLines, stderrLines) { 
-		onRcloneFinished(status, stdoutLines, stderrLines, profile, null, onProfileStatusChanged);}
+		onCmdFinished(status, stdoutLines, stderrLines, profile, null, onProfileStatusChanged);}
 
 	spawn_async_cmd(RC_SYNC, profile, baseMountPath + profile, null, callback);	
 }
@@ -281,7 +300,7 @@ function backup(profile, configfilePath, onProfileStatusChanged){
 }
 
 function restore(profile, baseMountPath, onProfileStatusChanged){
-	this.spawn_async_with_pipes(['ls','-la','.'], this.onRcloneFinished);
+	this.spawn_async_with_pipes(['ls','-la','.'], this.onCmdFinished);
 }
 
 function addConfig(externalTerminal, onProfileStatusChanged){
@@ -324,7 +343,6 @@ function spawn_async_cmd(cmd, profile, file, destination, callback, flags){
 			.replace('%flags', flags);
 	spawn_async_with_pipes(cmd.split(' '), callback);
 }
-
 
 // A simple asynchronous read loop
 function readOutput(stream, lineBuffer) {
