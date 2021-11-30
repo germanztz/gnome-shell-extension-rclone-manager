@@ -252,10 +252,17 @@ function reconnect(externalTerminal, profile){
 function sync(profile, baseMountPath,  onProfileStatusChanged){
 	log('sync', profile);
 
-	let callback = function (status, stdoutLines, stderrLines) { 
-		onCmdFinished(status, stdoutLines, stderrLines, profile, null, onProfileStatusChanged);}
+	// let callback = function (status, stdoutLines, stderrLines) { 
+	// 	onCmdFinished(status, stdoutLines, stderrLines, profile, null, onProfileStatusChanged);}
 
-	spawn_async_cmd(RC_SYNC, profile, baseMountPath + profile, null, callback);	
+	spawn_async_cmd(RC_SYNC, profile, baseMountPath + profile, null, 
+		function(status, stdoutLines, stderrLines){
+			if(status === 0) {
+				if(onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), '');
+			} else {
+				if(onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, stderrLines);
+			}
+		});	
 }
 
 function backup(profile, configfilePath, onProfileStatusChanged){
@@ -264,7 +271,7 @@ function backup(profile, configfilePath, onProfileStatusChanged){
 		if(status === 0) {
 			if(onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), '');
 		} else {
-			if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.ERROR, stderrLines);
+			if(onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, stderrLines);
 		}
 	});
 }

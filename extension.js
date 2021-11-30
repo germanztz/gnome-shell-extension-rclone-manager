@@ -280,13 +280,13 @@ const RcloneManager = Lang.Class({
                 fmh.reconnect(externalTerminal, menuItem.profile);
             break;
             case 'Sync':
-                this._onProfileStatusChanged(profile, fmh.ProfileStatus.BUSSY);
+                this._onProfileStatusChanged(menuItem.profile, fmh.ProfileStatus.BUSSY);
                 fmh.sync(menuItem.profile, baseMountPath,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Delete':
                 ConfirmDialog.openConfirmDialog( _("Delete?"), 
-                    _("Are you sure you want to delte?"), 
+                    _("Are you sure you want to delete?"), 
                     _("This action cannot be undone"), 
                     _("Confirm"), _("Cancel"), 
                     function() {
@@ -325,21 +325,25 @@ const RcloneManager = Lang.Class({
 
     _onProfileStatusChanged: function(profile, status, message){
         log('_onProfileStatusChanged', profile, status, message);
-        mItem = this._findProfileMenu(profile);
+        let mItem = this._findProfileMenu(profile);
+        let that = this;
         switch (status) {
         case fmh.ProfileStatus.DELETED:
             mItem.destroy();
         break;
         case fmh.ProfileStatus.ERROR:
             this.icon.icon_name=PROFILE_ERROR_ICON;
-            //notification
+            this._showNotification(profile + ' error: '+message, n => {
+                n.addAction(_('Details'), Lang.bind(that, ConfirmDialog.openConfirmDialog( _("Error Detail"), 
+                    profile, message, _("Ok") )));
+            });
             this._setMenuIcon(mItem, status);
-            this._buildSubmenu(mItem, profile, status);
+            this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
             break;
         case fmh.ProfileStatus.BUSSY:
             this.icon.icon_name=PROFILE_BUSSY_ICON;
             this._setMenuIcon(mItem, status);
-            this._buildSubmenu(mItem, profile, status);
+            this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
             break;
         default:
             this.icon.icon_name=INDICATOR_ICON;
@@ -391,11 +395,47 @@ const RcloneManager = Lang.Class({
         }
     },
 
+
+    _initNotifSource: function () {
+        if (!this._notifSource) {
+            this._notifSource = new MessageTray.Source('RcloneManager', INDICATOR_ICON);
+            this._notifSource.connect('destroy', Lang.bind(this, function() {
+                this._notifSource = null;
+            }));
+            Main.messageTray.add(this._notifSource);
+        }
+    },
+
+    _showNotification: function (message, transformFn) {
+        let notification = null;
+
+        this._initNotifSource();
+
+        if (this._notifSource.count === 0) {
+            notification = new MessageTray.Notification(this._notifSource, message);
+        }
+        else {
+            notification = this._notifSource.notifications[0];
+            notification.update(message, '', { clear: true });
+        }
+
+        if (typeof transformFn === 'function') {
+            transformFn(notification);
+        }
+
+        notification.setTransient(true);
+        if (Config.PACKAGE_VERSION < '3.38')
+            this._notifSource.notify(notification);
+        else
+            this._notifSource.showNotification(notification);
+    },
+
     destroy: function () {
 
         // Call parent
         this.parent();
     },
+
 
 /*
     _updateCache: function () {
@@ -457,55 +497,6 @@ const RcloneManager = Lang.Class({
         });
     },
 
-    _initNotifSource: function () {
-        if (!this._notifSource) {
-            this._notifSource = new MessageTray.Source('RcloneManager',
-                                    INDICATOR_ICON);
-            this._notifSource.connect('destroy', Lang.bind(this, function() {
-                this._notifSource = null;
-            }));
-            Main.messageTray.add(this._notifSource);
-        }
-    },
-
-    _cancelNotification: function() {
-        if (this.clipItemsRadioGroup.length >= 2) {
-            let clipSecond = this.clipItemsRadioGroup.length - 2;
-            let previousClip = this.clipItemsRadioGroup[clipSecond];
-            Clipboard.set_text(CLIPBOARD_TYPE, previousClip.clipContents);
-            previousClip.setOrnament(PopupMenu.Ornament.DOT);
-            previousClip.icoBtn.visible = false;
-            previousClip.currentlySelected = true;
-        } else {
-            Clipboard.set_text(CLIPBOARD_TYPE, "");
-        }
-        let clipFirst = this.clipItemsRadioGroup.length - 1;
-        this._removeEntry(this.clipItemsRadioGroup[clipFirst]);
-    },
-
-    _showNotification: function (message, transformFn) {
-        let notification = null;
-
-        this._initNotifSource();
-
-        if (this._notifSource.count === 0) {
-            notification = new MessageTray.Notification(this._notifSource, message);
-        }
-        else {
-            notification = this._notifSource.notifications[0];
-            notification.update(message, '', { clear: true });
-        }
-
-        if (typeof transformFn === 'function') {
-            transformFn(notification);
-        }
-
-        notification.setTransient(true);
-        if (Config.PACKAGE_VERSION < '3.38')
-            this._notifSource.notify(notification);
-        else
-            this._notifSource.showNotification(notification);
-    },
 
 
     _previousEntry: function() {
