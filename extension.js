@@ -245,7 +245,6 @@ const RcloneManager = Lang.Class({
 
     _onSubMenuActivated: function (menuItem){
         log('_onSubMenuActivated', menuItem.profile, menuItem.action);
-        const that = this;
         switch (menuItem.action) {
             case 'Watch':
                 this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
@@ -299,6 +298,7 @@ const RcloneManager = Lang.Class({
             default:
                 break;
         }
+        this.menu.toggle();
     },
 
     _updateRegistry: function(key, value){
@@ -333,10 +333,10 @@ const RcloneManager = Lang.Class({
         break;
         case fmh.ProfileStatus.ERROR:
             this.icon.icon_name=PROFILE_ERROR_ICON;
-            this._showNotification(profile + ' error: '+message, n => {
+            this._showNotification(profile + ' error: '+message /*, n => {
                 n.addAction(_('Details'), Lang.bind(that, ConfirmDialog.openConfirmDialog( _("Error Detail"), 
-                    profile, message, _("Ok") )));
-            });
+                    profile, message, _("Ok"), _("Cancel"), function(){} )));
+            }*/);
             this._setMenuIcon(mItem, status);
             this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
             break;
@@ -424,7 +424,7 @@ const RcloneManager = Lang.Class({
         }
 
         notification.setTransient(true);
-        if (Config.PACKAGE_VERSION < '3.38')
+        if (Config.PACKAGE_VERSION < '3.36')
             this._notifSource.notify(notification);
         else
             this._notifSource.showNotification(notification);
