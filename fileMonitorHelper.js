@@ -120,6 +120,10 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 	for (const idx in monitors[profile]['ignores']) {
 		if (file.get_path().search(monitors[profile]['ignores'][idx],0)>0) return;
 	}
+	
+	if(monitors[profile].hasOwnProperty('is_synching')){
+		return;
+	}
 
 	log("onEvent", profile, file.get_basename(), "event_type:", event_type);
 	let destinationFilePath = file.get_path().replace(profileMountPath,'');
@@ -255,11 +259,21 @@ function reconnect(externalTerminal, profile){
 function sync(profile, baseMountPath,  onProfileStatusChanged){
 	log('sync', profile);
 
+	if (getStatus(profile) == ProfileStatus.MOUNTED){
+		if(onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Mounted Profiles are already in sync');
+		return;
+	} 
+
+	monitors[profile]['is_synching'] = true;
+
 	// let callback = function (status, stdoutLines, stderrLines) { 
 	// 	onCmdFinished(status, stdoutLines, stderrLines, profile, null, onProfileStatusChanged);}
 
 	spawn_async_cmd(RC_SYNC, profile, baseMountPath + profile, null, 
 		function(status, stdoutLines, stderrLines){
+			
+			delete(monitors[profile]['is_synching']);
+
 			if(status === 0) {
 				if(onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), '');
 			} else {

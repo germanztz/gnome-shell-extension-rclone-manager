@@ -365,7 +365,7 @@ const RcloneManager = Lang.Class({
     },
 
     _setMenuIcon: function(menuItem, status){
-        log('_setMenuIcon', status);
+        log('_setMenuIcon', menuItem.profile, status);
         switch (status) {
             case fmh.ProfileStatus.MOUNTED:                        
                 menuItem.icon.icon_name = PROFILE_MOUNTED_ICON
