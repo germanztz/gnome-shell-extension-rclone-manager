@@ -257,14 +257,17 @@ function reconnect(externalTerminal, profile){
 }
 
 function sync(profile, baseMountPath,  onProfileStatusChanged){
-	log('sync', profile);
 
 	if (getStatus(profile) == ProfileStatus.MOUNTED){
 		if(onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Mounted Profiles are already in sync');
 		return;
 	} 
 
-	monitors[profile]['is_synching'] = true;
+	log('sync', profile);
+
+	if(monitors.hasOwnProperty(profile)){
+		monitors[profile]['is_synching'] = true;
+	}
 
 	// let callback = function (status, stdoutLines, stderrLines) { 
 	// 	onCmdFinished(status, stdoutLines, stderrLines, profile, null, onProfileStatusChanged);}
@@ -272,7 +275,9 @@ function sync(profile, baseMountPath,  onProfileStatusChanged){
 	spawn_async_cmd(RC_SYNC, profile, baseMountPath + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			
-			delete(monitors[profile]['is_synching']);
+			if(monitors.hasOwnProperty(profile)){
+				delete(monitors[profile]['is_synching']);
+			}
 
 			if(status === 0) {
 				if(onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), '');
@@ -332,6 +337,7 @@ function deleteConfig(profile, baseMountPath, onProfileStatusChanged){
  */
 function spawn_async_cmd(cmd, profile, file, destination, callback, flags){
 	let cmdArray = cmd.split(' ');
+	log('spawn_async_cmd', profile, cmd)
 	for (var i = 0; i < cmdArray.length; i++) {
 		cmdArray[i] = cmdArray[i]
 			.replace('%profile', profile)
