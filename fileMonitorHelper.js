@@ -5,18 +5,9 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 
-const RC_LIST_REMOTES 	= 'rclone listremotes'
 const RC_CREATE_DIR 	= 'rclone copy %source %profile:%destination --create-empty-src-dirs';
 const RC_DELETE_DIR 	= 'rclone purge %profile:%destination --ignore-errors';
 const RC_DELETE_FILE 	= 'rclone delete %profile:%destination --ignore-errors';
-const RC_MOUNT 			= 'rclone mount %profile:%source --volname %profile';
-const RC_SYNC  			= 'rclone sync %profile: %source --create-empty-src-dirs';
-const RC_COPYTO  		= 'rclone copyto %profile:%destination %source';
-const RC_ADDCONFIG 		= 'rclone config';
-const RC_DELETE 		= 'rclone config delete %profile'
-const RC_RECONNECT  	= 'rclone config reconnect %profile: %flags';
-const RC_UMOUNT 		= 'umount %source';
-const RC_GETMOUNTS 		= 'mount';
 
 var monitors = {};
 var mounts = {};
@@ -34,7 +25,7 @@ var ProfileStatus = {
 
 function getConfigs(){ return rconfig;}
 
-function listremotes(){
+function listremotes(RC_LIST_REMOTES){
 	let [, stdout] = spawn_sync(RC_LIST_REMOTES.split(' '));
 	let ret = stdout
 		.replace(new RegExp(':', 'g'), '')
@@ -42,24 +33,6 @@ function listremotes(){
 		.filter(item => item.length > 1);
 	log('listremotes', JSON.stringify(ret));
 	return ret
-}
-
-function automount(ignores, baseMountPath, mountFlags, onProfileStatusChanged){
-	for (let profile in rconfig){
-
-		if (rconfig[profile]['type'] == 'onedrive')
-			monitors[profile]['flags'] = 
-				'--onedrive-drive-id '+rconfig[profile]['drive_id']+
-				' --onedrive-drive-type '+rconfig[profile]['drive_type']+
-				' --auto-confirm';
-		else monitors[profile]['flags'] = '';
-
-		if (rconfig[profile]['x-multirctray-synctype'] == 'inotify') 
-			init_filemonitor(profile, ignores, baseMountPath, onProfileStatusChanged);
-		else if (rconfig[profile]['x-multirctray-synctype'] == 'mount') 
-			mount(profile, baseMountPath, mountFlags, onProfileStatusChanged);
-		else ;
-	}
 }
 
 /**
@@ -210,12 +183,11 @@ function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfil
 /**
  * 
  * @param {string} profile 
- * @param {string} mountFlags 
  * @param {CallableFunction} onProfileStatusChanged 
  */
-function mount(profile, baseMountPath, mountFlags, onProfileStatusChanged){
+function mount(RC_MOUNT, profile, baseMountPath, onProfileStatusChanged){
 	let that = this;
-	spawn_async_cmd(RC_MOUNT+' '+mountFlags, profile, baseMountPath + profile, null, 
+	spawn_async_cmd(RC_MOUNT, profile, baseMountPath + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			if(status === 0) {
 				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
@@ -226,7 +198,7 @@ function mount(profile, baseMountPath, mountFlags, onProfileStatusChanged){
 
 }
 
-function umount(profile, baseMountPath, onProfileStatusChanged){
+function umount(RC_UMOUNT, profile, baseMountPath, onProfileStatusChanged){
 	spawn_async_cmd(RC_UMOUNT, profile, baseMountPath + profile, null, 
 	function(status, stdoutLines, stderrLines){
 		if(status === 0) {
@@ -237,7 +209,7 @@ function umount(profile, baseMountPath, onProfileStatusChanged){
 	});
 }
 
-function getMounts(){
+function getMounts(RC_GETMOUNTS){
 	let [stat, stdout, stderr] = this.spawn_sync(RC_GETMOUNTS.split(' '));
 	let mounts = [];
 	if(stdout){
@@ -255,11 +227,11 @@ function getStatus(profile){
 	else return ProfileStatus.DISCONNECTED;
 }
 
-function reconnect(externalTerminal, profile){
-	launch_term_cmd(externalTerminal, RC_RECONNECT, profile);
+function reconnect(EXTERNAL_TERMINAL, RC_RECONNECT, profile){
+	launch_term_cmd(EXTERNAL_TERMINAL, RC_RECONNECT, profile);
 }
 
-function sync(profile, baseMountPath,  onProfileStatusChanged){
+function sync(RC_SYNC, profile, baseMountPath,  onProfileStatusChanged){
 
 	if (getStatus(profile) == ProfileStatus.MOUNTED){
 		if(onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Mounted Profiles are already in sync');
@@ -290,7 +262,7 @@ function sync(profile, baseMountPath,  onProfileStatusChanged){
 		});	
 }
 
-function backup(profile, configfilePath, onProfileStatusChanged){
+function backup(RC_COPYTO, profile, configfilePath, onProfileStatusChanged){
 	spawn_async_cmd(RC_COPYTO, profile, configfilePath, '/.rclone.conf',
 	function(status, stdoutLines, stderrLines){
 		if(status === 0) {
@@ -305,12 +277,12 @@ function restore(profile, baseMountPath, onProfileStatusChanged){
 	this.spawn_async_with_pipes(['ls','-la','.'], this.onCmdFinished);
 }
 
-function addConfig(externalTerminal, onProfileStatusChanged){
-	launch_term_cmd(externalTerminal, RC_ADDCONFIG, false, false);
+function addConfig(EXTERNAL_TERMINAL, RC_ADDCONFIG, onProfileStatusChanged){
+	launch_term_cmd(EXTERNAL_TERMINAL, RC_ADDCONFIG, false, false);
 	onProfileStatusChanged && onProfileStatusChanged("", ProfileStatus.CREATED);
 }
 
-function deleteConfig(profile, baseMountPath, onProfileStatusChanged){
+function deleteConfig(RC_DELETE, profile, baseMountPath, onProfileStatusChanged){
 
 	switch (getStatus(profile)) {
 		case ProfileStatus.MOUNTED:
@@ -481,11 +453,11 @@ function spawn_sync(argv){
 	return [status, out, err]
 }
 
-function launch_term_cmd(externalTerminal, cmd, autoclose, sudo){
+function launch_term_cmd(EXTERNAL_TERMINAL, cmd, autoclose, sudo){
 	try{
 		let autoclosecmd = autoclose ? '; echo "Press any key to exit"; read' : '';
 		let sudocmd = sudo ? 'sudo' : '';
-		cmd = externalTerminal + " {0} bash -c '{1} {2}'"
+		cmd = EXTERNAL_TERMINAL + " {0} bash -c '{1} {2}'"
 			.replace('{0}', sudocmd)
 			.replace('{1}',cmd)
 			.replace('{2}',autoclosecmd);

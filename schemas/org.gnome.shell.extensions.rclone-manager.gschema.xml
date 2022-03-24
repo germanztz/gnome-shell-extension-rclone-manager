@@ -50,13 +50,13 @@
         </description>
     </key>
 
-    <key name="mount-flags" type="s">
-      <default>'--file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime'</default>
+    <!-- <key name="mount-flags" type="s">
+      <default>'- -file-perms 0777 - -allow-non-empty - -allow-other - -write-back-cache - -no-modtime'</default>
         <summary>Optional mount flags</summary>
         <description>
             Optional flags to be passed to "rclone mount" command
         </description>
-    </key>
+    </key> -->
 
     <key name="autosync" type="b">
       <default>true</default>
@@ -65,5 +65,78 @@
             If is on will execute 'rclone sync' on start watching a profile
         </description>
     </key>
+
+    <key name="rclone-listremotes" type="s">
+      <default>'rclone listremotes'</default>
+        <summary>List remotes command</summary>
+        <description>Command to list remotes</description>
+    </key>
+
+    <key name="rclone-copy" type="s">
+      <default>'rclone copy %source %profile:%destination --create-empty-src-dirs'</default>
+        <summary>Create command</summary>
+        <description>Create command</description>
+    </key>
+
+    <key name="rclone-purge" type="s">
+      <default>'rclone purge %profile:%destination --ignore-errors'</default>
+        <summary>Delete dir command</summary>
+        <description>Delete dir command</description>
+    </key>
+
+    <key name="rclone-delete" type="s">
+      <default>'rclone delete %profile:%destination --ignore-errors'</default>
+        <summary>Delete file command</summary>
+        <description>Delete file command</description>
+    </key>
+
+    <key name="rclone-mount" type="s">
+      <default>'rclone mount %profile:%source --volname %profile --file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime'</default>
+        <summary>Mount command</summary>
+        <description>Mount command</description>
+    </key>
+
+    <key name="rclone-sync" type="s">
+      <default>'rclone sync %profile: %source --create-empty-src-dirs'</default>
+        <summary>Sync command</summary>
+        <description>Sync command </description>
+    </key>
+
+    <key name="rclone-copyto" type="s">
+      <default>'rclone copyto %profile:%destination %source'</default>
+        <summary>Copy file command</summary>
+        <description>Copy file command</description>
+    </key>
+
+    <key name="rclone-config" type="s">
+      <default>'rclone config'</default>
+        <summary>Add config command</summary>
+        <description>Add config command</description>
+    </key>
+
+    <key name="rclone-config-delete" type="s">
+      <default>'rclone config delete %profile'</default>
+        <summary>Delete config command</summary>
+        <description>Delete config command</description>
+    </key>
+
+    <key name="rclone-config-reconnect" type="s">
+      <default>'rclone config reconnect %profile:'</default>
+        <summary>Reconnect config command</summary>
+        <description>Reconnect config command</description>
+    </key>
+
+    <key name="umount-source" type="s">
+      <default>'umount %source'</default>
+        <summary>Umount command</summary>
+        <description>Umount command</description>
+    </key>
+
+    <key name="mount" type="s">
+      <default>'mount'</default>
+        <summary>Get mounts command</summary>
+        <description>Get mounts command</description>
+    </key>
+
   </schema>
 </schemalist>

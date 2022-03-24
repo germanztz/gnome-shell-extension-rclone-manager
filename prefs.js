@@ -12,14 +12,26 @@ const [major] = Config.PACKAGE_VERSION.split('.');
 const shellVersion = Number.parseInt(major);
 
 var Fields = {
-    RCONFIG_FILE_PATH : 'rconfig-file-path',
-    BASE_MOUNT_PATH : 'base-mount-path',
-    IGNORE_PATTERNS : 'ignore-patterns',
-    EXTERNAL_TERMINAL : 'external-terminal',
-    EXTERNAL_FILE_BROWSER : 'external-file-browser',
-    EXTERNAL_TEXT_EDITOR : 'external-text-editor',
-    MOUNT_FLAGS : 'mount-flags',
-    AUTOSYNC : 'autosync',
+    RCONFIG_FILE_PATH       : 'rconfig-file-path',
+    BASE_MOUNT_PATH         : 'base-mount-path',
+    IGNORE_PATTERNS         : 'ignore-patterns',
+    EXTERNAL_TERMINAL       : 'external-terminal',
+    EXTERNAL_FILE_BROWSER   : 'external-file-browser',
+    EXTERNAL_TEXT_EDITOR    : 'external-text-editor',
+    // MOUNT_FLAGS             : 'mount-flags',
+    AUTOSYNC                : 'autosync',
+    RC_LIST_REMOTES         : 'rclone-listremotes',
+    RC_CREATE_DIR 	        : 'rclone-copy',
+    RC_DELETE_DIR 	        : 'rclone-purge',
+    RC_DELETE_FILE 	        : 'rclone-delete',
+    RC_MOUNT 			    : 'rclone-mount',
+    RC_SYNC  			    : 'rclone-sync',
+    RC_COPYTO  		        : 'rclone-copyto',
+    RC_ADDCONFIG 		    : 'rclone-config',
+    RC_DELETE 		        : 'rclone-config-delete',
+    RC_RECONNECT  	        : 'rclone-config-reconnect',
+    RC_UMOUNT 		        : 'umount-source',
+    RC_GETMOUNTS 		    : 'mount',
 };
 
 const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
@@ -85,8 +97,20 @@ const App = new Lang.Class({
         addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.EXTERNAL_TERMINAL);
         addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.EXTERNAL_FILE_BROWSER);
         addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.EXTERNAL_TEXT_EDITOR);  
-        addRow(new Gtk.Entry(), "Optional mount flags", Fields.MOUNT_FLAGS);  
+        // addRow(new Gtk.Entry(), "Optional mount flags", Fields.MOUNT_FLAGS);  
         addRow(new Gtk.Switch(), "Sync files on start", Fields.AUTOSYNC);
+        addRow(new Gtk.Entry(), "List remotes command", Fields.RC_LIST_REMOTES);  
+        addRow(new Gtk.Entry(), "Create command", Fields.RC_CREATE_DIR);  
+        addRow(new Gtk.Entry(), "Delete dir command", Fields.RC_DELETE_DIR);  
+        addRow(new Gtk.Entry(), "Delete file command", Fields.RC_DELETE_FILE);  
+        addRow(new Gtk.Entry(), "Mount command", Fields.RC_MOUNT);  
+        addRow(new Gtk.Entry(), "Sync command", Fields.RC_SYNC);  
+        addRow(new Gtk.Entry(), "Copy file command", Fields.RC_COPYTO);  
+        addRow(new Gtk.Entry(), "Add config command", Fields.RC_ADDCONFIG);  
+        addRow(new Gtk.Entry(), "Delete config command", Fields.RC_DELETE);  
+        addRow(new Gtk.Entry(), "Reconnect config command", Fields.RC_RECONNECT);  
+        addRow(new Gtk.Entry(), "Umount command", Fields.RC_UMOUNT);  
+        addRow(new Gtk.Entry(), "Get mounts command", Fields.RC_GETMOUNTS);  
 
         if (shellVersion < 40){
             this.main.show_all();
