@@ -132,8 +132,11 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 
 	switch (event_type) {
 		case Gio.FileMonitorEvent.CHANGES_DONE_HINT:
-			if (isDir(file)) addMonitorRecursive(profile, file.get_path(), profileMountPath, onProfileStatusChanged);
 			destinationFilePath = destinationFilePath.replace(file.get_basename(),'');
+			if (isDir(file)) {
+				addMonitorRecursive(profile, file.get_path(), profileMountPath, onProfileStatusChanged);
+				destinationFilePath = destinationFilePath + file.get_basename();
+			}
 			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
 			spawn_async_cmd(RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
 		break;
