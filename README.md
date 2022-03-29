@@ -44,13 +44,12 @@ Extension page on Gnome Extensions [RClone Manager](https://extensions.gnome.org
 ## Limitations of watch Mode
 
 - Does not monitor cloud services, and will not update local files with remote modifications "live", manual sync is needed
-
 - local offline changes will be losts on manual sync, allways check your changes have synched successfully
+- May not delete local files on manually sync if files were deleted in the cloud
 
 ## Limitations of mount model
 
 - Files are not stored locally, internet connection needed
-
 - It is slow to work with files in this mode
 
 # Debugging
@@ -67,9 +66,9 @@ To Debug the Extension Preferences (prefs), use this in terminal:
 
 # Installation
 
-Installation via git is performed by cloning the repo into your local gnome-shell extensions directory (usually ~/.local/share/gnome-shell/extensions/)
+Installation via git is performed by cloning the repo into your local gnome-shell extensions directory
 
-    $ git clone https://github.com/germanztz/gnome-shell-extension-rclone-manager <extensions-dir>/rclone-manager@daimler.com
+    $ git clone https://github.com/germanztz/gnome-shell-extension-rclone-manager ~/.local/share/gnome-shell/rclone-manager@daimler.com
 
 After cloning the repo, the extension is practically installed yet disabled. In
 order to enable it, you need to use gnome-tweak-tool - find the extension,
