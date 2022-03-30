@@ -5,11 +5,13 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 
-const RC_CREATE_DIR 	= 'rclone copy %source %profile:%destination --create-empty-src-dirs';
-const RC_DELETE_DIR 	= 'rclone purge %profile:%destination --ignore-errors';
-const RC_DELETE_FILE 	= 'rclone delete %profile:%destination --ignore-errors';
-
-var monitors = {};
+var monitors = {
+	commands: {
+		RC_CREATE_DIR: '',
+		RC_DELETE_DIR: '',
+		RC_DELETE_FILE: '',
+	}
+};
 var mounts = {};
 var rconfig = {};
 
@@ -33,6 +35,12 @@ function listremotes(RC_LIST_REMOTES){
 		.filter(item => item.length > 1);
 	log('listremotes', JSON.stringify(ret));
 	return ret
+}
+
+function set_monitor_commands(RC_CREATE_DIR, RC_DELETE_DIR, RC_DELETE_FILE){
+	monitors.commands.RC_CREATE_DIR = RC_CREATE_DIR;
+	monitors.commands.RC_DELETE_DIR = RC_DELETE_DIR;
+	monitors.commands.RC_DELETE_FILE = RC_DELETE_FILE;
 }
 
 /**
@@ -111,15 +119,15 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 				destinationFilePath = destinationFilePath + file.get_basename();
 			}
 			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
-			spawn_async_cmd(RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
+			spawn_async_cmd(monitors.commands.RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
 		break;
 		case Gio.FileMonitorEvent.DELETED:
 			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
 			if (isDir(file)) {
 				deleteFileMonitor(profile, file.get_path());
-				spawn_async_cmd(RC_DELETE_DIR, profile, '', destinationFilePath, callback);
+				spawn_async_cmd(monitors.commands.RC_DELETE_DIR, profile, '', destinationFilePath, callback);
 			} else {
-				spawn_async_cmd(RC_DELETE_FILE, profile, '', destinationFilePath, callback);
+				spawn_async_cmd(monitors.commands.RC_DELETE_FILE, profile, '', destinationFilePath, callback);
 			}
 		break;
 		case Gio.FileMonitorEvent.CHANGED:
@@ -199,12 +207,13 @@ function mount(RC_MOUNT, profile, baseMountPath, onProfileStatusChanged){
 }
 
 function umount(RC_UMOUNT, profile, baseMountPath, onProfileStatusChanged){
+	let that = this;
 	spawn_async_cmd(RC_UMOUNT, profile, baseMountPath + profile, null, 
 	function(status, stdoutLines, stderrLines){
 		if(status === 0) {
 			if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
 		} else {
-			if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.DISCONNECTED, stderrLines);
+			if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.ERROR, stderrLines.join('\n'));
 		}
 	});
 }

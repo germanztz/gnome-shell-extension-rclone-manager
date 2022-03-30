@@ -38,13 +38,12 @@ let IGNORE_PATTERNS      = '.remmina.,~lock,.tmp,.log';
 let EXTERNAL_TERMINAL    = 'gnome-terminal --window -- ';
 let EXTERNAL_FILE_BROWSER = 'nautilus';
 let EXTERNAL_TEXT_EDITOR      = 'gedit';
-// let MOUNT_FLAGS          = '--file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime';
 let AUTOSYNC            = true;
 let RC_LIST_REMOTES 	= 'rclone listremotes'
 let RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
 let RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';
 let RC_DELETE_FILE 	    = 'rclone delete %profile:%destination --ignore-errors';
-let RC_MOUNT 			= 'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime';
+let RC_MOUNT 			= 'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime';
 let RC_SYNC  			= 'rclone sync %profile: %source --create-empty-src-dirs';
 let RC_COPYTO  		    = 'rclone copyto %profile:%destination %source';
 let RC_ADDCONFIG 		= 'rclone config';
@@ -94,6 +93,7 @@ const RcloneManager = Lang.Class({
         this._loadSettings();
         this._configs = fmh.listremotes(RC_LIST_REMOTES);
         this._mounts = fmh.getMounts(RC_GETMOUNTS);
+        fmh.set_monitor_commands(RC_CREATE_DIR, RC_DELETE_DIR, RC_DELETE_FILE);
         this._buildMenu(this._configs);
         const that = this;
         Utils.readRegistry(function (registry) {
