@@ -192,7 +192,7 @@ function mount(RC_MOUNT, profile, baseMountPath, onProfileStatusChanged){
 			if(status === 0) {
 				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
 			} else {
-				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.DISCONNECTED, stderrLines);
+				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.ERROR, stderrLines.join('\n'));
 			}
 	});
 
@@ -397,7 +397,7 @@ function spawn_async_with_pipes(argv, callback){
 			if (status === 0) {
 				log(stdoutLines.join('\n'));
 			} else {
-				logError(new Error(stderrLines.join('\n')));
+				logError(new Error('Error executing command'), stderrLines.join('\n'));
 			}
 
 			// Ensure we close the remaining streams and process

@@ -91,7 +91,7 @@
     </key>
 
     <key name="rclone-mount" type="s">
-      <default>'rclone mount %profile:%source --volname %profile --file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime'</default>
+      <default>'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime'</default>
         <summary>Mount command</summary>
         <description>Mount command</description>
     </key>
