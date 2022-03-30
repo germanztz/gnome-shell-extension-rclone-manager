@@ -97,7 +97,7 @@ https://github.com/julio641742/gnome-shell-extension-reference
 
 # Todolist
 
-- [ x ] Fix create basedir if not exist on mount
+- [x] Fix create basedir if not exist on mount
 - [ ] Fix 
 : show actual configuration mode when mount fails
 - [ ] Fix show permanent notification
