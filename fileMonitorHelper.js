@@ -195,6 +195,9 @@ function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfil
  */
 function mount(RC_MOUNT, profile, baseMountPath, onProfileStatusChanged){
 	let that = this;
+	const directory = Gio.file_new_for_path(baseMountPath + profile);
+	if (!isDir(directory))
+		directory.make_directory_with_parents (null, null);
 	spawn_async_cmd(RC_MOUNT, profile, baseMountPath + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			if(status === 0) {

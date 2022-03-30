@@ -95,3 +95,10 @@ https://www.codeproject.com/Articles/5271677/How-to-Create-A-GNOME-Extension
 
 https://github.com/julio641742/gnome-shell-extension-reference
 
+# Todolist
+
+- [ x ] Fix create basedir if not exist on mount
+- [ ] Fix 
+: show actual configuration mode when mount fails
+- [ ] Fix show permanent notification
+- [ ] Add notification dialog with details

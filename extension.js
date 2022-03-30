@@ -155,8 +155,12 @@ const RcloneManager = Lang.Class({
                     function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
             }
         } else if(regProf['syncType'] === 'Mount'){
-            fmh.mount(RC_MOUNT, profile, BASE_MOUNT_PATH, 
-                function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
+            if(this._mounts.includes(profile)){
+                this._onProfileStatusChanged(profile, fmh.ProfileStatus.MOUNTED);
+            } else {
+                fmh.mount(RC_MOUNT, profile, BASE_MOUNT_PATH, 
+                    function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
+            }
         }
 
     },
