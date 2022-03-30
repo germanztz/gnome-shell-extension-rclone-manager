@@ -44,7 +44,7 @@ let RC_LIST_REMOTES 	= 'rclone listremotes'
 let RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
 let RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';
 let RC_DELETE_FILE 	    = 'rclone delete %profile:%destination --ignore-errors';
-let RC_MOUNT 			= 'rclone mount %profile:%source --volname %profile --file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime';
+let RC_MOUNT 			= 'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-non-empty --allow-other --write-back-cache --no-modtime';
 let RC_SYNC  			= 'rclone sync %profile: %source --create-empty-src-dirs';
 let RC_COPYTO  		    = 'rclone copyto %profile:%destination %source';
 let RC_ADDCONFIG 		= 'rclone config';
@@ -155,7 +155,7 @@ const RcloneManager = Lang.Class({
                     function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
             }
         } else if(regProf['syncType'] === 'Mount'){
-            fmh.mount(RC_MOUNT, regProf, BASE_MOUNT_PATH, 
+            fmh.mount(RC_MOUNT, profile, BASE_MOUNT_PATH, 
                 function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
         }
 
