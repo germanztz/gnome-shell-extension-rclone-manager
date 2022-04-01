@@ -97,20 +97,19 @@ const App = new Lang.Class({
         addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.PREF_EXTERNAL_TERMINAL);
         addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.PREF_EXTERNAL_FILE_BROWSER);
         addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.PREF_EXTERNAL_TEXT_EDITOR);  
-        // addRow(new Gtk.Entry(), "Optional mount flags", Fields.MOUNT_FLAGS);  
         addRow(new Gtk.Switch(), "Sync files on start", Fields.PREF_AUTOSYNC);
-        addRow(new Gtk.Entry(), "List remotes command", Fields.RC_LIST_REMOTES);  
+        // addRow(new Gtk.Entry(), "List remotes command", Fields.RC_LIST_REMOTES);  
         addRow(new Gtk.Entry(), "Create command", Fields.RC_CREATE_DIR);  
         addRow(new Gtk.Entry(), "Delete dir command", Fields.RC_DELETE_DIR);  
         addRow(new Gtk.Entry(), "Delete file command", Fields.RC_DELETE_FILE);  
         addRow(new Gtk.Entry(), "Mount command", Fields.RC_MOUNT);  
         addRow(new Gtk.Entry(), "Sync command", Fields.RC_SYNC);  
-        addRow(new Gtk.Entry(), "Copy file command", Fields.RC_COPYTO);  
-        addRow(new Gtk.Entry(), "Add config command", Fields.RC_ADDCONFIG);  
-        addRow(new Gtk.Entry(), "Delete config command", Fields.RC_DELETE);  
-        addRow(new Gtk.Entry(), "Reconnect config command", Fields.RC_RECONNECT);  
-        addRow(new Gtk.Entry(), "Umount command", Fields.RC_UMOUNT);  
-        addRow(new Gtk.Entry(), "Get mounts command", Fields.RC_GETMOUNTS);  
+        // addRow(new Gtk.Entry(), "Copy file command", Fields.RC_COPYTO);  
+        // addRow(new Gtk.Entry(), "Add config command", Fields.RC_ADDCONFIG);  
+        // addRow(new Gtk.Entry(), "Delete config command", Fields.RC_DELETE);  
+        // addRow(new Gtk.Entry(), "Reconnect config command", Fields.RC_RECONNECT);  
+        // addRow(new Gtk.Entry(), "Umount command", Fields.RC_UMOUNT);  
+        // addRow(new Gtk.Entry(), "Get mounts command", Fields.RC_GETMOUNTS);  
 
         if (shellVersion < 40){
             this.main.show_all();
