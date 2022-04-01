@@ -272,7 +272,7 @@ const RcloneManager = Lang.Class({
             break;
             case 'Umount':
                 this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
-                fmh.umount(RC_UMOUNT, menuItem.profile, 
+                fmh.umount(menuItem.profile, 
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Open':
@@ -289,7 +289,7 @@ const RcloneManager = Lang.Class({
             break;
             case 'Sync':
                 this._onProfileStatusChanged(menuItem.profile, fmh.ProfileStatus.BUSSY);
-                fmh.sync(RC_SYNC, menuItem.profile,
+                fmh.sync(menuItem.profile,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Delete':
