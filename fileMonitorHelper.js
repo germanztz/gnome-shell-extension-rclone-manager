@@ -5,13 +5,20 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 
-var monitors = {
-	commands: {
-		RC_CREATE_DIR: '',
-		RC_DELETE_DIR: '',
-		RC_DELETE_FILE: '',
-	}
-};
+let RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
+let RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';
+let RC_DELETE_FILE 	    = 'rclone delete %profile:%destination --ignore-errors';
+let RC_LIST_REMOTES 	= 'rclone listremotes'
+let RC_MOUNT 			= 'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime';
+let RC_SYNC  			= 'rclone sync %profile: %source --create-empty-src-dirs';
+let RC_COPYTO  		    = 'rclone copyto %profile:%destination %source';
+let RC_ADDCONFIG 		= 'rclone config';
+let RC_DELETE 		    = 'rclone config delete %profile';
+let RC_RECONNECT  	    = 'rclone config reconnect %profile: %flags';
+let RC_UMOUNT 		    = 'umount %source';
+let RC_GETMOUNTS 		= 'mount';
+
+var monitors = {};
 var mounts = {};
 var rconfig = {};
 
@@ -27,7 +34,7 @@ var ProfileStatus = {
 
 function getConfigs(){ return rconfig;}
 
-function listremotes(RC_LIST_REMOTES){
+function listremotes(){
 	let [, stdout] = spawn_sync(RC_LIST_REMOTES.split(' '));
 	let ret = stdout
 		.replace(new RegExp(':', 'g'), '')
@@ -119,15 +126,15 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 				destinationFilePath = destinationFilePath + file.get_basename();
 			}
 			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
-			spawn_async_cmd(monitors.commands.RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
+			spawn_async_cmd(RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
 		break;
 		case Gio.FileMonitorEvent.DELETED:
 			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
 			if (isDir(file)) {
 				deleteFileMonitor(profile, file.get_path());
-				spawn_async_cmd(monitors.commands.RC_DELETE_DIR, profile, '', destinationFilePath, callback);
+				spawn_async_cmd(RC_DELETE_DIR, profile, '', destinationFilePath, callback);
 			} else {
-				spawn_async_cmd(monitors.commands.RC_DELETE_FILE, profile, '', destinationFilePath, callback);
+				spawn_async_cmd(RC_DELETE_FILE, profile, '', destinationFilePath, callback);
 			}
 		break;
 		case Gio.FileMonitorEvent.CHANGED:
@@ -193,7 +200,7 @@ function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfil
  * @param {string} profile 
  * @param {CallableFunction} onProfileStatusChanged 
  */
-function mount(RC_MOUNT, profile, baseMountPath, onProfileStatusChanged){
+function mount(profile, baseMountPath, onProfileStatusChanged){
 	let that = this;
 	const directory = Gio.file_new_for_path(baseMountPath + profile);
 	if (!isDir(directory))
@@ -209,7 +216,7 @@ function mount(RC_MOUNT, profile, baseMountPath, onProfileStatusChanged){
 
 }
 
-function umount(RC_UMOUNT, profile, baseMountPath, onProfileStatusChanged){
+function umount(profile, baseMountPath, onProfileStatusChanged){
 	let that = this;
 	spawn_async_cmd(RC_UMOUNT, profile, baseMountPath + profile, null, 
 	function(status, stdoutLines, stderrLines){
@@ -221,7 +228,7 @@ function umount(RC_UMOUNT, profile, baseMountPath, onProfileStatusChanged){
 	});
 }
 
-function getMounts(RC_GETMOUNTS){
+function getMounts(){
 	let [stat, stdout, stderr] = this.spawn_sync(RC_GETMOUNTS.split(' '));
 	let mounts = [];
 	if(stdout){
@@ -239,11 +246,11 @@ function getStatus(profile){
 	else return ProfileStatus.DISCONNECTED;
 }
 
-function reconnect(EXTERNAL_TERMINAL, RC_RECONNECT, profile){
+function reconnect(EXTERNAL_TERMINAL, profile){
 	launch_term_cmd(EXTERNAL_TERMINAL, RC_RECONNECT, profile);
 }
 
-function sync(RC_SYNC, profile, baseMountPath,  onProfileStatusChanged){
+function sync(profile, baseMountPath,  onProfileStatusChanged){
 
 	if (getStatus(profile) == ProfileStatus.MOUNTED){
 		if(onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Mounted Profiles are already in sync');
@@ -274,7 +281,7 @@ function sync(RC_SYNC, profile, baseMountPath,  onProfileStatusChanged){
 		});	
 }
 
-function backup(RC_COPYTO, profile, configfilePath, onProfileStatusChanged){
+function backup(profile, configfilePath, onProfileStatusChanged){
 	spawn_async_cmd(RC_COPYTO, profile, configfilePath, '/.rclone.conf',
 	function(status, stdoutLines, stderrLines){
 		if(status === 0) {
@@ -289,12 +296,12 @@ function restore(profile, baseMountPath, onProfileStatusChanged){
 	this.spawn_async_with_pipes(['ls','-la','.'], this.onCmdFinished);
 }
 
-function addConfig(EXTERNAL_TERMINAL, RC_ADDCONFIG, onProfileStatusChanged){
+function addConfig(EXTERNAL_TERMINAL, onProfileStatusChanged){
 	launch_term_cmd(EXTERNAL_TERMINAL, RC_ADDCONFIG, false, false);
 	onProfileStatusChanged && onProfileStatusChanged("", ProfileStatus.CREATED);
 }
 
-function deleteConfig(RC_DELETE, profile, baseMountPath, onProfileStatusChanged){
+function deleteConfig(profile, baseMountPath, onProfileStatusChanged){
 
 	switch (getStatus(profile)) {
 		case ProfileStatus.MOUNTED:
