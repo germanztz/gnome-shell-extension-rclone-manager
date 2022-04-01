@@ -7,7 +7,7 @@ const Mainloop   = imports.mainloop;
 const Meta       = imports.gi.Meta;
 const Shell      = imports.gi.Shell;
 const St         = imports.gi.St;
-const PolicyType = imports.gi.Gtk.PolicyType;
+const Gtk        = imports.gi.Gtk;
 const Util       = imports.misc.util;
 const MessageTray = imports.ui.messageTray;
 const Main      = imports.ui.main;
@@ -342,10 +342,11 @@ const RcloneManager = Lang.Class({
         break;
         case fmh.ProfileStatus.ERROR:
             this.icon.icon_name=PROFILE_ERROR_ICON;
-            this._showNotification(profile + ' error: '+message /*, n => {
-                n.addAction(_('Details'), Lang.bind(that, ConfirmDialog.openConfirmDialog( _("Error Detail"), 
-                    profile, message, _("Ok"), _("Cancel"), function(){} )));
-            }*/);
+            this._showNotification(profile + ' error: '+message , n => {
+                n.addAction(_('Details'), Lang.bind(that, function() {
+                    ConfirmDialog.openConfirmDialog( _("Error Detail"), profile, message, _("Ok"), null, function(){} )
+                }));
+            });
             break;
         case fmh.ProfileStatus.BUSSY:
             this.icon.icon_name=PROFILE_BUSSY_ICON;
@@ -400,7 +401,7 @@ const RcloneManager = Lang.Class({
         }
     },
 
-    
+
     _initNotifSource: function () {
         if (!this._notifSource) {
             this._notifSource = new MessageTray.Source('RcloneManager', INDICATOR_ICON);

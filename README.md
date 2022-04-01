@@ -101,4 +101,4 @@ https://github.com/julio641742/gnome-shell-extension-reference
 - [x] Fix 
 : show actual status when mount fails
 - [ ] Fix show permanent notification
-- [ ] Add notification dialog with details
+- [x] Add notification dialog with details

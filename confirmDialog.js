@@ -41,24 +41,23 @@ const ConfirmDialog = GObject.registerClass(
       });
       message_box.add_child(desc_label);
 
-      this.setButtons([
-        {
-          label: cancel_label,
-          action: () => {
-            this.close();
-            _openDialog = null;
-          },
-          key: Clutter.Escape
-        },
-        {
-          label: ok_label,
-          action: () => {
-            this.close();
-            callback();
-            _openDialog = null;
-          }
+      let buttons = [{
+        label: ok_label,
+        action: () => {
+          this.close();
+          callback();
+          _openDialog = null;
         }
-      ]);
+      }]
+      if(cancel_label) buttons.push({
+        label: cancel_label,
+        action: () => {
+          this.close();
+          _openDialog = null;
+        },
+        key: Clutter.Escape
+      })
+      this.setButtons(buttons);
     }
   }
 );
