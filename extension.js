@@ -346,20 +346,16 @@ const RcloneManager = Lang.Class({
                 n.addAction(_('Details'), Lang.bind(that, ConfirmDialog.openConfirmDialog( _("Error Detail"), 
                     profile, message, _("Ok"), _("Cancel"), function(){} )));
             }*/);
-            this._setMenuIcon(mItem, status);
-            this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
             break;
         case fmh.ProfileStatus.BUSSY:
             this.icon.icon_name=PROFILE_BUSSY_ICON;
-            this._setMenuIcon(mItem, status);
-            this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
             break;
         default:
             this.icon.icon_name=INDICATOR_ICON;
-            this._setMenuIcon(mItem, status);
-            this._buildSubmenu(mItem, profile, status);
         break;
         }
+        this._setMenuIcon(mItem, status);
+        this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
 
     },
 
@@ -404,7 +400,7 @@ const RcloneManager = Lang.Class({
         }
     },
 
-
+    
     _initNotifSource: function () {
         if (!this._notifSource) {
             this._notifSource = new MessageTray.Source('RcloneManager', INDICATOR_ICON);
