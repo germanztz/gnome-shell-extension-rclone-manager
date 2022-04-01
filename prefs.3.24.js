@@ -10,12 +10,12 @@ const Gettext = imports.gettext;
 const _ = Gettext.domain('clipboard-indicator').gettext;
 
 var Fields = {
-    RCONFIG_FILE_PATH : 'rconfig-file-path',
-    BASE_MOUNT_PATH : 'base-mount-path',
-    IGNORE_PATTERNS : 'ignore-patterns',
-    EXTERNAL_TERMINAL : 'external-terminal',
-    EXTERNAL_FILE_BROWSER : 'external-file-browser',
-    EXTERNAL_TEXT_EDITOR : 'external-text-editor',
+    PREF_RCONFIG_FILE_PATH : 'rconfig-file-path',
+    PREF_BASE_MOUNT_PATH : 'base-mount-path',
+    PREF_IGNORE_PATTERNS : 'ignore-patterns',
+    PREF_EXTERNAL_TERMINAL : 'external-terminal',
+    PREF_EXTERNAL_FILE_BROWSER : 'external-file-browser',
+    PREF_EXTERNAL_TEXT_EDITOR : 'external-text-editor',
     AUTOSYNC : 'autosync',
     INTERVAL           : 'refresh-interval',
     HISTORY_SIZE       : 'history-size',

@@ -32,13 +32,7 @@ const PROFILE_MOUNTED_ICON = 'folder-remote-symbolic';
 const PROFILE_BUSSY_ICON = 'system-run-symbolic';
 const PROFILE_ERROR_ICON = 'dialog-warning-symbolic';
 
-let RCONFIG_FILE_PATH     = "~/.config/rclone/rclone.conf";
-let BASE_MOUNT_PATH       = "~/";
-let IGNORE_PATTERNS      = '.remmina.,~lock,.tmp,.log';
-let EXTERNAL_TERMINAL    = 'gnome-terminal --window -- ';
-let EXTERNAL_FILE_BROWSER = 'nautilus';
-let EXTERNAL_TEXT_EDITOR      = 'gedit';
-let AUTOSYNC            = true;
+let PREF_AUTOSYNC            = true;
 
 const submenus = {
     'Watch': 'folder-saved-search-symbolic',
@@ -99,13 +93,14 @@ const RcloneManager = Lang.Class({
     },
 
     _onSettingsChange: function () {
-        RCONFIG_FILE_PATH = this._settings.get_string(Prefs.Fields.RCONFIG_FILE_PATH);
-        BASE_MOUNT_PATH = this._settings.get_string(Prefs.Fields.BASE_MOUNT_PATH);
-        IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.IGNORE_PATTERNS);
-        EXTERNAL_TERMINAL = this._settings.get_string(Prefs.Fields.EXTERNAL_TERMINAL);
-        EXTERNAL_FILE_BROWSER = this._settings.get_string(Prefs.Fields.EXTERNAL_FILE_BROWSER);
-        EXTERNAL_TEXT_EDITOR = this._settings.get_string(Prefs.Fields.EXTERNAL_TEXT_EDITOR);
-        AUTOSYNC = this._settings.get_boolean(Prefs.Fields.AUTOSYNC);
+        PREF_AUTOSYNC = this._settings.get_boolean(Prefs.Fields.PREF_AUTOSYNC);
+
+        fmh.PREF_RCONFIG_FILE_PATH = this._settings.get_string(Prefs.Fields.PREF_RCONFIG_FILE_PATH);
+        fmh.PREF_BASE_MOUNT_PATH = this._settings.get_string(Prefs.Fields.PREF_BASE_MOUNT_PATH);
+        fmh.PREF_IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.PREF_IGNORE_PATTERNS);
+        fmh.PREF_EXTERNAL_TERMINAL = this._settings.get_string(Prefs.Fields.PREF_EXTERNAL_TERMINAL);
+        fmh.PREF_EXTERNAL_FILE_BROWSER = this._settings.get_string(Prefs.Fields.PREF_EXTERNAL_FILE_BROWSER);
+        fmh.PREF_EXTERNAL_TEXT_EDITOR = this._settings.get_string(Prefs.Fields.PREF_EXTERNAL_TEXT_EDITOR);
         fmh.RC_CREATE_DIR 	= this._settings.get_string(Prefs.Fields.RC_CREATE_DIR);
         fmh.RC_DELETE_DIR 	= this._settings.get_string(Prefs.Fields.RC_DELETE_DIR);
         fmh.RC_DELETE_FILE 	= this._settings.get_string(Prefs.Fields.RC_DELETE_FILE);
@@ -119,10 +114,10 @@ const RcloneManager = Lang.Class({
         fmh.RC_UMOUNT 		= this._settings.get_string(Prefs.Fields.RC_UMOUNT);
         fmh.RC_GETMOUNTS 	= this._settings.get_string(Prefs.Fields.RC_GETMOUNTS);
         
-        BASE_MOUNT_PATH = BASE_MOUNT_PATH.replace('~',GLib.get_home_dir());
-		if(!BASE_MOUNT_PATH.endsWith('/')) BASE_MOUNT_PATH = BASE_MOUNT_PATH+'/';
+        fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~',GLib.get_home_dir());
+		if(!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH+'/';
 
-        RCONFIG_FILE_PATH = RCONFIG_FILE_PATH.replace('~',GLib.get_home_dir());
+        fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~',GLib.get_home_dir());
     },
 
     _initProfile: function(profile, regProf){
@@ -130,21 +125,21 @@ const RcloneManager = Lang.Class({
         const that = this;
         if(regProf['syncType'] === 'Watch'){
 
-            if(AUTOSYNC) {
+            if(PREF_AUTOSYNC) {
                 that._onProfileStatusChanged(profile, fmh.ProfileStatus.BUSSY);
-                fmh.sync(profile, BASE_MOUNT_PATH, function (profile, status, message){
-                    fmh.init_filemonitor(profile, IGNORE_PATTERNS, BASE_MOUNT_PATH, 
+                fmh.sync(profile, function (profile, status, message){
+                    fmh.init_filemonitor(profile, 
                         function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
                 });
             } else {
-                fmh.init_filemonitor(profile, IGNORE_PATTERNS, BASE_MOUNT_PATH, 
+                fmh.init_filemonitor(profile, 
                     function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
             }
         } else if(regProf['syncType'] === 'Mount'){
             if(this._mounts.includes(profile)){
                 this._onProfileStatusChanged(profile, fmh.ProfileStatus.MOUNTED);
             } else {
-                fmh.mount(profile, BASE_MOUNT_PATH, 
+                fmh.mount(profile, 
                     function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
             }
         }
@@ -262,7 +257,7 @@ const RcloneManager = Lang.Class({
         switch (menuItem.action) {
             case 'Watch':
                 this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
-                fmh.init_filemonitor(menuItem.profile, IGNORE_PATTERNS, BASE_MOUNT_PATH, 
+                fmh.init_filemonitor(menuItem.profile,  
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Unwatch':
@@ -272,29 +267,29 @@ const RcloneManager = Lang.Class({
             break;
             case 'Mount':
                 this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
-                fmh.mount(menuItem.profile, BASE_MOUNT_PATH,
+                fmh.mount(menuItem.profile,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Umount':
                 this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
-                fmh.umount(RC_UMOUNT, menuItem.profile, BASE_MOUNT_PATH, 
+                fmh.umount(RC_UMOUNT, menuItem.profile, 
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Open':
 
             break;
             case 'Backup':
-                fmh.backup(RCONFIG_FILE_PATH, menuItem.profile);
+                fmh.backup(menuItem.profile);
             break;
             case 'Restore':
                 fmh.restore(menuItem.profile);
             break;
             case 'Reconnect':
-                fmh.reconnect(EXTERNAL_TERMINAL, menuItem.profile);
+                fmh.reconnect(menuItem.profile);
             break;
             case 'Sync':
                 this._onProfileStatusChanged(menuItem.profile, fmh.ProfileStatus.BUSSY);
-                fmh.sync(RC_SYNC, menuItem.profile, BASE_MOUNT_PATH,
+                fmh.sync(RC_SYNC, menuItem.profile,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Delete':
@@ -303,7 +298,7 @@ const RcloneManager = Lang.Class({
                     _("This action cannot be undone"), 
                     _("Confirm"), _("Cancel"), 
                     function() {
-                        fmh.deleteConfig(menuItem.profile, BASE_MOUNT_PATH, 
+                        fmh.deleteConfig(menuItem.profile, 
                             (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
                     }
                 );
@@ -334,7 +329,7 @@ const RcloneManager = Lang.Class({
     },
 
     _addConfig: function() { 
-        fmh.addConfig(EXTERNAL_TERMINAL);
+        fmh.addConfig();
     },
 
     _onProfileStatusChanged: function(profile, status, message){

@@ -12,14 +12,14 @@ const [major] = Config.PACKAGE_VERSION.split('.');
 const shellVersion = Number.parseInt(major);
 
 var Fields = {
-    RCONFIG_FILE_PATH       : 'rconfig-file-path',
-    BASE_MOUNT_PATH         : 'base-mount-path',
-    IGNORE_PATTERNS         : 'ignore-patterns',
-    EXTERNAL_TERMINAL       : 'external-terminal',
-    EXTERNAL_FILE_BROWSER   : 'external-file-browser',
-    EXTERNAL_TEXT_EDITOR    : 'external-text-editor',
+    PREF_RCONFIG_FILE_PATH       : 'rconfig-file-path',
+    PREF_BASE_MOUNT_PATH         : 'base-mount-path',
+    PREF_IGNORE_PATTERNS         : 'ignore-patterns',
+    PREF_EXTERNAL_TERMINAL       : 'external-terminal',
+    PREF_EXTERNAL_FILE_BROWSER   : 'external-file-browser',
+    PREF_EXTERNAL_TEXT_EDITOR    : 'external-text-editor',
     // MOUNT_FLAGS             : 'mount-flags',
-    AUTOSYNC                : 'autosync',
+    PREF_AUTOSYNC                : 'autosync',
     RC_LIST_REMOTES         : 'rclone-listremotes',
     RC_CREATE_DIR 	        : 'rclone-copy',
     RC_DELETE_DIR 	        : 'rclone-purge',
@@ -91,14 +91,14 @@ const App = new Lang.Class({
             };
         })(this.main);
 
-        addRow(new Gtk.Entry(), "Rclone file path", Fields.RCONFIG_FILE_PATH);
-        addRow(new Gtk.Entry(), "Base mount path", Fields.BASE_MOUNT_PATH);
-        addRow(new Gtk.Entry(), "Filenames to be ignored", Fields.IGNORE_PATTERNS);
-        addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.EXTERNAL_TERMINAL);
-        addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.EXTERNAL_FILE_BROWSER);
-        addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.EXTERNAL_TEXT_EDITOR);  
+        addRow(new Gtk.Entry(), "Rclone file path", Fields.PREF_RCONFIG_FILE_PATH);
+        addRow(new Gtk.Entry(), "Base mount path", Fields.PREF_BASE_MOUNT_PATH);
+        addRow(new Gtk.Entry(), "Filenames to be ignored", Fields.PREF_IGNORE_PATTERNS);
+        addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.PREF_EXTERNAL_TERMINAL);
+        addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.PREF_EXTERNAL_FILE_BROWSER);
+        addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.PREF_EXTERNAL_TEXT_EDITOR);  
         // addRow(new Gtk.Entry(), "Optional mount flags", Fields.MOUNT_FLAGS);  
-        addRow(new Gtk.Switch(), "Sync files on start", Fields.AUTOSYNC);
+        addRow(new Gtk.Switch(), "Sync files on start", Fields.PREF_AUTOSYNC);
         addRow(new Gtk.Entry(), "List remotes command", Fields.RC_LIST_REMOTES);  
         addRow(new Gtk.Entry(), "Create command", Fields.RC_CREATE_DIR);  
         addRow(new Gtk.Entry(), "Delete dir command", Fields.RC_DELETE_DIR);  

@@ -5,6 +5,13 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 
+var PREF_RCONFIG_FILE_PATH     = "~/.config/rclone/rclone.conf";
+var PREF_BASE_MOUNT_PATH       = "~/";
+var PREF_IGNORE_PATTERNS       = '.remmina.,~lock,.tmp,.log';
+var PREF_EXTERNAL_TERMINAL     = 'gnome-terminal --window -- ';
+var PREF_EXTERNAL_FILE_BROWSER = 'nautilus';
+var PREF_EXTERNAL_TEXT_EDITOR  = 'gedit';
+
 var RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
 var RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';
 var RC_DELETE_FILE 	    = 'rclone delete %profile:%destination --ignore-errors';
@@ -53,13 +60,12 @@ function set_monitor_commands(RC_CREATE_DIR, RC_DELETE_DIR, RC_DELETE_FILE){
 /**
  * https://gjs-docs.gnome.org/gio20~2.66p/gio.filemonitor
  * @param {string} profile 
- * @param {string} ignores 
  */
-function init_filemonitor(profile, ignores, baseMountPath, onProfileStatusChanged){
+function init_filemonitor(profile, onProfileStatusChanged){
 	monitors[profile] = {};
-	monitors[profile]['ignores'] = ignores.split(',');
+	monitors[profile]['ignores'] = PREF_IGNORE_PATTERNS.split(',');
 	monitors[profile]['paths'] = {};
-	monitors[profile]['basepath'] = baseMountPath + profile;
+	monitors[profile]['basepath'] = PREF_BASE_MOUNT_PATH + profile;
 	log('init_filemonitor',profile, monitors[profile]['basepath']);
 
 	let ok = addMonitorRecursive(profile, monitors[profile]['basepath'], monitors[profile]['basepath'], onProfileStatusChanged);
@@ -200,12 +206,12 @@ function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfil
  * @param {string} profile 
  * @param {CallableFunction} onProfileStatusChanged 
  */
-function mount(profile, baseMountPath, onProfileStatusChanged){
+function mount(profile, onProfileStatusChanged){
 	let that = this;
-	const directory = Gio.file_new_for_path(baseMountPath + profile);
+	const directory = Gio.file_new_for_path(PREF_BASE_MOUNT_PATH + profile);
 	if (!isDir(directory))
 		directory.make_directory_with_parents (null, null);
-	spawn_async_cmd(RC_MOUNT, profile, baseMountPath + profile, null, 
+	spawn_async_cmd(RC_MOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			if(status === 0) {
 				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
@@ -216,9 +222,9 @@ function mount(profile, baseMountPath, onProfileStatusChanged){
 
 }
 
-function umount(profile, baseMountPath, onProfileStatusChanged){
+function umount(profile, onProfileStatusChanged){
 	let that = this;
-	spawn_async_cmd(RC_UMOUNT, profile, baseMountPath + profile, null, 
+	spawn_async_cmd(RC_UMOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 	function(status, stdoutLines, stderrLines){
 		if(status === 0) {
 			if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
@@ -246,11 +252,11 @@ function getStatus(profile){
 	else return ProfileStatus.DISCONNECTED;
 }
 
-function reconnect(EXTERNAL_TERMINAL, profile){
-	launch_term_cmd(EXTERNAL_TERMINAL, RC_RECONNECT, profile);
+function reconnect(profile){
+	launch_term_cmd(RC_RECONNECT, profile);
 }
 
-function sync(profile, baseMountPath,  onProfileStatusChanged){
+function sync(profile, onProfileStatusChanged){
 
 	if (getStatus(profile) == ProfileStatus.MOUNTED){
 		if(onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Mounted Profiles are already in sync');
@@ -266,7 +272,7 @@ function sync(profile, baseMountPath,  onProfileStatusChanged){
 	// let callback = function (status, stdoutLines, stderrLines) { 
 	// 	onCmdFinished(status, stdoutLines, stderrLines, profile, null, onProfileStatusChanged);}
 
-	spawn_async_cmd(RC_SYNC, profile, baseMountPath + profile, null, 
+	spawn_async_cmd(RC_SYNC, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			
 			if(monitors.hasOwnProperty(profile)){
@@ -281,8 +287,8 @@ function sync(profile, baseMountPath,  onProfileStatusChanged){
 		});	
 }
 
-function backup(profile, configfilePath, onProfileStatusChanged){
-	spawn_async_cmd(RC_COPYTO, profile, configfilePath, '/.rclone.conf',
+function backup(profile, onProfileStatusChanged){
+	spawn_async_cmd(RC_COPYTO, profile, PREF_RCONFIG_FILE_PATH, '/.rclone.conf',
 	function(status, stdoutLines, stderrLines){
 		if(status === 0) {
 			if(onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), '');
@@ -292,20 +298,20 @@ function backup(profile, configfilePath, onProfileStatusChanged){
 	});
 }
 
-function restore(profile, baseMountPath, onProfileStatusChanged){
+function restore(profile, onProfileStatusChanged){
 	this.spawn_async_with_pipes(['ls','-la','.'], this.onCmdFinished);
 }
 
-function addConfig(EXTERNAL_TERMINAL, onProfileStatusChanged){
-	launch_term_cmd(EXTERNAL_TERMINAL, RC_ADDCONFIG, false, false);
+function addConfig(onProfileStatusChanged){
+	launch_term_cmd(RC_ADDCONFIG, false, false);
 	onProfileStatusChanged && onProfileStatusChanged("", ProfileStatus.CREATED);
 }
 
-function deleteConfig(profile, baseMountPath, onProfileStatusChanged){
+function deleteConfig(profile, onProfileStatusChanged){
 
 	switch (getStatus(profile)) {
 		case ProfileStatus.MOUNTED:
-			umount(profile, baseMountPath, function(status, stdoutLines, stderrLines){
+			umount(profile, function(status, stdoutLines, stderrLines){
 				if(status === 0){
 					let [stat, stdout, stderr] = spawn_sync(RC_DELETE.replace('%profile', profile).split(' '));
 				}
@@ -472,11 +478,11 @@ function spawn_sync(argv){
 	return [status, out, err]
 }
 
-function launch_term_cmd(EXTERNAL_TERMINAL, cmd, autoclose, sudo){
+function launch_term_cmd(cmd, autoclose, sudo){
 	try{
 		let autoclosecmd = autoclose ? '; echo "Press any key to exit"; read' : '';
 		let sudocmd = sudo ? 'sudo' : '';
-		cmd = EXTERNAL_TERMINAL + " {0} bash -c '{1} {2}'"
+		cmd = PREF_EXTERNAL_TERMINAL + " {0} bash -c '{1} {2}'"
 			.replace('{0}', sudocmd)
 			.replace('{1}',cmd)
 			.replace('{2}',autoclosecmd);
