@@ -5,18 +5,18 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 
-let RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
-let RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';
-let RC_DELETE_FILE 	    = 'rclone delete %profile:%destination --ignore-errors';
-let RC_LIST_REMOTES 	= 'rclone listremotes'
-let RC_MOUNT 			= 'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime';
-let RC_SYNC  			= 'rclone sync %profile: %source --create-empty-src-dirs';
-let RC_COPYTO  		    = 'rclone copyto %profile:%destination %source';
-let RC_ADDCONFIG 		= 'rclone config';
-let RC_DELETE 		    = 'rclone config delete %profile';
-let RC_RECONNECT  	    = 'rclone config reconnect %profile: %flags';
-let RC_UMOUNT 		    = 'umount %source';
-let RC_GETMOUNTS 		= 'mount';
+var RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
+var RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';
+var RC_DELETE_FILE 	    = 'rclone delete %profile:%destination --ignore-errors';
+var RC_LIST_REMOTES 	= 'rclone listremotes'
+var RC_MOUNT 			= 'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime';
+var RC_SYNC  			= 'rclone sync %profile: %source --create-empty-src-dirs';
+var RC_COPYTO  		    = 'rclone copyto %profile:%destination %source';
+var RC_ADDCONFIG 		= 'rclone config';
+var RC_DELETE 		    = 'rclone config delete %profile';
+var RC_RECONNECT  	    = 'rclone config reconnect %profile: %flags';
+var RC_UMOUNT 		    = 'umount %source';
+var RC_GETMOUNTS 		= 'mount';
 
 var monitors = {};
 var mounts = {};
