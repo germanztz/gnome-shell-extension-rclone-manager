@@ -298,6 +298,12 @@ function backup(profile, onProfileStatusChanged){
 	});
 }
 
+function open(profile){
+	cmd = PREF_EXTERNAL_FILE_BROWSER.split(' ');
+	cmd.push(PREF_BASE_MOUNT_PATH+profile);
+	this.spawn_async_with_pipes(cmd);
+}
+
 function restore(profile, onProfileStatusChanged){
 	this.spawn_async_with_pipes(['ls','-la','.'], this.onCmdFinished);
 }

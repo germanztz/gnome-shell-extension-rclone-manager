@@ -111,6 +111,14 @@ const App = new Lang.Class({
         // addRow(new Gtk.Entry(), "Umount command", Fields.RC_UMOUNT);  
         // addRow(new Gtk.Entry(), "Get mounts command", Fields.RC_GETMOUNTS);  
 
+        let resetButton = new Gtk.Button({
+            label: _('Reset'),
+            halign: Gtk.Align.END
+        });
+
+        this.main.attach(resetButton, 1, 12, 1, 1);
+
+
         if (shellVersion < 40){
             this.main.show_all();
         }

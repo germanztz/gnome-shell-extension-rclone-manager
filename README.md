@@ -102,6 +102,6 @@ https://github.com/julio641742/gnome-shell-extension-reference
 : show actual status when mount fails
 - [ ] Fix show permanent notification
 - [x] Add notification dialog with details
-- [ ] Fix open action
+- [x] Fix open action
 - [ ] Fix edit config action
 - [ ] Add reset button in setting

@@ -276,7 +276,7 @@ const RcloneManager = Lang.Class({
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Open':
-
+                fmh.open(menuItem.profile);
             break;
             case 'Backup':
                 fmh.backup(menuItem.profile);
