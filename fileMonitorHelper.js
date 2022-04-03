@@ -10,7 +10,6 @@ var PREF_BASE_MOUNT_PATH       = "~/";
 var PREF_IGNORE_PATTERNS       = '.remmina.,~lock,.tmp,.log';
 var PREF_EXTERNAL_TERMINAL     = 'gnome-terminal --window -- ';
 var PREF_EXTERNAL_FILE_BROWSER = 'nautilus';
-var PREF_EXTERNAL_TEXT_EDITOR  = 'gedit';
 
 var RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
 var RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';

@@ -42,13 +42,13 @@
         </description>
     </key>
 
-    <key name="external-text-editor" type="s">
+    <!-- <key name="external-text-editor" type="s">
       <default>'gedit'</default>
         <summary>Command to call a new text editor window</summary>
         <description>
             Command to call a new text editor window in order to manually edit the rclone configuration file
         </description>
-    </key>
+    </key> -->
 
     <!-- <key name="mount-flags" type="s">
       <default>'- -file-perms 0777 - -allow-non-empty - -allow-other - -write-back-cache - -no-modtime'</default>

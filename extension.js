@@ -100,7 +100,6 @@ const RcloneManager = Lang.Class({
         fmh.PREF_IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.PREF_IGNORE_PATTERNS);
         fmh.PREF_EXTERNAL_TERMINAL = this._settings.get_string(Prefs.Fields.PREF_EXTERNAL_TERMINAL);
         fmh.PREF_EXTERNAL_FILE_BROWSER = this._settings.get_string(Prefs.Fields.PREF_EXTERNAL_FILE_BROWSER);
-        fmh.PREF_EXTERNAL_TEXT_EDITOR = this._settings.get_string(Prefs.Fields.PREF_EXTERNAL_TEXT_EDITOR);
         fmh.RC_CREATE_DIR 	= this._settings.get_string(Prefs.Fields.RC_CREATE_DIR);
         fmh.RC_DELETE_DIR 	= this._settings.get_string(Prefs.Fields.RC_DELETE_DIR);
         fmh.RC_DELETE_FILE 	= this._settings.get_string(Prefs.Fields.RC_DELETE_FILE);
@@ -166,11 +165,6 @@ const RcloneManager = Lang.Class({
         // let retoreMenuItem = new PopupMenu.PopupMenuItem(_('Restore config'));
         // this.menu.addMenuItem(retoreMenuItem);
         // retoreMenuItem.connect('activate', Lang.bind(this, this._restoreConfig));
-
-        // Add 'Edit config' button which edits an existing rclone config
-        let editMenuItem = new PopupMenu.PopupImageMenuItem(_('Edit config'),'gedit-symbolic');
-        this.menu.addMenuItem(editMenuItem);
-        editMenuItem.connect('activate', Lang.bind(this, this._editConfig));
 
         // Add 'Settings' menu item to open settings
         let settingsMenuItem = new PopupMenu.PopupImageMenuItem(_('Settings'),'gnome-tweak-tool-symbolic');
@@ -321,10 +315,6 @@ const RcloneManager = Lang.Class({
     },
 
     _restoreConfig: function() { 
-
-    },
-
-    _editConfig: function() { 
 
     },
 

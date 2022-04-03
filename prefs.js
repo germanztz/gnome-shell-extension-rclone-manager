@@ -17,8 +17,6 @@ var Fields = {
     PREF_IGNORE_PATTERNS         : 'ignore-patterns',
     PREF_EXTERNAL_TERMINAL       : 'external-terminal',
     PREF_EXTERNAL_FILE_BROWSER   : 'external-file-browser',
-    PREF_EXTERNAL_TEXT_EDITOR    : 'external-text-editor',
-    // MOUNT_FLAGS             : 'mount-flags',
     PREF_AUTOSYNC                : 'autosync',
     RC_LIST_REMOTES         : 'rclone-listremotes',
     RC_CREATE_DIR 	        : 'rclone-copy',
@@ -78,7 +76,7 @@ const App = new Lang.Class({
                 let property = 'text';
         
                 if (inputWidget instanceof Gtk.Switch) {
-                    inputWidget = this.fixSwitch(inputWidget)
+                    inputWidget = this.appendToBox(this.getHorizontalBox(), inputWidget);
                     property = 'active';
                 }
 
@@ -96,7 +94,6 @@ const App = new Lang.Class({
         addRow(new Gtk.Entry(), "Filenames to be ignored", Fields.PREF_IGNORE_PATTERNS);
         addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.PREF_EXTERNAL_TERMINAL);
         addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.PREF_EXTERNAL_FILE_BROWSER);
-        addRow(new Gtk.Entry(), "Command to call a new text editor window", Fields.PREF_EXTERNAL_TEXT_EDITOR);  
         addRow(new Gtk.Switch(), "Sync files on start", Fields.PREF_AUTOSYNC);
         // addRow(new Gtk.Entry(), "List remotes command", Fields.RC_LIST_REMOTES);  
         addRow(new Gtk.Entry(), "Create command", Fields.RC_CREATE_DIR);  
@@ -111,12 +108,18 @@ const App = new Lang.Class({
         // addRow(new Gtk.Entry(), "Umount command", Fields.RC_UMOUNT);  
         // addRow(new Gtk.Entry(), "Get mounts command", Fields.RC_GETMOUNTS);  
 
-        let resetButton = new Gtk.Button({
+        let buttonsRow = this.getHorizontalBox();
+
+        this.appendToBox(buttonsRow, new Gtk.Button({
             label: _('Reset'),
             halign: Gtk.Align.END
-        });
+        }));
+        this.appendToBox(buttonsRow, new Gtk.Button({
+            label: _('Restore config'),
+            halign: Gtk.Align.END
+        }));
 
-        this.main.attach(resetButton, 1, 12, 1, 1);
+        this.main.attach(buttonsRow, 1, 12, 1, 1);
 
 
         if (shellVersion < 40){
@@ -124,17 +127,34 @@ const App = new Lang.Class({
         }
     },
 
-    fixSwitch: function(input){
-        let inputWidget = input;
+    getHorizontalBox: function(){
+        let box = null;
         if (shellVersion < 40){
-            inputWidget = new Gtk.HBox();
-            inputWidget.pack_end(input, false, false, 0);
+            box = new Gtk.HBox();
         }else{
-            inputWidget = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL,});
-            inputWidget.append(input);
+            box = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL});
         }
-        return inputWidget;
+        box.spacing= 18;
+        return box;
+    },
+
+    appendToBox: function(box, input){
+        if (shellVersion < 40){
+            box.pack_end(input, false, false, 0);
+        }else{
+            box.append(input);
+        }
+        return box;
+    },
+
+    resetAll: function(){
+        //https://gjs-docs.gnome.org/gio20~2.66p/gio.settings#method-reset
+    },
+
+    restoreConfig: function(){
+
     }
+
 
 });
 
