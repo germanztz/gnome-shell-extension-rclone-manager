@@ -111,7 +111,7 @@ const App = new Lang.Class({
         let buttonsRow = this.getHorizontalBox();
 
         this.appendToBox(buttonsRow, new Gtk.Button({
-            label: _('Reset'),
+            label: _('Reset settings'),
             halign: Gtk.Align.END
         }));
         this.appendToBox(buttonsRow, new Gtk.Button({
