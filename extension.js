@@ -43,7 +43,8 @@ const submenus = {
     'Restore': 'aptdaemon-download-symbolic',
     'Reconnect': 'gnome-dev-ethernet',
     'Sync': 'mail-send-receive-symbolic',
-    'Delete': 'user-trash-symbolic'
+    'Delete': 'user-trash-symbolic',
+    'Error': 'dialog-warning-symbolic',
 };
 
 const RcloneManager = Lang.Class({
@@ -148,9 +149,10 @@ const RcloneManager = Lang.Class({
         //clean menu
         this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
-        for (let profile in profiles){
-            this.menu.addMenuItem(this._buildMenuItem(profiles[profile], fmh.getStatus(profiles[profile])));
-        }
+        // for (let profile in Object.entries(profiles)){
+        Object.entries(profiles).forEach(entry => {
+            this.menu.addMenuItem(this._buildMenuItem(entry[0], fmh.getStatus(entry[0])));
+        });
         // Add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
@@ -209,6 +211,10 @@ const RcloneManager = Lang.Class({
 
         menuItem.menu.addMenuItem(this._buildSubMenuItem('Sync', profile));
         menuItem.menu.addMenuItem(this._buildSubMenuItem('Delete', profile));
+
+        if(this._configs[profile].hasOwnProperty('log')){
+            menuItem.menu.addMenuItem(this._buildSubMenuItem('Log', profile));
+        }
     },
 
     _buildSubMenuItem: function(action, profile){
@@ -344,6 +350,7 @@ const RcloneManager = Lang.Class({
             this.icon.icon_name=INDICATOR_ICON;
         break;
         }
+        //if(message) {(this._configs[profile] ??= {}).log ??= message;}
         this._setMenuIcon(mItem, status);
         this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
 
@@ -430,122 +437,6 @@ const RcloneManager = Lang.Class({
         // Call parent
         this.parent();
     },
-
-
-/*
-    _updateCache: function () {
-        let registry = this.clipItemsRadioGroup.map(function (menuItem) {
-            return {
-                      "contents" : menuItem.clipContents,
-                      "favorite" : menuItem.clipFavorite
-                   };
-        });
-
-        writeRegistry(registry.filter(function (menuItem) {
-            if (CACHE_ONLY_FAVORITE) {
-                if (menuItem["favorite"]) {
-                    return menuItem;
-                }
-            } else {
-                return menuItem;
-            }
-        }));
-    },
-
-
-
-    _setupListener () {
-        const metaDisplay = Shell.Global.get().get_display();
-
-        if (typeof metaDisplay.get_selection === 'function') {
-            const selection = metaDisplay.get_selection();
-            this._setupSelectionTracking(selection);
-        }
-        else {
-            this._setupTimeout();
-        }
-    },
-
-    _setupSelectionTracking (selection) {
-        this.selection = selection;
-        this._selectionOwnerChangedId = selection.connect('owner-changed', (selection, selectionType, selectionSource) => {
-            this._onSelectionChange(selection, selectionType, selectionSource);
-        });
-    },
-
-    _setupTimeout: function (reiterate) {
-        let that = this;
-        reiterate = typeof reiterate === 'boolean' ? reiterate : true;
-
-        this._clipboardTimeoutId = Mainloop.timeout_add(TIMEOUT_MS, function () {
-            that._refreshIndicator();
-
-            // If the timeout handler returns `false`, the source is
-            // automatically removed, so we reset the timeout-id so it won't
-            // be removed on `.destroy()`
-            if (reiterate === false)
-                that._clipboardTimeoutId = null;
-
-            // As long as the timeout handler returns `true`, the handler
-            // will be invoked again and again as an interval
-            return reiterate;
-        });
-    },
-
-
-
-    _previousEntry: function() {
-        let that = this;
-
-        that._clearDelayedSelectionTimeout();
-
-        this._getAllIMenuItems().some(function (mItem, i, menuItems){
-            if (mItem.currentlySelected) {
-                i--;                                 //get the previous index
-                if (i < 0) i = menuItems.length - 1; //cycle if out of bound
-                let index = i + 1;                   //index to be displayed
-                that._showNotification(index + ' / ' + menuItems.length + ': ' + menuItems[i].label.text);
-                if (MOVE_ITEM_FIRST) {
-                    that._selectEntryWithDelay(menuItems[i]);
-                }
-                else {
-                    that._selectMenuItem(menuItems[i]);
-                }
-                return true;
-            }
-            return false;
-        });
-    },
-
-    _nextEntry: function() {
-        let that = this;
-
-        that._clearDelayedSelectionTimeout();
-
-        this._getAllIMenuItems().some(function (mItem, i, menuItems){
-            if (mItem.currentlySelected) {
-                i++;                                 //get the next index
-                if (i === menuItems.length) i = 0;   //cycle if out of bound
-                let index = i + 1;                     //index to be displayed
-                that._showNotification(index + ' / ' + menuItems.length + ': ' + menuItems[i].label.text);
-                if (MOVE_ITEM_FIRST) {
-                    that._selectEntryWithDelay(menuItems[i]);
-                }
-                else {
-                    that._selectMenuItem(menuItems[i]);
-                }
-                return true;
-            }
-            return false;
-        });
-    },
-
-    _toggleMenu: function(){
-        this.menu.toggle();
-    },
-
-*/
-
 });
 
 

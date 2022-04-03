@@ -45,7 +45,9 @@ function listremotes(){
 	let ret = stdout
 		.replace(new RegExp(':', 'g'), '')
 		.split('\n')
-		.filter(item => item.length > 1);
+		.filter(item => item.length > 1)
+		//convert array of string to object of property objects
+		.reduce((a, v) => ({ ...a, [v]: {}}), {}); 
 	log('listremotes', JSON.stringify(ret));
 	return ret
 }
