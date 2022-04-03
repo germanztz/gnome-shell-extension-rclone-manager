@@ -28,17 +28,18 @@ const ConfirmDialog = GObject.registerClass(
       main_box.add_child(message_box);
 
       let subject_label = new St.Label({
-        style: 'font-weight: bold',
+        style: 'font-weight: bold;',
         x_align: Clutter.ActorAlign.CENTER,
         text: title
       });
       message_box.add_child(subject_label);
 
       let desc_label = new St.Label({
-        style: 'padding-top: 12px',
+        style: 'padding-top: 12px;',
         x_align: Clutter.ActorAlign.CENTER,
         text: desc
       });
+      desc_label.clutter_text.line_wrap = true;
       message_box.add_child(desc_label);
 
       let buttons = [{

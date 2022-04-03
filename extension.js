@@ -7,7 +7,6 @@ const Mainloop   = imports.mainloop;
 const Meta       = imports.gi.Meta;
 const Shell      = imports.gi.Shell;
 const St         = imports.gi.St;
-const Gtk        = imports.gi.Gtk;
 const Util       = imports.misc.util;
 const MessageTray = imports.ui.messageTray;
 const Main      = imports.ui.main;

@@ -59,7 +59,7 @@ const App = new Lang.Class({
             margin_end: 10,
             row_spacing: 12,
             column_spacing: 18,
-            column_homogeneous: true,
+            column_homogeneous: false,
             row_homogeneous: false
         });
  
@@ -69,7 +69,7 @@ const App = new Lang.Class({
                 let inputWidget = input;
                 let LabelWidget = new Gtk.Label({
                     label: _(label),
-                    hexpand: true,
+                    hexpand: false,
                     halign: Gtk.Align.START
                 });
         
@@ -79,6 +79,7 @@ const App = new Lang.Class({
                     inputWidget = this.appendToBox(this.getHorizontalBox(), inputWidget);
                     property = 'active';
                 }
+                inputWidget.hexpand = true; 
 
                 main.attach(LabelWidget, 0, row, 1, 1);
                 main.attach(inputWidget, 1, row, 1, 1);
@@ -92,8 +93,8 @@ const App = new Lang.Class({
         addRow(new Gtk.Entry(), "Rclone file path", Fields.PREF_RCONFIG_FILE_PATH);
         addRow(new Gtk.Entry(), "Base mount path", Fields.PREF_BASE_MOUNT_PATH);
         addRow(new Gtk.Entry(), "Filenames to be ignored", Fields.PREF_IGNORE_PATTERNS);
-        addRow(new Gtk.Entry(), "Command to call a new terminal window", Fields.PREF_EXTERNAL_TERMINAL);
-        addRow(new Gtk.Entry(), "Command to call a new file browser window", Fields.PREF_EXTERNAL_FILE_BROWSER);
+        addRow(new Gtk.Entry(), "Terminal command", Fields.PREF_EXTERNAL_TERMINAL);
+        addRow(new Gtk.Entry(), "File browser command", Fields.PREF_EXTERNAL_FILE_BROWSER);
         addRow(new Gtk.Switch(), "Sync files on start", Fields.PREF_AUTOSYNC);
         // addRow(new Gtk.Entry(), "List remotes command", Fields.RC_LIST_REMOTES);  
         addRow(new Gtk.Entry(), "Create command", Fields.RC_CREATE_DIR);  
