@@ -40,7 +40,13 @@ const ConfirmDialog = GObject.registerClass(
         text: desc
       });
       desc_label.clutter_text.line_wrap = true;
-      message_box.add_child(desc_label);
+
+      let desc_scroll = new St.ScrollView();
+      let desc_box = new St.BoxLayout({ vertical: true });
+      desc_box.add_actor(desc_label);
+      desc_scroll.add_actor(desc_box);
+
+      message_box.add_actor(desc_scroll);
 
       let buttons = [{
         label: ok_label,

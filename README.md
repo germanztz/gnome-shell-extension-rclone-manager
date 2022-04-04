@@ -102,5 +102,5 @@ https://github.com/julio641742/gnome-shell-extension-reference
 - [ ] Fix show permanent notification
 - [x] Add notification dialog with details
 - [x] Fix open action
-- [ ] Add reset button in setting
+- [x] Add reset button in setting
 - [ ] Add restore button in setting

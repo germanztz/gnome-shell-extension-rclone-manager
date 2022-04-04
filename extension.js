@@ -45,6 +45,7 @@ const submenus = {
     'Sync': 'mail-send-receive-symbolic',
     'Delete': 'user-trash-symbolic',
     'Error': 'dialog-warning-symbolic',
+    'Log': 'dialog-warning-symbolic',
 };
 
 const RcloneManager = Lang.Class({
@@ -225,32 +226,6 @@ const RcloneManager = Lang.Class({
         return subMenuItem;
     },
 
-    _buildSubMenuItemOld: function(action, profile){
-        let subMenuItem = new PopupMenu.PopupMenuItem(action);
-        subMenuItem.profile = profile;
-        subMenuItem.action = action;
-        subMenuItem.style_class = 'sub-menu-item';
-        let icon = new St.Icon({
-            icon_name: submenus[action],
-            style_class: 'system-status-icon'
-        });
-
-        let icoBtn = new St.Button({
-            style_class: 'ci-action-btn',
-            can_focus: true,
-            child: icon,
-            x_align: Clutter.ActorAlign.END,
-            x_expand: true,
-            y_expand: true
-        });
-
-        subMenuItem.actor.add_child(icoBtn);
-        // subMenuItem.icoBtn = icoBtn;
-
-        subMenuItem.connect('activate', this._onSubMenuActivated);
-        return subMenuItem;
-    },
-
     _onSubMenuActivated: function (menuItem){
         log('_onSubMenuActivated', menuItem.profile, menuItem.action);
         switch (menuItem.action) {
@@ -302,6 +277,9 @@ const RcloneManager = Lang.Class({
                     }
                 );
             break;
+            case 'Log':
+                ConfirmDialog.openConfirmDialog( _("Error Detail"), menuItem.profile, this._configs[menuItem.profile].log, _("Ok"), null, function(){} )
+            break;
 
             default:
                 break;
@@ -350,10 +328,18 @@ const RcloneManager = Lang.Class({
             this.icon.icon_name=INDICATOR_ICON;
         break;
         }
-        //if(message) {(this._configs[profile] ??= {}).log ??= message;}
+        if(message) {this.addLog(message, profile)}
         this._setMenuIcon(mItem, status);
         this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
 
+    },
+
+    addLog: function(message, profile){
+        if(this._configs[profile].hasOwnProperty('log')){
+            this._configs[profile].log = this._configs[profile].log + '\n' + message;
+        } else{
+            this._configs[profile].log = message;
+        }
     },
 
     _findProfileMenu: function(profile){

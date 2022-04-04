@@ -34,14 +34,10 @@ var Fields = {
 
 const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
 
-const getSchema = function () {
-    let schemaDir = Extension.dir.get_child('schemas').get_path();
-    let schemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false);
-    let schema = schemaSource.lookup(SCHEMA_NAME, false);
-    return new Gio.Settings({ settings_schema: schema });
-};
-
-var SettingsSchema = getSchema();
+var schemaDir = Extension.dir.get_child('schemas').get_path();
+var schemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false);
+var schema = schemaSource.lookup(SCHEMA_NAME, false);
+var SettingsSchema = new Gio.Settings({ settings_schema: schema });
 
 function init() {
     let localeDir = Extension.dir.get_child('locale');
@@ -111,16 +107,20 @@ const App = new Lang.Class({
 
         let buttonsRow = this.getHorizontalBox();
 
-        this.appendToBox(buttonsRow, new Gtk.Button({
+        let btReset = new Gtk.Button({
             label: _('Reset settings'),
             halign: Gtk.Align.END
-        }));
-        this.appendToBox(buttonsRow, new Gtk.Button({
+        });
+        let btRestore = new Gtk.Button({
             label: _('Restore config'),
             halign: Gtk.Align.END
-        }));
+        });
+        btReset.connect("clicked", this.resetAll);
+        btRestore.connect("clicked", this.restoreConfig);
+        this.appendToBox(buttonsRow, btReset);
+        this.appendToBox(buttonsRow, btRestore);
 
-        this.main.attach(buttonsRow, 1, 12, 1, 1);
+        this.main.attach(buttonsRow, 1,  schema.list_keys().length+1, 1, 1);
 
 
         if (shellVersion < 40){
@@ -149,10 +149,11 @@ const App = new Lang.Class({
     },
 
     resetAll: function(){
-        //https://gjs-docs.gnome.org/gio20~2.66p/gio.settings#method-reset
+        schema.list_keys().forEach(prefKey => SettingsSchema.reset(prefKey));
     },
 
     restoreConfig: function(){
+        log('restoreConfig');
 
     }
 
