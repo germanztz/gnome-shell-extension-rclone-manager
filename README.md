@@ -99,8 +99,8 @@ https://github.com/julio641742/gnome-shell-extension-reference
 
 - [x] Fix create basedir if not exist on mount
 - [x] Fix show actual status when mount fails
-- [ ] Fix show permanent notification
 - [x] Add notification dialog with details
 - [x] Fix open action
 - [x] Add reset button in setting
 - [ ] Add restore button in setting
+- [ ] Fix show permanent notification

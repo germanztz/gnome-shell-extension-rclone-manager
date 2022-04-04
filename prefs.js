@@ -111,14 +111,14 @@ const App = new Lang.Class({
             label: _('Reset settings'),
             halign: Gtk.Align.END
         });
-        let btRestore = new Gtk.Button({
-            label: _('Restore config'),
-            halign: Gtk.Align.END
-        });
         btReset.connect("clicked", this.resetAll);
-        btRestore.connect("clicked", this.restoreConfig);
         this.appendToBox(buttonsRow, btReset);
-        this.appendToBox(buttonsRow, btRestore);
+        // let btRestore = new Gtk.Button({
+        //     label: _('Restore config'),
+        //     halign: Gtk.Align.END
+        // });
+        // btRestore.connect("clicked", this.restoreConfig);
+        // this.appendToBox(buttonsRow, btRestore);
 
         this.main.attach(buttonsRow, 1,  schema.list_keys().length+1, 1, 1);
 
@@ -152,12 +152,10 @@ const App = new Lang.Class({
         schema.list_keys().forEach(prefKey => SettingsSchema.reset(prefKey));
     },
 
-    restoreConfig: function(){
-        log('restoreConfig');
+    // restoreConfig: function(){
+    //     log('restoreConfig');
 
-    }
-
-
+    // }
 });
 
 function buildPrefsWidget(){
