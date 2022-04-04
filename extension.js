@@ -135,13 +135,13 @@ const RcloneManager = Lang.Class({
                 fmh.init_filemonitor(profile, 
                     function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
             }
+        } else if(this._mounts.includes(profile)){
+            //if is already mounted just leave it
+            this._onProfileStatusChanged(profile, fmh.ProfileStatus.MOUNTED, profile + _(' was already mounted'));
+
         } else if(regProf['syncType'] === 'Mount'){
-            if(this._mounts.includes(profile)){
-                this._onProfileStatusChanged(profile, fmh.ProfileStatus.MOUNTED);
-            } else {
-                fmh.mount(profile, 
-                    function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
-            }
+            fmh.mount(profile, 
+                function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
         }
 
     },
@@ -278,7 +278,7 @@ const RcloneManager = Lang.Class({
                 );
             break;
             case 'Log':
-                ConfirmDialog.openConfirmDialog( _("Error Detail"), menuItem.profile, this._configs[menuItem.profile].log, _("Ok"), null, function(){} )
+                ConfirmDialog.openConfirmDialog( _("Log Detail"), menuItem.profile, this._configs[menuItem.profile].log, _("Ok"), null, function(){} )
             break;
 
             default:
@@ -317,7 +317,7 @@ const RcloneManager = Lang.Class({
             this.icon.icon_name=PROFILE_ERROR_ICON;
             this._showNotification(profile + ' error: '+message , n => {
                 n.addAction(_('Details'), Lang.bind(that, function() {
-                    ConfirmDialog.openConfirmDialog( _("Error Detail"), profile, message, _("Ok"), null, function(){} )
+                    ConfirmDialog.openConfirmDialog( _("Log detail"), profile, message, _("Ok"), null, function(){} )
                 }));
             });
             break;

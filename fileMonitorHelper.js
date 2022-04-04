@@ -26,7 +26,6 @@ var RC_GETMOUNTS 		= 'mount';
 
 var monitors = {};
 var mounts = {};
-var rconfig = {};
 
 var ProfileStatus = {
 	CREATED: 'CREATED',
@@ -38,8 +37,10 @@ var ProfileStatus = {
     ERROR : 'ERROR',
 };
 
-function getConfigs(){ return rconfig;}
-
+/**
+ * Returns the RCLONE configurations as properties
+ * @returns {Object} An Object with the names of the RCLONE configurations as properties
+ */
 function listremotes(){
 	let [, stdout] = spawn_sync(RC_LIST_REMOTES.split(' '));
 	let ret = stdout
@@ -52,15 +53,10 @@ function listremotes(){
 	return ret
 }
 
-function set_monitor_commands(RC_CREATE_DIR, RC_DELETE_DIR, RC_DELETE_FILE){
-	monitors.commands.RC_CREATE_DIR = RC_CREATE_DIR;
-	monitors.commands.RC_DELETE_DIR = RC_DELETE_DIR;
-	monitors.commands.RC_DELETE_FILE = RC_DELETE_FILE;
-}
-
-/**
- * https://gjs-docs.gnome.org/gio20~2.66p/gio.filemonitor
- * @param {string} profile 
+/** 
+ * Initiates the monitor for an RCLONE profile
+ * @param {string} profile Name
+ * @param {fuction} onProfileStatusChanged callback function
  */
 function init_filemonitor(profile, onProfileStatusChanged){
 	monitors[profile] = {};
@@ -70,15 +66,17 @@ function init_filemonitor(profile, onProfileStatusChanged){
 	log('init_filemonitor',profile, monitors[profile]['basepath']);
 
 	let ok = addMonitorRecursive(profile, monitors[profile]['basepath'], monitors[profile]['basepath'], onProfileStatusChanged);
-	if(ok && onProfileStatusChanged) onProfileStatusChanged(profile, this.ProfileStatus.WATCHED);
+	if(ok && onProfileStatusChanged) onProfileStatusChanged(profile, this.ProfileStatus.WATCHED, 'Filemonitor has been started');
 }
 
-/**
+/** 
+ * Start a FileMonitor for a folder and it's subfolders
+ * @param {string} profile Name
+ * @param {Gio.File} path to be watcht
+ * @param {string} profileMountPath base directory
+ * @param {CallableFunction} onProfileStatusChanged callback function
  * 
- * @param {string} profile 
- * @param {Gio.File} directory 
- * @param {string} profileMountPath 
- * @param {CallableFunction} onProfileStatusChanged 
+ * @see https://gjs-docs.gnome.org/gio20~2.66p/gio.filemonitor
  */
 function addMonitorRecursive(profile, path, profileMountPath, onProfileStatusChanged){
 	try {
@@ -103,12 +101,12 @@ function addMonitorRecursive(profile, path, profileMountPath, onProfileStatusCha
 }
 
 /**
- * 
- * @param {string} profile 
- * @param {Gio.FileMonitor} monitor 
- * @param {Gio.File} file 
+ * Calback function called when some file changes
+ * @param {string} profile Name
+ * @param {Gio.FileMonitor} monitor which triggered the Event
+ * @param {Gio.File} file Changed
  * @param {Gio.File} other_file 
- * @param {Gio.FileMonitorEvent} event_type 
+ * @param {Gio.FileMonitorEvent} event_type type of event
  */
 function onEvent(profile, monitor, file, other_file, event_type, profileMountPath, onProfileStatusChanged){
 
@@ -156,6 +154,11 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 	}
 }
 
+/**
+ * Checks a File whether is a directory or not, it is has been deleted then checks if it is watched
+ * @param {Gio.File} file to check
+ * @returns {boolean} 
+ */
 function isDir(file){
 	let isdir = false;
     if (GLib.file_test(file.get_path(), GLib.FileTest.EXISTS)) {
@@ -169,6 +172,11 @@ function isDir(file){
 	return isdir;
 }
 
+/**
+ * Removes a filemonitor of a RCLONE profile
+ * @param {string} profile name
+ * @param {fuction} onProfileStatusChanged callback function
+ */
 function remove_filemonitor(profile, onProfileStatusChanged){
 	if(getStatus(profile) == ProfileStatus.WATCHED){
 		Object.entries(monitors[profile]['paths']).forEach( entry => {
@@ -180,17 +188,38 @@ function remove_filemonitor(profile, onProfileStatusChanged){
 	}
 }
 
+/**
+ * Removes a filemonitor of a path
+ * @param {string} profile name
+ * @param {Gio.File} path folder to unwatch
+ */
 function deleteFileMonitor(profile, path){
 	getFileMonitor(profile, path).cancel();
 	delete monitors[profile]['paths'][path];
 }
 
+/**
+ * Returns the filemonitor for a path
+ * @param {string} profile name
+ * @param {Gio.File} path folder of the monitor
+ * @returns {Gio.FileMonitor} the filemonitor
+ */
 function getFileMonitor(profile, path){
 	let fm = monitors[profile]['paths'][path];
 	log('getFileMonitor', profile, path, 'FileMonitor:', fm)
 	return fm;
 }
 
+/**
+ * 
+ * Callback function called when a console command finishes
+ * @param {Int32} status return status of the console
+ * @param {string[]} stdoutLines standard out lines
+ * @param {string[]} stderrLines error out lines
+ * @param {string} profile Name
+ * @param {Gio.File} file changed if any
+ * @param {fuction} onProfileStatusChanged callback function
+ */
 function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged){
 	log('onCmdFinished',profile,file,status);
 	if(status === 0){
@@ -203,9 +232,9 @@ function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfil
 }
 
 /**
- * 
- * @param {string} profile 
- * @param {CallableFunction} onProfileStatusChanged 
+ * Mounts a RCLONE profile
+ * @param {string} profile name 
+ * @param {CallableFunction} onProfileStatusChanged callback function
  */
 function mount(profile, onProfileStatusChanged){
 	let that = this;
@@ -223,7 +252,12 @@ function mount(profile, onProfileStatusChanged){
 
 }
 
-function umount(profile, onProfileStatusChanged){
+/**
+ * UMounts a RCLONE profile
+ * @param {string} profile name 
+ * @param {CallableFunction} onProfileStatusChanged callback function
+ */
+ function umount(profile, onProfileStatusChanged){
 	let that = this;
 	spawn_async_cmd(RC_UMOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 	function(status, stdoutLines, stderrLines){
@@ -235,28 +269,47 @@ function umount(profile, onProfileStatusChanged){
 	});
 }
 
+/**
+ * Returns de RCLONE mounted drivers
+ * @returns {Object} the names of the RCLONE mounted drivers as properties
+ */
 function getMounts(){
 	let [stat, stdout, stderr] = this.spawn_sync(RC_GETMOUNTS.split(' '));
-	let mounts = [];
+	let retmounts = [];
 	if(stdout){
 		stdout.split('\n')
 			.filter(line => line.search('rclone') > 0)
-			.forEach(line => mounts.push(line.split(':')[0]));
+			.forEach(line => retmounts.push(line.split(':')[0]));
 	}
-	log('getMounts', JSON.stringify(mounts));
-	return mounts;
+	log('getMounts', JSON.stringify(retmounts));
+	mounts = retmounts.reduce((a, v) => ({ ...a, [v]: {}}), {});
+	return retmounts;
 }
 
+/**
+ * Returns the status of a profile
+ * @param {string} profile name
+ * @returns {ProfileStatus} the status of the profile
+ */
 function getStatus(profile){
 	if(Object.entries(monitors).some(([key, value]) => key === profile)) return ProfileStatus.WATCHED;
 	else if(Object.entries(mounts).some(([key, value]) => key === profile)) return ProfileStatus.MOUNTED;
 	else return ProfileStatus.DISCONNECTED;
 }
 
+/**
+ * Launch a console terminal whith RCLONE in order to reconnect the profile
+ * @param {string} profile name
+ */
 function reconnect(profile){
 	launch_term_cmd(RC_RECONNECT, profile);
 }
 
+/**
+ * Lauch an RCLONE sincronization whith the remote repository
+ * @param {string} profile name
+ * @param {function} onProfileStatusChanged callback function
+ */
 function sync(profile, onProfileStatusChanged){
 
 	if (getStatus(profile) == ProfileStatus.MOUNTED){
@@ -270,9 +323,6 @@ function sync(profile, onProfileStatusChanged){
 		monitors[profile]['is_synching'] = true;
 	}
 
-	// let callback = function (status, stdoutLines, stderrLines) { 
-	// 	onCmdFinished(status, stdoutLines, stderrLines, profile, null, onProfileStatusChanged);}
-
 	spawn_async_cmd(RC_SYNC, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			
@@ -281,7 +331,7 @@ function sync(profile, onProfileStatusChanged){
 			}
 
 			if(status === 0) {
-				if(onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), '');
+				if(onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), profile + ' Has synch');
 			} else {
 				if(onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, stderrLines);
 			}
@@ -299,6 +349,10 @@ function backup(profile, onProfileStatusChanged){
 	});
 }
 
+/**
+ * Launch a file browser on the profile location
+ * @param {string} profile name
+ */
 function open(profile){
 	cmd = PREF_EXTERNAL_FILE_BROWSER.split(' ');
 	cmd.push(PREF_BASE_MOUNT_PATH+profile);
@@ -309,6 +363,10 @@ function restore(profile, onProfileStatusChanged){
 	this.spawn_async_with_pipes(['ls','-la','.'], this.onCmdFinished);
 }
 
+/**
+ * Launch a console terminal whith RCLONE in order to add a new profile
+ * @param {string} profile name
+ */
 function addConfig(onProfileStatusChanged){
 	launch_term_cmd(RC_ADDCONFIG, false, false);
 	onProfileStatusChanged && onProfileStatusChanged("", ProfileStatus.CREATED);
