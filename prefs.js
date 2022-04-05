@@ -1,6 +1,7 @@
 const GObject = imports.gi.GObject;
 const Gtk = imports.gi.Gtk;
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 const Extension = imports.misc.extensionUtils.getCurrentExtension();
 
@@ -35,9 +36,9 @@ var Fields = {
 const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
 
 var schemaDir = Extension.dir.get_child('schemas').get_path();
-var schemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false);
-var schema = schemaSource.lookup(SCHEMA_NAME, false);
-var SettingsSchema = new Gio.Settings({ settings_schema: schema });
+var SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false);
+var SettingsSchema = SettingsSchemaSource.lookup(SCHEMA_NAME, false);
+var Settings = new Gio.Settings({ settings_schema: SettingsSchema });
 
 function init() {
     let localeDir = Extension.dir.get_child('locale');
@@ -61,10 +62,10 @@ const App = new Lang.Class({
  
         const addRow = ((main) => {
             let row = 0;
-            return (input, label, schemaKey) => {
+            return (input, prefKey) => {
                 let inputWidget = input;
                 let LabelWidget = new Gtk.Label({
-                    label: _(label),
+                    label: _(SettingsSchema.get_key(prefKey).get_summary() ),
                     hexpand: false,
                     halign: Gtk.Align.START
                 });
@@ -80,30 +81,28 @@ const App = new Lang.Class({
                 main.attach(LabelWidget, 0, row, 1, 1);
                 main.attach(inputWidget, 1, row, 1, 1);
 
-                SettingsSchema.bind(schemaKey, input, property, Gio.SettingsBindFlags.DEFAULT);
+                Settings.bind(prefKey, input, property, Gio.SettingsBindFlags.DEFAULT);
 
                 row++;
             };
         })(this.main);
 
-        addRow(new Gtk.Entry(), "Rclone file path", Fields.PREF_RCONFIG_FILE_PATH);
-        addRow(new Gtk.Entry(), "Base mount path", Fields.PREF_BASE_MOUNT_PATH);
-        addRow(new Gtk.Entry(), "Filenames to be ignored", Fields.PREF_IGNORE_PATTERNS);
-        addRow(new Gtk.Entry(), "Terminal command", Fields.PREF_EXTERNAL_TERMINAL);
-        addRow(new Gtk.Entry(), "File browser command", Fields.PREF_EXTERNAL_FILE_BROWSER);
-        addRow(new Gtk.Switch(), "Sync files on start", Fields.PREF_AUTOSYNC);
-        // addRow(new Gtk.Entry(), "List remotes command", Fields.RC_LIST_REMOTES);  
-        addRow(new Gtk.Entry(), "Create command", Fields.RC_CREATE_DIR);  
-        addRow(new Gtk.Entry(), "Delete dir command", Fields.RC_DELETE_DIR);  
-        addRow(new Gtk.Entry(), "Delete file command", Fields.RC_DELETE_FILE);  
-        addRow(new Gtk.Entry(), "Mount command", Fields.RC_MOUNT);  
-        addRow(new Gtk.Entry(), "Sync command", Fields.RC_SYNC);  
-        // addRow(new Gtk.Entry(), "Copy file command", Fields.RC_COPYTO);  
-        // addRow(new Gtk.Entry(), "Add config command", Fields.RC_ADDCONFIG);  
-        // addRow(new Gtk.Entry(), "Delete config command", Fields.RC_DELETE);  
-        // addRow(new Gtk.Entry(), "Reconnect config command", Fields.RC_RECONNECT);  
-        // addRow(new Gtk.Entry(), "Umount command", Fields.RC_UMOUNT);  
-        // addRow(new Gtk.Entry(), "Get mounts command", Fields.RC_GETMOUNTS);  
+        // SettingsSchema.list_keys().forEach((prefKey) => {
+        //     let type = SettingsSchema.get_key(prefKey).get_value_type();
+        //     addRow(type == GLib.Variant.G_VARIANT_TYPE_BOOLEAN ? new Gtk.Switch() : new Gtk.Entry(), prefKey);
+        // });
+        addRow(new Gtk.Entry(), Fields.PREF_RCONFIG_FILE_PATH);
+        addRow(new Gtk.Entry(), Fields.PREF_BASE_MOUNT_PATH);
+        addRow(new Gtk.Entry(), Fields.PREF_IGNORE_PATTERNS);
+        addRow(new Gtk.Entry(), Fields.PREF_EXTERNAL_TERMINAL);
+        addRow(new Gtk.Entry(), Fields.PREF_EXTERNAL_FILE_BROWSER);
+        addRow(new Gtk.Switch(), Fields.PREF_AUTOSYNC);
+        addRow(new Gtk.Entry(), Fields.RC_CREATE_DIR);  
+        addRow(new Gtk.Entry(), Fields.RC_DELETE_DIR);  
+        addRow(new Gtk.Entry(), Fields.RC_DELETE_FILE);  
+        addRow(new Gtk.Entry(), Fields.RC_MOUNT);  
+        addRow(new Gtk.Entry(), Fields.RC_SYNC);  
+
 
         let buttonsRow = this.getHorizontalBox();
 
@@ -120,7 +119,7 @@ const App = new Lang.Class({
         // btRestore.connect("clicked", this.restoreConfig);
         // this.appendToBox(buttonsRow, btRestore);
 
-        this.main.attach(buttonsRow, 1,  schema.list_keys().length+1, 1, 1);
+        this.main.attach(buttonsRow, 1,  SettingsSchema.list_keys().length+1, 1, 1);
 
 
         if (shellVersion < 40){
@@ -149,7 +148,7 @@ const App = new Lang.Class({
     },
 
     resetAll: function(){
-        schema.list_keys().forEach(prefKey => SettingsSchema.reset(prefKey));
+        SettingsSchema.list_keys().forEach(prefKey => Settings.reset(prefKey));
     },
 
     // restoreConfig: function(){

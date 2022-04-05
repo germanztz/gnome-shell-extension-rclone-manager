@@ -12,7 +12,7 @@
 
     <key name="base-mount-path" type="s">
       <default>'~/'</default>
-        <summary>Path where the remote disks are mounted</summary>
+        <summary>Base mount path</summary>
         <description>
             Path where the remote disks are mounted
         </description>
@@ -28,7 +28,7 @@
 
     <key name="external-terminal" type="s">
       <default>'gnome-terminal --window -- '</default>
-        <summary>Command to call a new terminal window</summary>
+        <summary>Terminal command</summary>
         <description>
             Command to call a new terminal window in order to perform rclone manager actions
         </description>
@@ -36,7 +36,7 @@
 
     <key name="external-file-browser" type="s">
       <default>'nautilus'</default>
-        <summary>Command to call a new file browser window</summary>
+        <summary>File browser command</summary>
         <description>
             Command to call a new file browser window in order to explore configuration folders
         </description>
@@ -48,12 +48,6 @@
         <description>
             If is on will execute 'rclone sync' on start watching a profile
         </description>
-    </key>
-
-    <key name="rclone-listremotes" type="s">
-      <default>'rclone listremotes'</default>
-        <summary>List remotes command</summary>
-        <description>Command to list remotes</description>
     </key>
 
     <key name="rclone-copy" type="s">
@@ -90,6 +84,12 @@
       <default>'rclone copyto %profile:%destination %source'</default>
         <summary>Copy file command</summary>
         <description>Copy file command</description>
+    </key>
+
+    <key name="rclone-listremotes" type="s">
+      <default>'rclone listremotes'</default>
+        <summary>List remotes command</summary>
+        <description>Command to list remotes</description>
     </key>
 
     <key name="rclone-config" type="s">

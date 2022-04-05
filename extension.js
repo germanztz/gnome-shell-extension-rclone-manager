@@ -86,7 +86,7 @@ const RcloneManager = Lang.Class({
     },
 
     _loadSettings: function () {
-        this._settings = Prefs.SettingsSchema;
+        this._settings = Prefs.Settings;
         this._settingsChangedId = this._settings.connect('changed',
             Lang.bind(this, this._onSettingsChange));
 
