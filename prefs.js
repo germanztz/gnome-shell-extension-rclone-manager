@@ -13,24 +13,17 @@ const [major] = Config.PACKAGE_VERSION.split('.');
 const shellVersion = Number.parseInt(major);
 
 var Fields = {
-    PREF_RCONFIG_FILE_PATH       : 'rconfig-file-path',
-    PREF_BASE_MOUNT_PATH         : 'base-mount-path',
-    PREF_IGNORE_PATTERNS         : 'ignore-patterns',
-    PREF_EXTERNAL_TERMINAL       : 'external-terminal',
-    PREF_EXTERNAL_FILE_BROWSER   : 'external-file-browser',
-    PREF_AUTOSYNC                : 'autosync',
-    RC_LIST_REMOTES         : 'rclone-listremotes',
-    RC_CREATE_DIR 	        : 'rclone-copy',
-    RC_DELETE_DIR 	        : 'rclone-purge',
-    RC_DELETE_FILE 	        : 'rclone-delete',
-    RC_MOUNT 			    : 'rclone-mount',
-    RC_SYNC  			    : 'rclone-sync',
-    RC_COPYTO  		        : 'rclone-copyto',
-    RC_ADDCONFIG 		    : 'rclone-config',
-    RC_DELETE 		        : 'rclone-config-delete',
-    RC_RECONNECT  	        : 'rclone-config-reconnect',
-    RC_UMOUNT 		        : 'umount-source',
-    RC_GETMOUNTS 		    : 'mount',
+    PREFKEY_RCONFIG_FILE_PATH       : 'prefkey001-rconfig-file-path',
+    PREFKEY_BASE_MOUNT_PATH         : 'prefkey002-base-mount-path',
+    PREFKEY_IGNORE_PATTERNS         : 'prefkey003-ignore-patterns',
+    PREFKEY_EXTERNAL_TERMINAL       : 'prefkey004-external-terminal',
+    PREFKEY_EXTERNAL_FILE_BROWSER   : 'prefkey005-external-file-browser',
+    PREFKEY_AUTOSYNC                : 'prefkey006-autosync',
+    PREFKEY_RC_CREATE_DIR           : 'prefkey007-rclone-copy',
+    PREFKEY_RC_DELETE_DIR           : 'prefkey008-rclone-purge',
+    PREFKEY_RC_DELETE_FILE          : 'prefkey009-rclone-delete',
+    PREFKEY_RC_MOUNT 		        : 'prefkey010-rclone-mount',
+    PREFKEY_RC_SYNC  		        : 'prefkey011-rclone-sync',
 };
 
 const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
@@ -87,22 +80,16 @@ const App = new Lang.Class({
             };
         })(this.main);
 
-        // SettingsSchema.list_keys().forEach((prefKey) => {
-        //     let type = SettingsSchema.get_key(prefKey).get_value_type();
-        //     addRow(type == GLib.Variant.G_VARIANT_TYPE_BOOLEAN ? new Gtk.Switch() : new Gtk.Entry(), prefKey);
-        // });
-        addRow(new Gtk.Entry(), Fields.PREF_RCONFIG_FILE_PATH);
-        addRow(new Gtk.Entry(), Fields.PREF_BASE_MOUNT_PATH);
-        addRow(new Gtk.Entry(), Fields.PREF_IGNORE_PATTERNS);
-        addRow(new Gtk.Entry(), Fields.PREF_EXTERNAL_TERMINAL);
-        addRow(new Gtk.Entry(), Fields.PREF_EXTERNAL_FILE_BROWSER);
-        addRow(new Gtk.Switch(), Fields.PREF_AUTOSYNC);
-        addRow(new Gtk.Entry(), Fields.RC_CREATE_DIR);  
-        addRow(new Gtk.Entry(), Fields.RC_DELETE_DIR);  
-        addRow(new Gtk.Entry(), Fields.RC_DELETE_FILE);  
-        addRow(new Gtk.Entry(), Fields.RC_MOUNT);  
-        addRow(new Gtk.Entry(), Fields.RC_SYNC);  
-
+        SettingsSchema.list_keys().sort().forEach((prefKey) => {
+            let type = SettingsSchema.get_key(prefKey).get_value_type().dup_string();
+            switch (type) {
+                case 's':
+                    addRow(new Gtk.Entry(), prefKey); break;
+                case 'b':
+                    addRow(new Gtk.Switch(), prefKey); break;
+            }
+            
+        });
 
         let buttonsRow = this.getHorizontalBox();
 

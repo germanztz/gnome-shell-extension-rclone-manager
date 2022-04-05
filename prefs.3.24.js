@@ -11,12 +11,12 @@ const _ = Gettext.domain('clipboard-indicator').gettext;
 
 var Fields = {
     PREF_RCONFIG_FILE_PATH : 'rconfig-file-path',
-    PREF_BASE_MOUNT_PATH : 'base-mount-path',
-    PREF_IGNORE_PATTERNS : 'ignore-patterns',
-    PREF_EXTERNAL_TERMINAL : 'external-terminal',
-    PREF_EXTERNAL_FILE_BROWSER : 'external-file-browser',
+    PREF_BASE_MOUNT_PATH : 'prefkey002-base-mount-path',
+    PREF_IGNORE_PATTERNS : 'prefkey003-ignore-patterns',
+    PREF_EXTERNAL_TERMINAL : 'prefkey004-external-terminal',
+    PREF_EXTERNAL_FILE_BROWSER : 'prefkey005-external-file-browser',
     PREF_EXTERNAL_TEXT_EDITOR : 'external-text-editor',
-    AUTOSYNC : 'autosync',
+    prefkey006-autosync : 'prefkey006-autosync',
     INTERVAL           : 'refresh-interval',
     HISTORY_SIZE       : 'history-size',
     PREVIEW_SIZE       : 'preview-size',

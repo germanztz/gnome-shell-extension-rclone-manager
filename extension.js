@@ -94,25 +94,18 @@ const RcloneManager = Lang.Class({
     },
 
     _onSettingsChange: function () {
-        PREF_AUTOSYNC = this._settings.get_boolean(Prefs.Fields.PREF_AUTOSYNC);
 
-        fmh.PREF_RCONFIG_FILE_PATH = this._settings.get_string(Prefs.Fields.PREF_RCONFIG_FILE_PATH);
-        fmh.PREF_BASE_MOUNT_PATH = this._settings.get_string(Prefs.Fields.PREF_BASE_MOUNT_PATH);
-        fmh.PREF_IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.PREF_IGNORE_PATTERNS);
-        fmh.PREF_EXTERNAL_TERMINAL = this._settings.get_string(Prefs.Fields.PREF_EXTERNAL_TERMINAL);
-        fmh.PREF_EXTERNAL_FILE_BROWSER = this._settings.get_string(Prefs.Fields.PREF_EXTERNAL_FILE_BROWSER);
-        fmh.RC_CREATE_DIR 	= this._settings.get_string(Prefs.Fields.RC_CREATE_DIR);
-        fmh.RC_DELETE_DIR 	= this._settings.get_string(Prefs.Fields.RC_DELETE_DIR);
-        fmh.RC_DELETE_FILE 	= this._settings.get_string(Prefs.Fields.RC_DELETE_FILE);
-        fmh.RC_LIST_REMOTES = this._settings.get_string(Prefs.Fields.RC_LIST_REMOTES);
-        fmh.RC_MOUNT 		= this._settings.get_string(Prefs.Fields.RC_MOUNT);
-        fmh.RC_SYNC  		= this._settings.get_string(Prefs.Fields.RC_SYNC);
-        fmh.RC_COPYTO  		= this._settings.get_string(Prefs.Fields.RC_COPYTO);
-        fmh.RC_ADDCONFIG 	= this._settings.get_string(Prefs.Fields.RC_ADDCONFIG);
-        fmh.RC_DELETE 		= this._settings.get_string(Prefs.Fields.RC_DELETE);
-        fmh.RC_RECONNECT  	= this._settings.get_string(Prefs.Fields.RC_RECONNECT);
-        fmh.RC_UMOUNT 		= this._settings.get_string(Prefs.Fields.RC_UMOUNT);
-        fmh.RC_GETMOUNTS 	= this._settings.get_string(Prefs.Fields.RC_GETMOUNTS);
+        fmh.PREF_RCONFIG_FILE_PATH      = this._settings.get_string(Prefs.Fields.PREFKEY_RCONFIG_FILE_PATH);
+        fmh.PREF_BASE_MOUNT_PATH        = this._settings.get_string(Prefs.Fields.PREFKEY_BASE_MOUNT_PATH);
+        fmh.PREF_IGNORE_PATTERNS        = this._settings.get_string(Prefs.Fields.PREFKEY_IGNORE_PATTERNS);
+        fmh.PREF_EXTERNAL_TERMINAL      = this._settings.get_string(Prefs.Fields.PREFKEY_EXTERNAL_TERMINAL);
+        fmh.PREF_EXTERNAL_FILE_BROWSER  = this._settings.get_string(Prefs.Fields.PREFKEY_EXTERNAL_FILE_BROWSER);
+        PREF_AUTOSYNC                   = this._settings.get_boolean(Prefs.Fields.PREFKEY_AUTOSYNC);
+        fmh.PREF_RC_CREATE_DIR 	        = this._settings.get_string(Prefs.Fields.PREFKEY_RC_CREATE_DIR);
+        fmh.PREF_RC_DELETE_DIR 	        = this._settings.get_string(Prefs.Fields.PREFKEY_RC_DELETE_DIR);
+        fmh.PREF_RC_DELETE_FILE 	    = this._settings.get_string(Prefs.Fields.PREFKEY_RC_DELETE_FILE);
+        fmh.PREF_RC_MOUNT 		        = this._settings.get_string(Prefs.Fields.PREFKEY_RC_MOUNT);
+        fmh.PREF_RC_SYNC  		        = this._settings.get_string(Prefs.Fields.PREFKEY_RC_SYNC);
         
         fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~',GLib.get_home_dir());
 		if(!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH+'/';

@@ -2,7 +2,7 @@
   <schema id="org.gnome.shell.extensions.rclone-manager"
       path="/org/gnome/shell/extensions/rclone-manager/">
 
-    <key name="rconfig-file-path" type="s">
+    <key name="prefkey001-rconfig-file-path" type="s">
       <default>'~/.config/rclone/rclone.conf'</default>
         <summary>Rclone configuration file path</summary>
         <description>
@@ -10,7 +10,7 @@
         </description>
     </key>
 
-    <key name="base-mount-path" type="s">
+    <key name="prefkey002-base-mount-path" type="s">
       <default>'~/'</default>
         <summary>Base mount path</summary>
         <description>
@@ -18,7 +18,7 @@
         </description>
     </key>
 
-    <key name="ignore-patterns" type="s">
+    <key name="prefkey003-ignore-patterns" type="s">
       <default>'.remmina.,~lock,.tmp,.log'</default>
         <summary>Filenames to be ignored</summary>
         <description>
@@ -26,7 +26,7 @@
         </description>
     </key>
 
-    <key name="external-terminal" type="s">
+    <key name="prefkey004-external-terminal" type="s">
       <default>'gnome-terminal --window -- '</default>
         <summary>Terminal command</summary>
         <description>
@@ -34,7 +34,7 @@
         </description>
     </key>
 
-    <key name="external-file-browser" type="s">
+    <key name="prefkey005-external-file-browser" type="s">
       <default>'nautilus'</default>
         <summary>File browser command</summary>
         <description>
@@ -42,7 +42,7 @@
         </description>
     </key>
 
-    <key name="autosync" type="b">
+    <key name="prefkey006-autosync" type="b">
       <default>true</default>
         <summary>Sync files on start</summary>
         <description>
@@ -50,76 +50,34 @@
         </description>
     </key>
 
-    <key name="rclone-copy" type="s">
+    <key name="prefkey007-rclone-copy" type="s">
       <default>'rclone copy %source %profile:%destination --create-empty-src-dirs'</default>
         <summary>Create command</summary>
         <description>Create command</description>
     </key>
 
-    <key name="rclone-purge" type="s">
+    <key name="prefkey008-rclone-purge" type="s">
       <default>'rclone purge %profile:%destination --ignore-errors'</default>
         <summary>Delete dir command</summary>
         <description>Delete dir command</description>
     </key>
 
-    <key name="rclone-delete" type="s">
+    <key name="prefkey009-rclone-delete" type="s">
       <default>'rclone delete %profile:%destination --ignore-errors'</default>
         <summary>Delete file command</summary>
         <description>Delete file command</description>
     </key>
 
-    <key name="rclone-mount" type="s">
+    <key name="prefkey010-rclone-mount" type="s">
       <default>'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime'</default>
         <summary>Mount command</summary>
         <description>Mount command</description>
     </key>
 
-    <key name="rclone-sync" type="s">
+    <key name="prefkey011-rclone-sync" type="s">
       <default>'rclone sync %profile: %source --create-empty-src-dirs'</default>
         <summary>Sync command</summary>
         <description>Sync command </description>
-    </key>
-
-    <key name="rclone-copyto" type="s">
-      <default>'rclone copyto %profile:%destination %source'</default>
-        <summary>Copy file command</summary>
-        <description>Copy file command</description>
-    </key>
-
-    <key name="rclone-listremotes" type="s">
-      <default>'rclone listremotes'</default>
-        <summary>List remotes command</summary>
-        <description>Command to list remotes</description>
-    </key>
-
-    <key name="rclone-config" type="s">
-      <default>'rclone config'</default>
-        <summary>Add config command</summary>
-        <description>Add config command</description>
-    </key>
-
-    <key name="rclone-config-delete" type="s">
-      <default>'rclone config delete %profile'</default>
-        <summary>Delete config command</summary>
-        <description>Delete config command</description>
-    </key>
-
-    <key name="rclone-config-reconnect" type="s">
-      <default>'rclone config reconnect %profile:'</default>
-        <summary>Reconnect config command</summary>
-        <description>Reconnect config command</description>
-    </key>
-
-    <key name="umount-source" type="s">
-      <default>'umount %source'</default>
-        <summary>Umount command</summary>
-        <description>Umount command</description>
-    </key>
-
-    <key name="mount" type="s">
-      <default>'mount'</default>
-        <summary>Get mounts command</summary>
-        <description>Get mounts command</description>
     </key>
 
   </schema>

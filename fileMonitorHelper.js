@@ -11,12 +11,12 @@ var PREF_IGNORE_PATTERNS       = '.remmina.,~lock,.tmp,.log';
 var PREF_EXTERNAL_TERMINAL     = 'gnome-terminal --window -- ';
 var PREF_EXTERNAL_FILE_BROWSER = 'nautilus';
 
-var RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
-var RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';
-var RC_DELETE_FILE 	    = 'rclone delete %profile:%destination --ignore-errors';
+var PREF_RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
+var PREF_RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';
+var PREF_RC_DELETE_FILE 	    = 'rclone delete %profile:%destination --ignore-errors';
 var RC_LIST_REMOTES 	= 'rclone listremotes'
-var RC_MOUNT 			= 'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime';
-var RC_SYNC  			= 'rclone sync %profile: %source --create-empty-src-dirs';
+var PREF_RC_MOUNT 			= 'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime';
+var PREF_RC_SYNC  			= 'rclone sync %profile: %source --create-empty-src-dirs';
 var RC_COPYTO  		    = 'rclone copyto %profile:%destination %source';
 var RC_ADDCONFIG 		= 'rclone config';
 var RC_DELETE 		    = 'rclone config delete %profile';
@@ -131,15 +131,15 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 				destinationFilePath = destinationFilePath + file.get_basename();
 			}
 			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
-			spawn_async_cmd(RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
+			spawn_async_cmd(PREF_RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback);
 		break;
 		case Gio.FileMonitorEvent.DELETED:
 			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY);
 			if (isDir(file)) {
 				deleteFileMonitor(profile, file.get_path());
-				spawn_async_cmd(RC_DELETE_DIR, profile, '', destinationFilePath, callback);
+				spawn_async_cmd(PREF_RC_DELETE_DIR, profile, '', destinationFilePath, callback);
 			} else {
-				spawn_async_cmd(RC_DELETE_FILE, profile, '', destinationFilePath, callback);
+				spawn_async_cmd(PREF_RC_DELETE_FILE, profile, '', destinationFilePath, callback);
 			}
 		break;
 		case Gio.FileMonitorEvent.CHANGED:
@@ -241,7 +241,7 @@ function mount(profile, onProfileStatusChanged){
 	const directory = Gio.file_new_for_path(PREF_BASE_MOUNT_PATH + profile);
 	if (!isDir(directory))
 		directory.make_directory_with_parents (null, null);
-	spawn_async_cmd(RC_MOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null, 
+	spawn_async_cmd(PREF_RC_MOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			if(status === 0) {
 				if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
@@ -323,7 +323,7 @@ function sync(profile, onProfileStatusChanged){
 		monitors[profile]['is_synching'] = true;
 	}
 
-	spawn_async_cmd(RC_SYNC, profile, PREF_BASE_MOUNT_PATH + profile, null, 
+	spawn_async_cmd(PREF_RC_SYNC, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			
 			if(monitors.hasOwnProperty(profile)){
