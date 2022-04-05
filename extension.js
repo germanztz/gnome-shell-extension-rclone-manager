@@ -298,7 +298,8 @@ const RcloneManager = Lang.Class({
         switch (status) {
         case fmh.ProfileStatus.DELETED:
             mItem.destroy();
-        return;
+            return;
+
         case fmh.ProfileStatus.ERROR:
             this.icon.icon_name=PROFILE_ERROR_ICON;
             this._showNotification(profile + ' error: '+message , n => {
@@ -307,13 +308,18 @@ const RcloneManager = Lang.Class({
                 }));
             });
             break;
+
         case fmh.ProfileStatus.BUSSY:
             this.icon.icon_name=PROFILE_BUSSY_ICON;
             break;
+            
+        case fmh.ProfileStatus.MOUNTED:
+        case fmh.ProfileStatus.WATCHED:
+        case fmh.ProfileStatus.DISCONNECTED:
+            this._updateRegistry(profile, { syncType: status});
         default:
             this.icon.icon_name=INDICATOR_ICON;
-            this._updateRegistry(profile, { syncType: status});
-        break;
+            break;
         }
         if(message) {this.addLog(profile, message)}
         this._setMenuIcon(mItem, status);
