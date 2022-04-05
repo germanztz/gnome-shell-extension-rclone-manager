@@ -31,7 +31,7 @@ const PROFILE_MOUNTED_ICON = 'folder-remote-symbolic';
 const PROFILE_BUSSY_ICON = 'system-run-symbolic';
 const PROFILE_ERROR_ICON = 'dialog-warning-symbolic';
 
-let PREF_AUTOSYNC            = true;
+let PREF_AUTOSYNC = true;
 
 const submenus = {
     'Watch': 'folder-saved-search-symbolic',

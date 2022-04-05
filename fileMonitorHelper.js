@@ -5,24 +5,24 @@
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 
-var PREF_RCONFIG_FILE_PATH     = "~/.config/rclone/rclone.conf";
-var PREF_BASE_MOUNT_PATH       = "~/";
-var PREF_IGNORE_PATTERNS       = '.remmina.,~lock,.tmp,.log';
-var PREF_EXTERNAL_TERMINAL     = 'gnome-terminal --window -- ';
-var PREF_EXTERNAL_FILE_BROWSER = 'nautilus';
+var PREF_RCONFIG_FILE_PATH;
+var PREF_BASE_MOUNT_PATH;
+var PREF_IGNORE_PATTERNS;
+var PREF_EXTERNAL_TERMINAL;
+var PREF_EXTERNAL_FILE_BROWSER;
+var PREF_RC_CREATE_DIR;
+var PREF_RC_DELETE_DIR;
+var PREF_RC_DELETE_FILE;
+var PREF_RC_MOUNT;
+var PREF_RC_SYNC;
 
-var PREF_RC_CREATE_DIR 	    = 'rclone copy %source %profile:%destination --create-empty-src-dirs';
-var PREF_RC_DELETE_DIR 	    = 'rclone purge %profile:%destination --ignore-errors';
-var PREF_RC_DELETE_FILE 	    = 'rclone delete %profile:%destination --ignore-errors';
-var RC_LIST_REMOTES 	= 'rclone listremotes'
-var PREF_RC_MOUNT 			= 'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime';
-var PREF_RC_SYNC  			= 'rclone sync %profile: %source --create-empty-src-dirs';
-var RC_COPYTO  		    = 'rclone copyto %profile:%destination %source';
-var RC_ADDCONFIG 		= 'rclone config';
-var RC_DELETE 		    = 'rclone config delete %profile';
-var RC_RECONNECT  	    = 'rclone config reconnect %profile: %flags';
-var RC_UMOUNT 		    = 'umount %source';
-var RC_GETMOUNTS 		= 'mount';
+var RC_LIST_REMOTES 			= 'rclone listremotes'
+var RC_COPYTO  		    		= 'rclone copyto %profile:%destination %source';
+var RC_ADDCONFIG 				= 'rclone config';
+var RC_DELETE 		    		= 'rclone config delete %profile';
+var RC_RECONNECT  	    		= 'rclone config reconnect %profile: %flags';
+var RC_UMOUNT 		    		= 'umount %source';
+var RC_GETMOUNTS 				= 'mount';
 
 var monitors = {};
 var mounts = {};
