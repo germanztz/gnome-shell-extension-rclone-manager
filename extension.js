@@ -15,7 +15,6 @@ const Me = ExtensionUtils.getCurrentExtension();
 const Prefs = Me.imports.prefs;
 
 const fmh = Me.imports.fileMonitorHelper;
-const Utils = Me.imports.utils;
 const ConfirmDialog = Me.imports.confirmDialog;
 
 const INDICATOR_ICON = 'drive-multidisk-symbolic';
@@ -71,12 +70,8 @@ const RcloneManager = Lang.Class({
         this._configs = fmh.listremotes();
         this._mounts = fmh.getMounts();
         this._buildMenu(this._configs);
-        const that = this;
-        Utils.readRegistry(function (registry) {
-            that._registry = registry;
-            Object.entries(that._registry).forEach( registryProfile => 
-                that._initProfile(registryProfile[0], registryProfile[1]));
-        });
+        Object.entries(this._registry).forEach( registryProfile => 
+            this._initProfile(registryProfile[0], registryProfile[1]));
     },
 
     _loadSettings: function () {
@@ -100,6 +95,8 @@ const RcloneManager = Lang.Class({
         fmh.PREF_RC_DELETE_FILE 	    = this._settings.get_string(Prefs.Fields.PREFKEY_RC_DELETE_FILE);
         fmh.PREF_RC_MOUNT 		        = this._settings.get_string(Prefs.Fields.PREFKEY_RC_MOUNT);
         fmh.PREF_RC_SYNC  		        = this._settings.get_string(Prefs.Fields.PREFKEY_RC_SYNC);
+        this._registry                  = this._readRegistry(this._settings.get_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY));
+        
         
         fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~',GLib.get_home_dir());
 		if(!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH+'/';
@@ -273,9 +270,22 @@ const RcloneManager = Lang.Class({
         this.menu.toggle();
     },
 
+    _readRegistry: function(registry){
+        log('_readRegistry', registry);
+        try {
+            return JSON.parse(registry);
+        }
+        catch (e) {
+            logError(e, 'rclone-manager Error on read registry');
+            return {};
+        }
+
+    },
+
     _updateRegistry: function(key, value){
         this._registry[key]=value;
-        Utils.writeRegistry(this._registry);
+        log('_updateRegistry',JSON.stringify(this._registry));
+        this._settings.set_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(this._registry));
     },
 
     _openRemote: function (autoSet) {

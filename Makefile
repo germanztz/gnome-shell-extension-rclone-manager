@@ -1,4 +1,4 @@
-MODULES = extension.js confirmDialog.js locale/ metadata.json stylesheet.css LICENSE.rst README.md prefs.js schemas/  utils.js fileMonitorHelper.js
+MODULES = extension.js confirmDialog.js locale/ metadata.json stylesheet.css LICENSE.rst README.md prefs.js schemas/  fileMonitorHelper.js
 INSTALLPATH=~/.local/share/gnome-shell/extensions/rclone-manager@daimler.com/
 
 all: compile-locales compile-settings

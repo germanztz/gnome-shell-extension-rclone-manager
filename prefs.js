@@ -24,6 +24,7 @@ var Fields = {
     PREFKEY_RC_DELETE_FILE          : 'prefkey009-rclone-delete',
     PREFKEY_RC_MOUNT 		        : 'prefkey010-rclone-mount',
     PREFKEY_RC_SYNC  		        : 'prefkey011-rclone-sync',
+    HIDDENKEY_PROFILE_REGISTRY      : 'hiddenkey012-profile-registry',
 };
 
 const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
@@ -80,13 +81,16 @@ const App = new Lang.Class({
             };
         })(this.main);
 
-        SettingsSchema.list_keys().sort().forEach((prefKey) => {
-            let type = SettingsSchema.get_key(prefKey).get_value_type().dup_string();
-            switch (type) {
-                case 's':
-                    addRow(new Gtk.Entry(), prefKey); break;
-                case 'b':
-                    addRow(new Gtk.Switch(), prefKey); break;
+        SettingsSchema.list_keys()
+            .filter(prefKey => !prefKey.includes('hidden'))
+            .sort()
+            .forEach((prefKey) => {
+                let type = SettingsSchema.get_key(prefKey).get_value_type().dup_string();
+                switch (type) {
+                    case 's':
+                        addRow(new Gtk.Entry(), prefKey); break;
+                    case 'b':
+                        addRow(new Gtk.Switch(), prefKey); break;
             }
             
         });

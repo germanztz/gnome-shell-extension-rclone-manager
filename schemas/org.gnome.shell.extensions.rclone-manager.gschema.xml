@@ -80,5 +80,11 @@
         <description>Sync command </description>
     </key>
 
+    <key name="hiddenkey012-profile-registry" type="s">
+      <default>'{}'</default>
+        <summary>Profile registry</summary>
+        <description>Stores profile status and configs</description>
+    </key>
+
   </schema>
 </schemalist>
