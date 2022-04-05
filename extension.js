@@ -191,7 +191,7 @@ const RcloneManager = Lang.Class({
 
         if (status == fmh.ProfileStatus.MOUNTED || status == fmh.ProfileStatus.WATCHED){
             menuItem.menu.addMenuItem(this._buildSubMenuItem('Open', profile));
-            menuItem.menu.addMenuItem(this._buildSubMenuItem('Backup', profile));
+            // menuItem.menu.addMenuItem(this._buildSubMenuItem('Backup', profile));
         }
 
         menuItem.menu.addMenuItem(this._buildSubMenuItem('Sync', profile));
