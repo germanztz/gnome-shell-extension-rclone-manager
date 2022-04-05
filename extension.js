@@ -215,25 +215,28 @@ const RcloneManager = Lang.Class({
 
     _onSubMenuActivated: function (menuItem){
         log('_onSubMenuActivated', menuItem.profile, menuItem.action);
+        if(['Watch', 'Unwatch', 'Mount', 'Umount', 'Sync'].includes(menuItem.action))
+            this._onProfileStatusChanged(menuItem.profile, fmh.ProfileStatus.BUSSY);
+
         switch (menuItem.action) {
             case 'Watch':
-                this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
                 fmh.init_filemonitor(menuItem.profile,  
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Unwatch':
-                this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
                 fmh.remove_filemonitor(menuItem.profile,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Mount':
-                this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
                 fmh.mount(menuItem.profile,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Umount':
-                this._updateRegistry(menuItem.profile, { syncType:menuItem.action});
                 fmh.umount(menuItem.profile, 
+                    (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
+            break;
+            case 'Sync':
+                fmh.sync(menuItem.profile,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Open':
@@ -247,11 +250,6 @@ const RcloneManager = Lang.Class({
             break;
             case 'Reconnect':
                 fmh.reconnect(menuItem.profile);
-            break;
-            case 'Sync':
-                this._onProfileStatusChanged(menuItem.profile, fmh.ProfileStatus.BUSSY);
-                fmh.sync(menuItem.profile,
-                    (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Delete':
                 let that = this;
@@ -314,15 +312,16 @@ const RcloneManager = Lang.Class({
             break;
         default:
             this.icon.icon_name=INDICATOR_ICON;
+            this._updateRegistry(profile, { syncType: status});
         break;
         }
-        if(message) {this.addLog(message, profile)}
+        if(message) {this.addLog(profile, message)}
         this._setMenuIcon(mItem, status);
         this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
 
     },
 
-    addLog: function(message, profile){
+    addLog: function(profile, message){
         if(this._configs[profile].hasOwnProperty('log')){
             this._configs[profile].log = this._configs[profile].log + '\n' + message;
         } else{
