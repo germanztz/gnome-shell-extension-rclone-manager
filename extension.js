@@ -254,13 +254,14 @@ const RcloneManager = Lang.Class({
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Delete':
+                let that = this;
                 ConfirmDialog.openConfirmDialog( _("Delete?"), 
                     _("Are you sure you want to delete?"), 
-                    _("This action cannot be undone"), 
+                    "This action cannot be undone", 
                     _("Confirm"), _("Cancel"), 
                     function() {
                         fmh.deleteConfig(menuItem.profile, 
-                            (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
+                            (profile, status, message) => {that._onProfileStatusChanged(profile, status, message);});
                     }
                 );
             break;
@@ -299,12 +300,12 @@ const RcloneManager = Lang.Class({
         switch (status) {
         case fmh.ProfileStatus.DELETED:
             mItem.destroy();
-        break;
+        return;
         case fmh.ProfileStatus.ERROR:
             this.icon.icon_name=PROFILE_ERROR_ICON;
             this._showNotification(profile + ' error: '+message , n => {
                 n.addAction(_('Details'), Lang.bind(that, function() {
-                    ConfirmDialog.openConfirmDialog( _("Log detail"), profile, message, _("Ok"), null, function(){} )
+                    ConfirmDialog.openConfirmDialog( _("Log detail"), profile, _(message), _("Ok"), null, function(){} )
                 }));
             });
             break;
@@ -353,6 +354,8 @@ const RcloneManager = Lang.Class({
             break;
             case fmh.ProfileStatus.ERROR:                        
                 menuItem.icon.icon_name = PROFILE_ERROR_ICON
+            break;
+            case fmh.ProfileStatus.DELETED:                        
             break;
             default:
                 menuItem.icon.icon_name = PROFILE_IDLE_ICON

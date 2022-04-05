@@ -19,7 +19,7 @@ var PREF_RC_SYNC;
 var RC_LIST_REMOTES 			= 'rclone listremotes'
 var RC_COPYTO  		    		= 'rclone copyto %profile:%destination %source';
 var RC_ADDCONFIG 				= 'rclone config';
-var RC_DELETE 		    		= 'rclone config delete %profile';
+var RC_DELETE_CONFIG 		    = 'rclone config delete %profile';
 var RC_RECONNECT  	    		= 'rclone config reconnect %profile: %flags';
 var RC_UMOUNT 		    		= 'umount %source';
 var RC_GETMOUNTS 				= 'mount';
@@ -374,21 +374,16 @@ function addConfig(onProfileStatusChanged){
 
 function deleteConfig(profile, onProfileStatusChanged){
 
-	switch (getStatus(profile)) {
-		case ProfileStatus.MOUNTED:
-			umount(profile, function(status, stdoutLines, stderrLines){
-				if(status === 0){
-					let [stat, stdout, stderr] = spawn_sync(RC_DELETE.replace('%profile', profile).split(' '));
-				}
-			});
-			break;
-	
-		case ProfileStatus.WATCHED:
-			remove_filemonitor(profile);
-			break;
+	if (getStatus(profile) == ProfileStatus.MOUNTED || getStatus(profile) == ProfileStatus.WATCHED){
+		onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Cannot be deleted because is still mounted or watched');
+	} else {
+		let [stat, stdout, stderr] = spawn_sync(RC_DELETE_CONFIG.replace('%profile', profile).split(' '));
+		if(stat === 0){
+			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DELETED, 'Successfully deleted');
+		} else {
+			onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, stderr.join('\n'));
+		}
 	}
-
-	onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DELETED);
 }
 
 /**

@@ -7,6 +7,7 @@ const Clutter = imports.gi.Clutter;
 let _openDialog;
 
 function openConfirmDialog(title, message, sub_message, ok_label, cancel_label, callback) {
+  log('openConfirmDialog');
   if (!_openDialog)
     _openDialog = new ConfirmDialog(title, message + "\n" + sub_message, ok_label, cancel_label, callback).open();
 }
@@ -17,6 +18,7 @@ const ConfirmDialog = GObject.registerClass(
     _init(title, desc, ok_label, cancel_label, callback) {
       super._init();
 
+      log('ConfirmDialog._init()');
       let main_box = new St.BoxLayout({
         vertical: false
       });
@@ -52,7 +54,7 @@ const ConfirmDialog = GObject.registerClass(
         label: ok_label,
         action: () => {
           this.close();
-          callback();
+          callback && callback();
           _openDialog = null;
         }
       }]
