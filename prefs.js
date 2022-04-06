@@ -3,7 +3,9 @@ const Gtk = imports.gi.Gtk;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
-const Extension = imports.misc.extensionUtils.getCurrentExtension();
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+// const ConfirmDialog = Me.imports.confirmDialog;
 
 const Gettext = imports.gettext;
 const _ = Gettext.domain('rclone-manager').gettext;
@@ -29,13 +31,13 @@ var Fields = {
 
 const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
 
-var schemaDir = Extension.dir.get_child('schemas').get_path();
+var schemaDir = Me.dir.get_child('schemas').get_path();
 var SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false);
 var SettingsSchema = SettingsSchemaSource.lookup(SCHEMA_NAME, false);
 var Settings = new Gio.Settings({ settings_schema: SettingsSchema });
 
 function init() {
-    let localeDir = Extension.dir.get_child('locale');
+    let localeDir = Me.dir.get_child('locale');
     if (localeDir.query_exists(null))
         Gettext.bindtextdomain('rclone-manager', localeDir.get_path());
 }
@@ -103,6 +105,13 @@ const App = new Lang.Class({
         });
         btReset.connect("clicked", this.resetAll);
         this.appendToBox(buttonsRow, btReset);
+
+        let btAbout = new Gtk.Button({
+            label: _('About'),
+            halign: Gtk.Align.END
+        });
+        btAbout.connect("clicked", this.about);
+        this.appendToBox(buttonsRow, btAbout);
         // let btRestore = new Gtk.Button({
         //     label: _('Restore config'),
         //     halign: Gtk.Align.END
@@ -142,10 +151,18 @@ const App = new Lang.Class({
         SettingsSchema.list_keys().forEach(prefKey => Settings.reset(prefKey));
     },
 
-    // restoreConfig: function(){
-    //     log('restoreConfig');
-
-    // }
+    about: function(){
+        
+        let dialog = Gtk.Dialog.new();
+        dialog.set_title(_("About"));
+        dialog.add_button(_("Ok"), Gtk.ResponseType.CANCEL);
+        let box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10);
+        dialog.get_content_area().add(box);
+        let label = Gtk.Label.new("Rclone Manager");
+        box.pack_start(label, true, true, 5);
+        dialog.show_all();
+        dialog.run();
+    }
 });
 
 function buildPrefsWidget(){
