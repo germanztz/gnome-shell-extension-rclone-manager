@@ -5,7 +5,7 @@ const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-// const ConfirmDialog = Me.imports.confirmDialog;
+const fmh = Me.imports.fileMonitorHelper;
 
 const Gettext = imports.gettext;
 const _ = Gettext.domain('rclone-manager').gettext;
@@ -152,16 +152,19 @@ const App = new Lang.Class({
     },
 
     about: function(){
-        
-        let dialog = Gtk.Dialog.new();
-        dialog.set_title(_("About"));
-        dialog.add_button(_("Ok"), Gtk.ResponseType.CANCEL);
-        let box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10);
-        dialog.get_content_area().add(box);
-        let label = Gtk.Label.new("Rclone Manager");
-        box.pack_start(label, true, true, 5);
-        dialog.show_all();
-        dialog.run();
+        const readmeFile = Me.dir.get_path() +  '/README.md'
+        fmh.fileToString(readmeFile, contents => {
+            let dialog = Gtk.Dialog.new();
+            dialog.set_title(_("About"));
+            dialog.add_button(_("Ok"), Gtk.ResponseType.CANCEL);
+            let box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10);
+            dialog.get_content_area().add(box);
+            let label = Gtk.Label.new(contents);
+            box.pack_start(label, true, true, 5);
+            dialog.show_all();
+            dialog.run();
+    
+        });
     }
 });
 

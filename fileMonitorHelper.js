@@ -553,3 +553,39 @@ function launch_term_cmd(cmd, autoclose, sudo){
 	}
 
 }
+
+function fileToString (filePath, callback) {
+    if (typeof callback !== 'function')
+        throw TypeError('`callback` must be a function');
+
+    if (GLib.file_test(filePath, GLib.FileTest.EXISTS)) {
+        let file = Gio.file_new_for_path(filePath);
+
+        file.query_info_async('*', Gio.FileQueryInfoFlags.NONE,
+                              GLib.PRIORITY_DEFAULT, null, function (src, res) {
+
+            file.load_contents_async(null, function (obj, res) {
+                let [success, contents] = obj.load_contents_finish(res);
+
+                if (success) {
+                    try {
+                        // are we running gnome 3.30 or higher?
+                        if (contents instanceof Uint8Array) {
+							callback(imports.byteArray.toString(contents));
+                        } else {
+							callback('File contents are no Uint8Array');
+
+						}
+                    }
+                    catch (e) {
+                        logError(e, 'rclone-manager Error');
+                    }
+                } else {
+                    log('rclone load_contents_async failed');
+                }
+            });
+        });
+    } else {
+        log(file+' dont EXISTS');
+    }
+}
