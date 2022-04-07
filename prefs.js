@@ -152,8 +152,20 @@ const App = new Lang.Class({
     },
 
     about: function(){
-        const readmeFile = Me.dir.get_path() +  '/README.md'
-        fmh.fileToString(readmeFile, contents => {
+        // const readmeFile = Me.dir.get_path() +  '/README.md'
+        // fmh.fileToString(readmeFile, contents => {
+            contents = 
+`
+
+RClone Manager extension for Gnome-Shell
+
+Adds a rclone indicator to the top panel in roder to manage rclone configurations.
+
+AUTHOR: germanztz <avena.root@gmail.com>
+
+https://github.com/germanztz/gnome-shell-extension-rclone-manager
+
+`;
             let dialog = Gtk.Dialog.new();
             dialog.set_title(_("About"));
             dialog.add_button(_("Ok"), Gtk.ResponseType.CANCEL);
@@ -163,8 +175,7 @@ const App = new Lang.Class({
             box.pack_start(label, true, true, 5);
             dialog.show_all();
             dialog.run();
-    
-        });
+        // });
     }
 });
 
