@@ -25,6 +25,7 @@ var RC_UMOUNT 		    		= 'umount %source';
 var RC_GETMOUNTS 				= 'mount';
 
 var _monitors = {};
+var _configMonitor;
 
 var ProfileStatus = {
 	CREATED: 'CREATED',
@@ -58,14 +59,21 @@ function listremotes(){
  * @param {fuction} onProfileStatusChanged callback function
  */
 function init_filemonitor(profile, onProfileStatusChanged){
-	_monitors[profile] = {};
-	_monitors[profile]['ignores'] = PREF_IGNORE_PATTERNS.split(',');
-	_monitors[profile]['paths'] = {};
-	_monitors[profile]['basepath'] = PREF_BASE_MOUNT_PATH + profile;
-	log('init_filemonitor',profile, _monitors[profile]['basepath']);
 
-	let ok = addMonitorRecursive(profile, _monitors[profile]['basepath'], _monitors[profile]['basepath'], onProfileStatusChanged);
-	if(ok && onProfileStatusChanged) onProfileStatusChanged(profile, this.ProfileStatus.WATCHED, 'Filemonitor has been started');
+	let success = true;
+	if(! _monitors.hasOwnProperty(profile)) {
+		_monitors[profile] = {};
+		_monitors[profile]['ignores'] = PREF_IGNORE_PATTERNS.split(',');
+		_monitors[profile]['paths'] = {};
+		_monitors[profile]['basepath'] = PREF_BASE_MOUNT_PATH + profile;
+		success = addMonitorRecursive(profile, _monitors[profile]['basepath'], _monitors[profile]['basepath'], onProfileStatusChanged);
+	}
+	log('init_filemonitor',profile, _monitors[profile]['basepath']);
+	if(success){
+		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.WATCHED, 'Filemonitor has been started');
+	} else {
+		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.ERROR, 'Error starting filemonitor');
+	}
 }
 
 /** 
@@ -228,6 +236,24 @@ function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfil
 		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.ERROR, stderrLines.join('\n'));
 		log('stderrLines',stderrLines.join('\n'));
 	}
+}
+
+/**
+ * Watches de RCLONE config file in order to update de menu items
+ * https://gjs.guide/guides/gio/file-operations.html#monitoring-files-and-directories
+ * 
+ * @param {function} callback 
+ * @returns 
+ */
+function monitorConfigFile(callback){
+    if (! GLib.file_test(PREF_RCONFIG_FILE_PATH, GLib.FileTest.EXISTS)) {
+        return;
+	}	
+	log('monitorConfigFile');
+	let file = Gio.file_new_for_path(PREF_RCONFIG_FILE_PATH);
+	_configMonitor = file.monitor(Gio.FileMonitorFlags.WATCH_MOVES, null);
+	_configMonitor.connect('changed', function (file, otherFile, eventType) 
+		{ callback && callback(eventType); });
 }
 
 /**

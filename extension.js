@@ -68,10 +68,11 @@ const RcloneManager = Lang.Class({
         this.add_child(hbox);
 
         this._loadSettings();
-        this._configs = fmh.listremotes();
-        this._buildMenu(this._configs);
-        Object.entries(this._registry).forEach( registryProfile => 
-            this._initProfile(registryProfile[0], registryProfile[1]));
+        this._initConfig();
+        fmh.monitorConfigFile((event_type) =>{ 
+            log('ConfigFileChanged', event_type);
+            this._initConfig(); 
+        });
     },
 
     _loadSettings: function () {
@@ -102,6 +103,14 @@ const RcloneManager = Lang.Class({
 		if(!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH+'/';
 
         fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~',GLib.get_home_dir());
+    },
+
+    _initConfig: function(){
+        log('_initConfig');
+        this._configs = fmh.listremotes();
+        this._buildMenu(this._configs);
+        Object.entries(this._registry).forEach( registryProfile => 
+            this._initProfile(registryProfile[0], registryProfile[1]));
     },
 
     _initProfile: function(profile, regProf){
