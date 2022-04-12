@@ -14,6 +14,8 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Prefs = Me.imports.prefs;
 
+const shellVersion = Number.parseInt(Config.PACKAGE_VERSION.split('.'));
+
 const fmh = Me.imports.fileMonitorHelper;
 const ConfirmDialog = Me.imports.confirmDialog;
 
@@ -52,7 +54,6 @@ const RcloneManager = Lang.Class({
     _historyLabel: null,
     _disableDownArrow: null,
     _configs: [],
-    _mounts: [],
     _registry: {},
 
     _init: function() {
@@ -68,7 +69,6 @@ const RcloneManager = Lang.Class({
 
         this._loadSettings();
         this._configs = fmh.listremotes();
-        this._mounts = fmh.getMounts();
         this._buildMenu(this._configs);
         Object.entries(this._registry).forEach( registryProfile => 
             this._initProfile(registryProfile[0], registryProfile[1]));
@@ -107,7 +107,7 @@ const RcloneManager = Lang.Class({
     _initProfile: function(profile, regProf){
         log('_initProfile', profile, JSON.stringify(regProf))
         const that = this;
-        if(regProf['syncType'] === 'Watch'){
+        if(regProf['syncType'] === fmh.ProfileStatus.WATCHED){
 
             if(PREF_AUTOSYNC) {
                 that._onProfileStatusChanged(profile, fmh.ProfileStatus.BUSSY);
@@ -119,12 +119,12 @@ const RcloneManager = Lang.Class({
                 fmh.init_filemonitor(profile, 
                     function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
             }
-        } else if(this._mounts.includes(profile)){
+        } else if(fmh.getMounts().hasOwnProperty(profile)){
             //if is already mounted just leave it
             this._onProfileStatusChanged(profile, fmh.ProfileStatus.MOUNTED, profile + _(' was already mounted'));
 
-        } else if(regProf['syncType'] === 'Mount'){
-            fmh.mount(profile, 
+        } else if(regProf['syncType'] === fmh.ProfileStatus.MOUNTED){
+            fmh.mountProfile(profile, 
                 function (profile, status, message){that._onProfileStatusChanged(profile, status, message);});
         }
 
@@ -134,7 +134,6 @@ const RcloneManager = Lang.Class({
         //clean menu
         this.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
-        // for (let profile in Object.entries(profiles)){
         Object.entries(profiles).forEach(entry => {
             this.menu.addMenuItem(this._buildMenuItem(entry[0], fmh.getStatus(entry[0])));
         });
@@ -174,6 +173,7 @@ const RcloneManager = Lang.Class({
     _buildSubmenu: function(menuItem, profile, status){
 
         //clean submenu
+        log('_buildSubmenu', profile, status);
         menuItem.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
         menuItem.menu.box.style_class = 'menuitem-menu-box';
@@ -217,18 +217,22 @@ const RcloneManager = Lang.Class({
 
         switch (menuItem.action) {
             case 'Watch':
+                this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.WATCHED});
                 fmh.init_filemonitor(menuItem.profile,  
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Unwatch':
+                this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.DISCONNECTED});
                 fmh.remove_filemonitor(menuItem.profile,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Mount':
-                fmh.mount(menuItem.profile,
+                this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.MOUNTED});
+                fmh.mountProfile(menuItem.profile,
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
             case 'Umount':
+                this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.DISCONNECTED});
                 fmh.umount(menuItem.profile, 
                     (profile, status, message) => {this._onProfileStatusChanged(profile, status, message);});
             break;
@@ -267,7 +271,9 @@ const RcloneManager = Lang.Class({
             default:
                 break;
         }
-        this.menu.toggle();
+        if (shellVersion < 40){
+            this.menu.toggle();
+        }
     },
 
     _readRegistry: function(registry){
@@ -323,16 +329,17 @@ const RcloneManager = Lang.Class({
             this.icon.icon_name=PROFILE_BUSSY_ICON;
             break;
             
-        case fmh.ProfileStatus.MOUNTED:
-        case fmh.ProfileStatus.WATCHED:
-        case fmh.ProfileStatus.DISCONNECTED:
-            this._updateRegistry(profile, { syncType: status});
+        // case fmh.ProfileStatus.MOUNTED:
+        // case fmh.ProfileStatus.WATCHED:
+        // case fmh.ProfileStatus.DISCONNECTED:
         default:
             this.icon.icon_name=INDICATOR_ICON;
             break;
         }
         if(message) {this.addLog(profile, message)}
-        this._setMenuIcon(mItem, status);
+        try{
+            this._setMenuIcon(mItem, status);
+        }catch{}
         this._buildSubmenu(mItem, profile, fmh.getStatus(profile));
 
     },

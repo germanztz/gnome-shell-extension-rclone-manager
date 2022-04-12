@@ -24,8 +24,7 @@ var RC_RECONNECT  	    		= 'rclone config reconnect %profile: %flags';
 var RC_UMOUNT 		    		= 'umount %source';
 var RC_GETMOUNTS 				= 'mount';
 
-var monitors = {};
-var mounts = {};
+var _monitors = {};
 
 var ProfileStatus = {
 	CREATED: 'CREATED',
@@ -59,13 +58,13 @@ function listremotes(){
  * @param {fuction} onProfileStatusChanged callback function
  */
 function init_filemonitor(profile, onProfileStatusChanged){
-	monitors[profile] = {};
-	monitors[profile]['ignores'] = PREF_IGNORE_PATTERNS.split(',');
-	monitors[profile]['paths'] = {};
-	monitors[profile]['basepath'] = PREF_BASE_MOUNT_PATH + profile;
-	log('init_filemonitor',profile, monitors[profile]['basepath']);
+	_monitors[profile] = {};
+	_monitors[profile]['ignores'] = PREF_IGNORE_PATTERNS.split(',');
+	_monitors[profile]['paths'] = {};
+	_monitors[profile]['basepath'] = PREF_BASE_MOUNT_PATH + profile;
+	log('init_filemonitor',profile, _monitors[profile]['basepath']);
 
-	let ok = addMonitorRecursive(profile, monitors[profile]['basepath'], monitors[profile]['basepath'], onProfileStatusChanged);
+	let ok = addMonitorRecursive(profile, _monitors[profile]['basepath'], _monitors[profile]['basepath'], onProfileStatusChanged);
 	if(ok && onProfileStatusChanged) onProfileStatusChanged(profile, this.ProfileStatus.WATCHED, 'Filemonitor has been started');
 }
 
@@ -85,7 +84,7 @@ function addMonitorRecursive(profile, path, profileMountPath, onProfileStatusCha
 		monitor.connect('changed', function (monitor, file, other_file, event_type) 
 		{ onEvent(profile, monitor, file, other_file, event_type, profileMountPath, onProfileStatusChanged); });
 
-		monitors[profile]['paths'][directory.get_path()] = monitor;
+		_monitors[profile]['paths'][directory.get_path()] = monitor;
 		log('addMonitorRecursive', profile, directory.get_path());
 		let subfolders = directory.enumerate_children('standard::name,standard::type',Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
 		let file_info;
@@ -110,11 +109,11 @@ function addMonitorRecursive(profile, path, profileMountPath, onProfileStatusCha
  */
 function onEvent(profile, monitor, file, other_file, event_type, profileMountPath, onProfileStatusChanged){
 
-	for (const idx in monitors[profile]['ignores']) {
-		if (file.get_path().search(monitors[profile]['ignores'][idx],0)>0) return;
+	for (const idx in _monitors[profile]['ignores']) {
+		if (file.get_path().search(_monitors[profile]['ignores'][idx],0)>0) return;
 	}
 	
-	if(monitors[profile].hasOwnProperty('is_synching')){
+	if(_monitors[profile].hasOwnProperty('is_synching')){
 		return;
 	}
 
@@ -164,7 +163,7 @@ function isDir(file){
     if (GLib.file_test(file.get_path(), GLib.FileTest.EXISTS)) {
 		isdir = GLib.file_test(file.get_path(), GLib.FileTest.IS_DIR);
 	} else {
-		Object.entries(monitors).forEach(entry => {
+		Object.entries(_monitors).forEach(entry => {
 			if(!isdir) isdir = !(getFileMonitor(entry[0], file.get_path()) === undefined);
 		});
 	}
@@ -179,10 +178,10 @@ function isDir(file){
  */
 function remove_filemonitor(profile, onProfileStatusChanged){
 	if(getStatus(profile) == ProfileStatus.WATCHED){
-		Object.entries(monitors[profile]['paths']).forEach( entry => {
+		Object.entries(_monitors[profile]['paths']).forEach( entry => {
 			deleteFileMonitor(profile, entry[0])
 		});
-		delete monitors[profile];
+		delete _monitors[profile];
 		log('remove_filemonitor',profile);
 		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.DISCONNECTED);
 	}
@@ -195,7 +194,7 @@ function remove_filemonitor(profile, onProfileStatusChanged){
  */
 function deleteFileMonitor(profile, path){
 	getFileMonitor(profile, path).cancel();
-	delete monitors[profile]['paths'][path];
+	delete _monitors[profile]['paths'][path];
 }
 
 /**
@@ -205,7 +204,7 @@ function deleteFileMonitor(profile, path){
  * @returns {Gio.FileMonitor} the filemonitor
  */
 function getFileMonitor(profile, path){
-	let fm = monitors[profile]['paths'][path];
+	let fm = _monitors[profile]['paths'][path];
 	log('getFileMonitor', profile, path, 'FileMonitor:', fm)
 	return fm;
 }
@@ -224,10 +223,10 @@ function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfil
 	log('onCmdFinished',profile,file,status);
 	if(status === 0){
 		onProfileStatusChanged && onProfileStatusChanged(profile, getStatus(profile));
-		log(' stdoutLines',stdoutLines.join('\n'));
+		log('stdoutLines',stdoutLines.join('\n'));
 	} else {
 		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.ERROR, stderrLines.join('\n'));
-		log(' stderrLines',stderrLines.join('\n'));
+		log('stderrLines',stderrLines.join('\n'));
 	}
 }
 
@@ -236,11 +235,14 @@ function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfil
  * @param {string} profile name 
  * @param {CallableFunction} onProfileStatusChanged callback function
  */
-function mount(profile, onProfileStatusChanged){
+function mountProfile(profile, onProfileStatusChanged){
 	let that = this;
+	log('mountProfile', profile)
 	const directory = Gio.file_new_for_path(PREF_BASE_MOUNT_PATH + profile);
-	if (!isDir(directory))
-		directory.make_directory_with_parents (null, null);
+	try{
+		if (!isDir(directory))
+			directory.make_directory_with_parents (null, null);
+	} catch {}
 	spawn_async_cmd(PREF_RC_MOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			if(status === 0) {
@@ -262,7 +264,7 @@ function mount(profile, onProfileStatusChanged){
 	spawn_async_cmd(RC_UMOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 	function(status, stdoutLines, stderrLines){
 		if(status === 0) {
-			if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, '');
+			if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.DISCONNECTED, '');
 		} else {
 			if(onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.ERROR, stderrLines.join('\n'));
 		}
@@ -275,14 +277,14 @@ function mount(profile, onProfileStatusChanged){
  */
 function getMounts(){
 	let [stat, stdout, stderr] = this.spawn_sync(RC_GETMOUNTS.split(' '));
-	let retmounts = [];
+	let mounts = [];
 	if(stdout){
 		stdout.split('\n')
 			.filter(line => line.search('rclone') > 0)
-			.forEach(line => retmounts.push(line.split(':')[0]));
+			.forEach(line => mounts.push(line.split(':')[0]));
 	}
+	let retmounts = mounts.reduce((a, v) => ({ ...a, [v]: {}}), {});
 	log('getMounts', JSON.stringify(retmounts));
-	mounts = retmounts.reduce((a, v) => ({ ...a, [v]: {}}), {});
 	return retmounts;
 }
 
@@ -292,9 +294,11 @@ function getMounts(){
  * @returns {ProfileStatus} the status of the profile
  */
 function getStatus(profile){
-	if(Object.entries(monitors).some(([key, value]) => key === profile)) return ProfileStatus.WATCHED;
-	else if(Object.entries(mounts).some(([key, value]) => key === profile)) return ProfileStatus.MOUNTED;
-	else return ProfileStatus.DISCONNECTED;
+	let ret = ProfileStatus.DISCONNECTED
+	if(_monitors.hasOwnProperty(profile)) ret = ProfileStatus.WATCHED;
+	else if (getMounts().hasOwnProperty(profile)) ret = ProfileStatus.MOUNTED;
+	log('getStatus', profile, ret);
+	return ret;
 }
 
 /**
@@ -319,15 +323,15 @@ function sync(profile, onProfileStatusChanged){
 
 	log('sync', profile);
 
-	if(monitors.hasOwnProperty(profile)){
-		monitors[profile]['is_synching'] = true;
+	if(_monitors.hasOwnProperty(profile)){
+		_monitors[profile]['is_synching'] = true;
 	}
 
 	spawn_async_cmd(PREF_RC_SYNC, profile, PREF_BASE_MOUNT_PATH + profile, null, 
 		function(status, stdoutLines, stderrLines){
 			
-			if(monitors.hasOwnProperty(profile)){
-				delete(monitors[profile]['is_synching']);
+			if(_monitors.hasOwnProperty(profile)){
+				delete(_monitors[profile]['is_synching']);
 			}
 
 			if(status === 0) {

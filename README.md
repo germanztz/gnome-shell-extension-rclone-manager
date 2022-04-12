@@ -95,14 +95,25 @@ https://www.codeproject.com/Articles/5271677/How-to-Create-A-GNOME-Extension
 
 https://github.com/julio641742/gnome-shell-extension-reference
 
-# Todolist
+# ChangeLog
+
+## v1.0.0
 
 - [x] Fix create basedir if not exist on mount
 - [x] Fix show actual status when mount fails
 - [x] Add notification dialog with details
 - [x] Fix open action
 - [x] Add reset button in setting
+- [x] Fix config persistence
 - [ ] Add about button in setting
+- [ ] Fix menu update after add config
+- [x] Fix permanent bussi on mount
+
+## TODO list
 - [ ] Add backup fuction
 - [ ] Add restore button in setting
 - [ ] Fix show permanent notification
+- [ ] add check Checks the files in the source and destination match.
+- [ ] add cleanup Clean up the remote if possible.
+- [ ] add size Prints the total size and number of objects in remote:path.
+

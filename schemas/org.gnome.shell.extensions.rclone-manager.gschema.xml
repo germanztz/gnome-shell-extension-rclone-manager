@@ -69,7 +69,7 @@
     </key>
 
     <key name="prefkey010-rclone-mount" type="s">
-      <default>'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime'</default>
+      <default>'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime --daemon --daemon-timeout 30s'</default>
         <summary>Mount command</summary>
         <description>Mount command</description>
     </key>
