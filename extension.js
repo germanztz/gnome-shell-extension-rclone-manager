@@ -264,9 +264,9 @@ const RcloneManager = Lang.Class({
             break;
             case 'Delete':
                 let that = this;
-                ConfirmDialog.openConfirmDialog( _("Delete?"), 
+                ConfirmDialog.openConfirmDialog( _("Delete"), 
                     _("Are you sure you want to delete?"), 
-                    "This action cannot be undone", 
+                    _("This action cannot be undone"), 
                     _("Confirm"), _("Cancel"), 
                     function() {
                         fmh.deleteConfig(menuItem.profile, 

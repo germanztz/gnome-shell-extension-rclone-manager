@@ -109,7 +109,7 @@ https://github.com/julio641742/gnome-shell-extension-reference
 - [x] Fix menu update after add config
 - [x] Fix permanent bussi on mount
 - [x] Add log to file
-- [ ] Translate spanish
+- [x] Translate spanish
 
 ## TODO list
 - [ ] Add backup fuction

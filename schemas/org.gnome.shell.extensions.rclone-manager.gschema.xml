@@ -90,7 +90,7 @@
       <default>false</default>
         <summary>Debug mode</summary>
         <description>
-            Print verbose debug messages to de journalctl
+            Print verbose debug messages to the journalctl
         </description>
     </key>
 
