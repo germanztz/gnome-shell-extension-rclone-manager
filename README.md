@@ -105,7 +105,7 @@ https://github.com/julio641742/gnome-shell-extension-reference
 - [x] Fix open action
 - [x] Add reset button in setting
 - [x] Fix config persistence
-- [ ] Add about button in setting
+- [x] Add about button in setting
 - [x] Fix menu update after add config
 - [x] Fix permanent bussi on mount
 - [x] Add log to file

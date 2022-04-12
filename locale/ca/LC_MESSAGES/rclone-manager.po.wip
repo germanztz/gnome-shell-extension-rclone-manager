@@ -91,7 +91,7 @@ msgid "Filenames to be ignored"
 msgstr "Nombre de fichero a ignorar"
 
 msgid "Comma separed filenames to be ignored by inotify"
-msgstr "Nombre de fichero a ignorar separadosp or comas"
+msgstr "Nombre de fichero a ignorar separados por comas"
 
 msgid "Terminal command"
 msgstr "Comando de terminal"
@@ -106,7 +106,7 @@ msgid "Command to call a new file browser window in order to explore configurati
 msgstr "Comando para llamar al explorador de archivos"
 
 msgid "Sync files on start"
-msgstr "Sncronizar al iniciar"
+msgstr "Sincronizar al iniciar"
 
 msgid "If is on will execute 'rclone sync' on start watching a profile"
 msgstr "Si está encendido ejecutará 'rclone sync' al inicializar un perfil"

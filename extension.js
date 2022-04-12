@@ -156,10 +156,10 @@ const RcloneManager = Lang.Class({
         this.menu.addMenuItem(addMenuItem);
         addMenuItem.connect('activate', Lang.bind(this, this._addConfig));
 
-        // // Add 'Restore config' button which restores rclonefile from a mount
-        // let retoreMenuItem = new PopupMenu.PopupMenuItem(_('Restore config'));
-        // this.menu.addMenuItem(retoreMenuItem);
-        // retoreMenuItem.connect('activate', Lang.bind(this, this._restoreConfig));
+        // Add 'About' button which shows info abou the extension
+        let aboutMenuItem = new PopupMenu.PopupMenuItem(_('About'));
+        this.menu.addMenuItem(aboutMenuItem);
+        aboutMenuItem.connect('activate', Lang.bind(this, this._lauchAbout));
 
         // Add 'Settings' menu item to open settings
         let settingsMenuItem = new PopupMenu.PopupImageMenuItem(_('Settings'),'gnome-tweak-tool-symbolic');
@@ -440,11 +440,28 @@ const RcloneManager = Lang.Class({
             this._notifSource.showNotification(notification);
     },
 
+    _lauchAbout: function(){
+        contents = 
+`
+RClone Manager extension for Gnome-Shell
+
+Adds a rclone indicator to the top panel in roder to manage rclone configurations.
+
+AUTHOR: germanztz <avena.root@gmail.com>
+
+For bugs report and comments go to:
+https://github.com/germanztz/gnome-shell-extension-rclone-manager
+
+`;
+        ConfirmDialog.openConfirmDialog( _("About"), "", contents, _("Ok"));
+    },
+
     destroy: function () {
 
         // Call parent
         this.parent();
     },
+    
 });
 
 

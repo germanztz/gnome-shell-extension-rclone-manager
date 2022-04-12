@@ -107,21 +107,7 @@ const App = new Lang.Class({
         btReset.connect("clicked", this.resetAll);
         this.appendToBox(buttonsRow, btReset);
 
-        let btAbout = new Gtk.Button({
-            label: _('About'),
-            halign: Gtk.Align.END
-        });
-        btAbout.connect("clicked", this.about);
-        this.appendToBox(buttonsRow, btAbout);
-        // let btRestore = new Gtk.Button({
-        //     label: _('Restore config'),
-        //     halign: Gtk.Align.END
-        // });
-        // btRestore.connect("clicked", this.restoreConfig);
-        // this.appendToBox(buttonsRow, btRestore);
-
         this.main.attach(buttonsRow, 1,  SettingsSchema.list_keys().length+1, 1, 1);
-
 
         if (shellVersion < 40){
             this.main.show_all();
@@ -151,33 +137,7 @@ const App = new Lang.Class({
     resetAll: function(){
         SettingsSchema.list_keys().forEach(prefKey => Settings.reset(prefKey));
     },
-
-    about: function(){
-        // const readmeFile = Me.dir.get_path() +  '/README.md'
-        // fmh.fileToString(readmeFile, contents => {
-            contents = 
-`
-
-RClone Manager extension for Gnome-Shell
-
-Adds a rclone indicator to the top panel in roder to manage rclone configurations.
-
-AUTHOR: germanztz <avena.root@gmail.com>
-
-https://github.com/germanztz/gnome-shell-extension-rclone-manager
-
-`;
-            let dialog = Gtk.Dialog.new();
-            dialog.set_title(_("About"));
-            dialog.add_button(_("Ok"), Gtk.ResponseType.CANCEL);
-            let box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10);
-            dialog.get_content_area().add(box);
-            let label = Gtk.Label.new(contents);
-            box.pack_start(label, true, true, 5);
-            dialog.show_all();
-            dialog.run();
-        // });
-    }
+    
 });
 
 function buildPrefsWidget(){
