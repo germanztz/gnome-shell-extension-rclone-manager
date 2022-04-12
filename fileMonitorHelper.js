@@ -15,6 +15,7 @@ var PREF_RC_DELETE_DIR;
 var PREF_RC_DELETE_FILE;
 var PREF_RC_MOUNT;
 var PREF_RC_SYNC;
+var PREF_DBG;
 
 var RC_LIST_REMOTES 			= 'rclone listremotes'
 var RC_COPYTO  		    		= 'rclone copyto %profile:%destination %source';
@@ -49,7 +50,7 @@ function listremotes(){
 		.filter(item => item.length > 1)
 		//convert array of string to object of property objects
 		.reduce((a, v) => ({ ...a, [v]: {}}), {}); 
-	log('listremotes', JSON.stringify(ret));
+	PREF_DBG && log('listremotes', JSON.stringify(ret));
 	return ret
 }
 
@@ -68,7 +69,7 @@ function init_filemonitor(profile, onProfileStatusChanged){
 		_monitors[profile]['basepath'] = PREF_BASE_MOUNT_PATH + profile;
 		success = addMonitorRecursive(profile, _monitors[profile]['basepath'], _monitors[profile]['basepath'], onProfileStatusChanged);
 	}
-	log('init_filemonitor',profile, _monitors[profile]['basepath']);
+	PREF_DBG && log('init_filemonitor',profile, _monitors[profile]['basepath']);
 	if(success){
 		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.WATCHED, 'Filemonitor has been started');
 	} else {
@@ -93,7 +94,7 @@ function addMonitorRecursive(profile, path, profileMountPath, onProfileStatusCha
 		{ onEvent(profile, monitor, file, other_file, event_type, profileMountPath, onProfileStatusChanged); });
 
 		_monitors[profile]['paths'][directory.get_path()] = monitor;
-		log('addMonitorRecursive', profile, directory.get_path());
+		PREF_DBG && log('addMonitorRecursive', profile, directory.get_path());
 		let subfolders = directory.enumerate_children('standard::name,standard::type',Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
 		let file_info;
 		while ((file_info = subfolders.next_file(null)) != null) {
@@ -125,7 +126,7 @@ function onEvent(profile, monitor, file, other_file, event_type, profileMountPat
 		return;
 	}
 
-	log("onEvent", profile, file.get_basename(), "event_type:", event_type);
+	PREF_DBG && log("onEvent", profile, file.get_basename(), "event_type:", event_type);
 	let destinationFilePath = file.get_path().replace(profileMountPath,'');
 	let callback = function (status, stdoutLines, stderrLines) { 
 		onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged);}
@@ -175,7 +176,7 @@ function isDir(file){
 			if(!isdir) isdir = !(getFileMonitor(entry[0], file.get_path()) === undefined);
 		});
 	}
-	log('isDir', file.get_path(), JSON.stringify(isdir));
+	PREF_DBG && log('isDir', file.get_path(), JSON.stringify(isdir));
 	return isdir;
 }
 
@@ -190,7 +191,7 @@ function remove_filemonitor(profile, onProfileStatusChanged){
 			deleteFileMonitor(profile, entry[0])
 		});
 		delete _monitors[profile];
-		log('remove_filemonitor',profile);
+		PREF_DBG && log('remove_filemonitor',profile);
 		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.DISCONNECTED);
 	}
 }
@@ -213,7 +214,7 @@ function deleteFileMonitor(profile, path){
  */
 function getFileMonitor(profile, path){
 	let fm = _monitors[profile]['paths'][path];
-	log('getFileMonitor', profile, path, 'FileMonitor:', fm)
+	PREF_DBG && log('getFileMonitor', profile, path, 'FileMonitor:', fm)
 	return fm;
 }
 
@@ -228,13 +229,13 @@ function getFileMonitor(profile, path){
  * @param {fuction} onProfileStatusChanged callback function
  */
 function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged){
-	log('onCmdFinished',profile,file,status);
+	PREF_DBG && log('onCmdFinished',profile,file,status);
 	if(status === 0){
 		onProfileStatusChanged && onProfileStatusChanged(profile, getStatus(profile));
-		log('stdoutLines',stdoutLines.join('\n'));
+		PREF_DBG && log('stdoutLines',stdoutLines.join('\n'));
 	} else {
 		onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.ERROR, stderrLines.join('\n'));
-		log('stderrLines',stderrLines.join('\n'));
+		PREF_DBG && log('stderrLines',stderrLines.join('\n'));
 	}
 }
 
@@ -249,7 +250,7 @@ function monitorConfigFile(callback){
     if (! GLib.file_test(PREF_RCONFIG_FILE_PATH, GLib.FileTest.EXISTS)) {
         return;
 	}	
-	log('monitorConfigFile');
+	PREF_DBG && log('monitorConfigFile');
 	let file = Gio.file_new_for_path(PREF_RCONFIG_FILE_PATH);
 	_configMonitor = file.monitor(Gio.FileMonitorFlags.WATCH_MOVES, null);
 	_configMonitor.connect('changed', function (file, otherFile, eventType) 
@@ -263,7 +264,7 @@ function monitorConfigFile(callback){
  */
 function mountProfile(profile, onProfileStatusChanged){
 	let that = this;
-	log('mountProfile', profile)
+	PREF_DBG && log('mountProfile', profile)
 	const directory = Gio.file_new_for_path(PREF_BASE_MOUNT_PATH + profile);
 	try{
 		if (!isDir(directory))
@@ -310,7 +311,7 @@ function getMounts(){
 			.forEach(line => mounts.push(line.split(':')[0]));
 	}
 	let retmounts = mounts.reduce((a, v) => ({ ...a, [v]: {}}), {});
-	log('getMounts', JSON.stringify(retmounts));
+	PREF_DBG && log('getMounts', JSON.stringify(retmounts));
 	return retmounts;
 }
 
@@ -323,7 +324,7 @@ function getStatus(profile){
 	let ret = ProfileStatus.DISCONNECTED
 	if(_monitors.hasOwnProperty(profile)) ret = ProfileStatus.WATCHED;
 	else if (getMounts().hasOwnProperty(profile)) ret = ProfileStatus.MOUNTED;
-	log('getStatus', profile, ret);
+	PREF_DBG && log('getStatus', profile, ret);
 	return ret;
 }
 
@@ -347,7 +348,7 @@ function sync(profile, onProfileStatusChanged){
 		return;
 	} 
 
-	log('sync', profile);
+	PREF_DBG && log('sync', profile);
 
 	if(_monitors.hasOwnProperty(profile)){
 		_monitors[profile]['is_synching'] = true;
@@ -427,7 +428,7 @@ function deleteConfig(profile, onProfileStatusChanged){
  */
 function spawn_async_cmd(cmd, profile, file, destination, callback, flags){
 	let cmdArray = cmd.split(' ');
-	log('spawn_async_cmd', profile, cmd)
+	PREF_DBG && log('spawn_async_cmd', profile, cmd)
 	for (var i = 0; i < cmdArray.length; i++) {
 		cmdArray[i] = cmdArray[i]
 			.replace('%profile', profile)
@@ -461,7 +462,7 @@ function readOutput(stream, lineBuffer) {
  */
 function spawn_async_with_pipes(argv, callback){
 	try {
-		log('spawn_async_with_pipes',argv.join(' '));
+		PREF_DBG && log('spawn_async_with_pipes',argv.join(' '));
 		let [, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
 			// Working directory, passing %null to use the parent's
 			null,
@@ -510,7 +511,7 @@ function spawn_async_with_pipes(argv, callback){
 		GLib.child_watch_add(GLib.PRIORITY_DEFAULT_IDLE, pid, (pid, status) => {
 
 			if (status === 0) {
-				log(stdoutLines.join('\n'));
+				PREF_DBG && log(stdoutLines.join('\n'));
 			} else {
 				logError(new Error('Error executing command'), stderrLines.join('\n'));
 			}
@@ -531,7 +532,7 @@ function spawn_async_with_pipes(argv, callback){
 function spawn_sync(argv){
 	let out, err, status;
 	try {
-		log('spawn_sync', argv.join(' '));
+		PREF_DBG && log('spawn_sync', argv.join(' '));
 		let [ok, stdout, stderr, exit_status] =  GLib.spawn_sync(
 			// Working directory, passing %null to use the parent's
 			null,
@@ -548,7 +549,7 @@ function spawn_sync(argv){
 		if (!ok) {
 			if (stderr instanceof Uint8Array){
 				err = imports.byteArray.toString(stderr);
-				log(err);
+				PREF_DBG && log(err);
 			}
 		// throw new Error(stderr);
 		}
@@ -557,10 +558,6 @@ function spawn_sync(argv){
 			out = imports.byteArray.toString(stdout);
 
 		status = exit_status;
-
-		// log(' ok', ok);
-		// log(' stdout', out);
-		// log(' stderr', err);
 
 	} catch (e) {
 		logError(e);
@@ -576,7 +573,7 @@ function launch_term_cmd(cmd, autoclose, sudo){
 			.replace('{0}', sudocmd)
 			.replace('{1}',cmd)
 			.replace('{2}',autoclosecmd);
-		log(cmd);
+		PREF_DBG && log(cmd);
 		GLib.spawn_command_line_async(cmd);
 	}catch(e){
 		logError(e);
@@ -611,11 +608,11 @@ function fileToString (filePath, callback) {
                         logError(e, 'rclone-manager Error');
                     }
                 } else {
-                    log('rclone load_contents_async failed');
+                    PREF_DBG && log('rclone load_contents_async failed');
                 }
             });
         });
     } else {
-        log(file+' dont EXISTS');
+        PREF_DBG && log(file+' dont EXISTS');
     }
 }

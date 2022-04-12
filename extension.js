@@ -70,7 +70,7 @@ const RcloneManager = Lang.Class({
         this._loadSettings();
         this._initConfig();
         fmh.monitorConfigFile((event_type) =>{ 
-            log('ConfigFileChanged', event_type);
+            fmh.PREF_DBG && log('ConfigFileChanged', event_type);
             this._initConfig(); 
         });
     },
@@ -97,6 +97,7 @@ const RcloneManager = Lang.Class({
         fmh.PREF_RC_MOUNT 		        = this._settings.get_string(Prefs.Fields.PREFKEY_RC_MOUNT);
         fmh.PREF_RC_SYNC  		        = this._settings.get_string(Prefs.Fields.PREFKEY_RC_SYNC);
         this._registry                  = this._readRegistry(this._settings.get_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY));
+        fmh.PREF_DBG                    = this._settings.get_boolean(Prefs.Fields.PREFKEY_DEBUG_MODE);
         
         
         fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~',GLib.get_home_dir());
@@ -106,7 +107,7 @@ const RcloneManager = Lang.Class({
     },
 
     _initConfig: function(){
-        log('_initConfig');
+        fmh.PREF_DBG && log('_initConfig');
         this._configs = fmh.listremotes();
         this._buildMenu(this._configs);
         Object.entries(this._registry).forEach( registryProfile => 
@@ -114,7 +115,7 @@ const RcloneManager = Lang.Class({
     },
 
     _initProfile: function(profile, regProf){
-        log('_initProfile', profile, JSON.stringify(regProf))
+        fmh.PREF_DBG && log('_initProfile', profile, JSON.stringify(regProf))
         const that = this;
         if(regProf['syncType'] === fmh.ProfileStatus.WATCHED){
 
@@ -182,7 +183,7 @@ const RcloneManager = Lang.Class({
     _buildSubmenu: function(menuItem, profile, status){
 
         //clean submenu
-        log('_buildSubmenu', profile, status);
+        fmh.PREF_DBG && log('_buildSubmenu', profile, status);
         menuItem.menu._getMenuItems().forEach(function (i) { i.destroy(); });
 
         menuItem.menu.box.style_class = 'menuitem-menu-box';
@@ -220,7 +221,7 @@ const RcloneManager = Lang.Class({
     },
 
     _onSubMenuActivated: function (menuItem){
-        log('_onSubMenuActivated', menuItem.profile, menuItem.action);
+        fmh.PREF_DBG && log('_onSubMenuActivated', menuItem.profile, menuItem.action);
         if(['Watch', 'Unwatch', 'Mount', 'Umount', 'Sync'].includes(menuItem.action))
             this._onProfileStatusChanged(menuItem.profile, fmh.ProfileStatus.BUSSY);
 
@@ -286,7 +287,7 @@ const RcloneManager = Lang.Class({
     },
 
     _readRegistry: function(registry){
-        log('_readRegistry', registry);
+        fmh.PREF_DBG && log('_readRegistry', registry);
         try {
             return JSON.parse(registry);
         }
@@ -299,13 +300,13 @@ const RcloneManager = Lang.Class({
 
     _updateRegistry: function(key, value){
         this._registry[key]=value;
-        log('_updateRegistry',JSON.stringify(this._registry));
+        fmh.PREF_DBG && log('_updateRegistry',JSON.stringify(this._registry));
         this._settings.set_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(this._registry));
     },
 
     _openRemote: function (autoSet) {
         var that = this;
-        log(autoSet);
+        fmh.PREF_DBG && log(autoSet);
     },
 
     _restoreConfig: function() { 
@@ -317,7 +318,7 @@ const RcloneManager = Lang.Class({
     },
 
     _onProfileStatusChanged: function(profile, status, message){
-        log('_onProfileStatusChanged', profile, status, message);
+        fmh.PREF_DBG && log('_onProfileStatusChanged', profile, status, message);
         let mItem = this._findProfileMenu(profile);
         let that = this;
         switch (status) {
@@ -372,7 +373,7 @@ const RcloneManager = Lang.Class({
     },
 
     _setMenuIcon: function(menuItem, status){
-        log('_setMenuIcon', menuItem.profile, status);
+        fmh.PREF_DBG && log('_setMenuIcon', menuItem.profile, status);
         switch (status) {
             case fmh.ProfileStatus.MOUNTED:                        
                 menuItem.icon.icon_name = PROFILE_MOUNTED_ICON
@@ -396,11 +397,11 @@ const RcloneManager = Lang.Class({
 
     _openSettings: function () {
         if (typeof ExtensionUtils.openPrefs === 'function') {
-            log(' openPrefs');
+            fmh.PREF_DBG && log(' openPrefs');
             ExtensionUtils.openPrefs();
         } else {
             Util.spawn(["gnome-shell-extension-prefs",Me.uuid]);
-            log(' Util.spawn');
+            fmh.PREF_DBG && log(' Util.spawn');
         }
     },
 

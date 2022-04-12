@@ -86,5 +86,13 @@
         <description>Stores profile status and configs</description>
     </key>
 
+    <key name="prefkey013-debug-mode" type="b">
+      <default>false</default>
+        <summary>Debug mode</summary>
+        <description>
+            Print verbose debug messages to de journalctl
+        </description>
+    </key>
+
   </schema>
 </schemalist>

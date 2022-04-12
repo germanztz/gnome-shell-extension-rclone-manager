@@ -77,7 +77,7 @@ After cloning the repo, the extension is practically installed yet disabled.
 
 To Debug the Extension (extension.js), use this in terminal:
 
-    $ journalctl -f -o cat /usr/bin/gnome-shell
+    $ journalctl --no-pager --no-hostname --since "1 days ago" -b -g rclone -o cat /usr/bin/gnome-shell
 
 To Debug the Extension Preferences (prefs), use this in terminal:
 
@@ -108,7 +108,7 @@ https://github.com/julio641742/gnome-shell-extension-reference
 - [ ] Add about button in setting
 - [x] Fix menu update after add config
 - [x] Fix permanent bussi on mount
-- [ ] Add log to file
+- [x] Add log to file
 - [ ] Translate spanish
 
 ## TODO list

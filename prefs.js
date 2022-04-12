@@ -27,6 +27,7 @@ var Fields = {
     PREFKEY_RC_MOUNT 		        : 'prefkey010-rclone-mount',
     PREFKEY_RC_SYNC  		        : 'prefkey011-rclone-sync',
     HIDDENKEY_PROFILE_REGISTRY      : 'hiddenkey012-profile-registry',
+    PREFKEY_DEBUG_MODE              : 'prefkey013-debug-mode',
 };
 
 const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager';
