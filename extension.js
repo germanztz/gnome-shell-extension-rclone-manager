@@ -66,13 +66,28 @@ const RcloneManager = Lang.Class({
             style_class: 'system-status-icon rclone-manager-icon' });
         hbox.add_child(this.icon);
         this.add_child(hbox);
-
+        this._checkDependencies();
         this._loadSettings();
         this._initConfig();
         fmh.monitorConfigFile((event_type) =>{ 
             fmh.PREF_DBG && log('ConfigFileChanged', event_type);
             this._initConfig(); 
         });
+    },
+
+    _checkDependencies: function(){
+        let rcVersion = fmh.getRcVersion();
+        if(!rcVersion || !rcVersion.includes('rclone')){
+            let that = this;
+            let title = 'RClone Manager '+_("Error");
+            let subTitle = _('rclone Version: ')+ rcVersion;
+            let message = _("It seems you don't have rclone v1.53 or higher installed, this extension won't work without it");
+                this._showNotification(title + ': ' + message , n => {
+                n.addAction(_('Details'), Lang.bind(that, function() {
+                    ConfirmDialog.openConfirmDialog(title, subTitle, message, _("Ok"));
+                }));
+            });
+        }
     },
 
     _loadSettings: function () {
@@ -150,21 +165,20 @@ const RcloneManager = Lang.Class({
         // Add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-
         // Add 'Add config' button which adds new config to rclone
         let addMenuItem = new PopupMenu.PopupImageMenuItem(_('Add config'),'folder-new-symbolic');
         this.menu.addMenuItem(addMenuItem);
         addMenuItem.connect('activate', Lang.bind(this, this._addConfig));
 
-        // Add 'About' button which shows info abou the extension
-        let aboutMenuItem = new PopupMenu.PopupMenuItem(_('About'));
-        this.menu.addMenuItem(aboutMenuItem);
-        aboutMenuItem.connect('activate', Lang.bind(this, this._lauchAbout));
-
         // Add 'Settings' menu item to open settings
         let settingsMenuItem = new PopupMenu.PopupImageMenuItem(_('Settings'),'gnome-tweak-tool-symbolic');
         this.menu.addMenuItem(settingsMenuItem);
         settingsMenuItem.connect('activate', Lang.bind(this, this._openSettings));
+
+        // Add 'About' button which shows info abou the extension
+        let aboutMenuItem = new PopupMenu.PopupImageMenuItem(_('About'), 'no-event-symbolic');
+        this.menu.addMenuItem(aboutMenuItem);
+        aboutMenuItem.connect('activate', Lang.bind(this, this._lauchAbout));
     },
     
     /**
@@ -330,7 +344,7 @@ const RcloneManager = Lang.Class({
             this.icon.icon_name=PROFILE_ERROR_ICON;
             this._showNotification(profile + ' error: '+message , n => {
                 n.addAction(_('Details'), Lang.bind(that, function() {
-                    ConfirmDialog.openConfirmDialog( _("Log detail"), profile, _(message), _("Ok"), null, function(){} )
+                    ConfirmDialog.openConfirmDialog( _("Log detail"), profile, _(message), _("Ok"))
                 }));
             });
             break;
@@ -441,7 +455,8 @@ const RcloneManager = Lang.Class({
     },
 
     _lauchAbout: function(){
-        contents = 
+        let rcVersion = fmh.getRcVersion();
+        let contents = 
 `
 RClone Manager extension for Gnome-Shell
 
@@ -453,7 +468,7 @@ For bugs report and comments go to:
 https://github.com/germanztz/gnome-shell-extension-rclone-manager
 
 `;
-        ConfirmDialog.openConfirmDialog( _("About"), "", contents, _("Ok"));
+        ConfirmDialog.openConfirmDialog( _("About"), rcVersion, contents, _("Ok"));
     },
 
     destroy: function () {

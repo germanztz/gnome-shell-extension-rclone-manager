@@ -143,3 +143,6 @@ msgstr "Restaurar valores"
 
 msgid "About"
 msgstr "Acerca de"
+
+msgid "It seems you don't have rclone v1.5 or higher installed, this extension won't work without it"
+msgstr "Parece que no está instalado rclone v1.5 o superior, esta extensión no funcionará sin rclone"

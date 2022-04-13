@@ -24,6 +24,7 @@ var RC_DELETE_CONFIG 		    = 'rclone config delete %profile';
 var RC_RECONNECT  	    		= 'rclone config reconnect %profile: %flags';
 var RC_UMOUNT 		    		= 'umount %source';
 var RC_GETMOUNTS 				= 'mount';
+var RC_VERSION	 				= 'rclone version';
 
 var _monitors = {};
 var _configMonitor;
@@ -37,6 +38,12 @@ var ProfileStatus = {
     BUSSY : 'BUSSY',
     ERROR : 'ERROR',
 };
+
+function getRcVersion(){
+	let [, stdout] = spawn_sync(RC_VERSION.split(' '));
+	log('rclone version',stdout);
+	return stdout;
+}
 
 /**
  * Returns the RCLONE configurations as properties
