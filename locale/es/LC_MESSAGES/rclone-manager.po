@@ -31,7 +31,7 @@ msgid "Watch"
 msgstr "Monitorizar"
 
 msgid "Unwatch"
-msgstr "Ignorar"
+msgstr "Desmonitorizar"
 
 msgid "Mount"
 msgstr "Montar"
