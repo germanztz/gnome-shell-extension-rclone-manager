@@ -3,6 +3,8 @@ RClone Manager
 
 RClone Manager extension for Gnome-Shell - Adds a rclone indicator to the top panel in roder to manage rclone configurations.
 
+![The menu](docs/menu.png)
+
 Extension page on Gnome Extensions [RClone Manager](https://extensions.gnome.org/extension/rclone-manager@daimler.com)
 
 # **_DISCLAIMER_**
@@ -16,8 +18,9 @@ Extension page on Gnome Extensions [RClone Manager](https://extensions.gnome.org
 
 - Works with rclone
 - Cutomizable rclone commands
-- Two modes of work: **watch files** and **mount remote** service
-- It has been tested on Dropbox, Gdrive and OneDrive. Other compatible cloud services may (not) work (see rclone docum), hope you enjoy trying them
+![settings](docs/settings.png)
+- Two modes of work: **watch files** ![watch](docs/watch%20icon.png) and **mount remote** ![mount](docs/mount%20icon.png)  service
+- It has been tested on Dropbox, Gdrive, GooglePhotos, Mega, WebDAV (NextCloud), ftp and OneDrive. Other compatible cloud services may (not) work (see [rclone documentation](https://rclone.org/overview/)), hope you enjoy trying them
 - Potentialy compatible with those cloud services: 
 
 |||||||
@@ -33,7 +36,9 @@ Seagate Lyve Cloud| SeaweedFS| SFTP| Sia| StackPath| Storj|
 SugarSync| Tencent Cloud Object Storage (COS)| Uptobox| Wasabi| WebDAV| Yandex Disk| 
 Zoho WorkDrive| The local filesystem 
 
-## Features of watch mode
+## ![watch](docs/watch%20icon.png) Features of watch mode 
+
+![watch menu](docs/watch%20menu.png)
 
 - Sycronices file downstream from cloud on start (see rclone sync docum)
 - Does monitor local files and keeps them in sync with cloud storage
@@ -42,20 +47,22 @@ Zoho WorkDrive| The local filesystem
 - One clic sync repository
 - No loops or CPU consumiption when idle
 
-## Features of mount mode
+## ![mount](docs/mount%20icon.png) Features of mount mode
+
+![mount menu](docs/mount%20menu.png)
 
 - Updates files with remote modifications, no sync needed
 - Will not consume local disk space
 
 # Limitations
 
-## Limitations of watch Mode
+## ![watch](docs/watch%20icon.png) Limitations of watch Mode
 
 - Does not monitor cloud services, and will not update local files with remote modifications "live", manual sync is needed
 - local offline changes will be losts on manual sync, allways check your changes have synched successfully
 - May not delete local files on manually sync if files were deleted in the cloud
 
-## Limitations of mount model
+## ![mount](docs/mount%20icon.png) Limitations of mount model
 
 - Files are not stored locally, internet connection needed
 - It is slow to work with files in this mode
@@ -71,17 +78,25 @@ After cloning the repo, the extension is practically installed yet disabled.
 
     $ gnome-extensions enable rclone-manager@daimler.com
 
-## Debugging
+## Bug reports
 
-    $ make install && make run 2>&1 | grep -i -e rclone
-
-To Debug the Extension (extension.js), use this in terminal:
+To Debug the installed Extension (extension.js), use this in terminal:
 
     $ journalctl --no-pager --no-hostname --since "1 days ago" -b -g rclone -o cat /usr/bin/gnome-shell
 
 To Debug the Extension Preferences (prefs), use this in terminal:
 
     $ journalctl -f -o cat /usr/bin/gnome-shell-extension-prefs
+
+Please, send the resulting report in an issue in github
+
+    $ https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues
+
+## Debugging and testing
+
+From your extension local directory
+
+    $ make install && make run 2>&1 | grep -i -e rclone
 
 ## Doc
 
@@ -94,6 +109,8 @@ https://wiki.gnome.org/
 https://www.codeproject.com/Articles/5271677/How-to-Create-A-GNOME-Extension
 
 https://github.com/julio641742/gnome-shell-extension-reference
+
+https://rclone.org
 
 # ChangeLog
 
@@ -112,10 +129,10 @@ https://github.com/julio641742/gnome-shell-extension-reference
 - [x] Translate spanish
 
 ## TODO list
-- [ ] Add backup fuction
-- [ ] Add restore button in setting
+- [ ] Add fuction backup config
+- [ ] Add fuction restore config
 - [ ] Fix show permanent notification
-- [ ] add check Checks the files in the source and destination match.
-- [ ] add cleanup Clean up the remote if possible.
-- [ ] add size Prints the total size and number of objects in remote:path.
+- [ ] add fuction check: Checks the files in the source and destination match.
+- [ ] add fuction cleanup: Clean up the remote if possible.
+- [ ] add fuction size: Prints the total size and number of objects in remote:path.
 
