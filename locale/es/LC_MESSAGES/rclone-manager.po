@@ -57,6 +57,9 @@ msgstr "Error"
 msgid "Log"
 msgstr "Log"
 
+msgid "Disengage"
+msgstr "Deshabilitar"
+
 msgid "Are you sure you want to delete?"
 msgstr "¿Seguro que deseas eliminar?"
 
@@ -146,3 +149,15 @@ msgstr "Acerca de"
 
 msgid "It seems you don't have rclone v1.5 or higher installed, this extension won't work without it"
 msgstr "Parece que no está instalado rclone v1.5 o superior, esta extensión no funcionará sin rclone"
+
+msgid "Mounted successfully"
+msgstr "Montada correctamente"
+
+msgid "Umounted successfully"
+msgstr "Desmontada correctamente"
+
+msgid "Filemonitor has been started"
+msgstr "El monitor de ficheros se ha iniciado"
+
+msgid "Filemonitor has been stopped"
+msgstr "El monitor de ficheros se ha parado"

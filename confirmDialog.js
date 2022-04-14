@@ -1,72 +1,74 @@
-const St = imports.gi.St;
-const GObject = imports.gi.GObject;
-const ModalDialog = imports.ui.modalDialog;
-const CheckBox = imports.ui.checkBox;
-const Clutter = imports.gi.Clutter;
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
+const St = imports.gi.St
+const GObject = imports.gi.GObject
+const ModalDialog = imports.ui.modalDialog
+const CheckBox = imports.ui.checkBox
+const Clutter = imports.gi.Clutter
 
-let _openDialog;
+let _openDialog
 
-function openConfirmDialog(title, message, sub_message, ok_label, cancel_label, callback) {
-  log('openConfirmDialog');
-  if (!_openDialog)
-    _openDialog = new ConfirmDialog(title, message + "\n" + sub_message, ok_label, cancel_label, callback).open();
+function openConfirmDialog (title, message, subMessage, okLabel, cancelLabel, callback) {
+  log('dlg.openConfirmDialog')
+  if (!_openDialog) { _openDialog = new ConfirmDialog(title, message + '\n' + subMessage, okLabel, cancelLabel, callback).open() }
 }
 
 const ConfirmDialog = GObject.registerClass(
   class ConfirmDialog extends ModalDialog.ModalDialog {
+    _init (title, desc, okLabel, cancelLabel, callback) {
+      super._init()
 
-    _init(title, desc, ok_label, cancel_label, callback) {
-      super._init();
-
-      log('ConfirmDialog._init()');
-      let main_box = new St.BoxLayout({
+      log('dlg.ConfirmDialog._init()')
+      const mainBox = new St.BoxLayout({
         vertical: false
-      });
-      this.contentLayout.add_child(main_box);
+      })
+      this.contentLayout.add_child(mainBox)
 
-      let message_box = new St.BoxLayout({
+      const messageBox = new St.BoxLayout({
         vertical: true
-      });
-      main_box.add_child(message_box);
+      })
+      mainBox.add_child(messageBox)
 
-      let subject_label = new St.Label({
+      const subjectLabel = new St.Label({
         style: 'font-weight: bold;',
         x_align: Clutter.ActorAlign.CENTER,
         text: title
-      });
-      message_box.add_child(subject_label);
+      })
+      messageBox.add_child(subjectLabel)
 
-      let desc_label = new St.Label({
+      const descLabel = new St.Label({
         style: 'padding-top: 12px;',
         x_align: Clutter.ActorAlign.CENTER,
         text: desc
-      });
-      desc_label.clutter_text.line_wrap = true;
+      })
+      descLabel.clutter_text.line_wrap = true
 
-      let desc_scroll = new St.ScrollView();
-      let desc_box = new St.BoxLayout({ vertical: true });
-      desc_box.add_actor(desc_label);
-      desc_scroll.add_actor(desc_box);
+      const descScroll = new St.ScrollView()
+      const descBox = new St.BoxLayout({ vertical: true })
+      descBox.add_actor(descLabel)
+      descScroll.add_actor(descBox)
 
-      message_box.add_actor(desc_scroll);
+      messageBox.add_actor(descScroll)
 
-      let buttons = [{
-        label: ok_label,
+      const buttons = [{
+        label: okLabel,
         action: () => {
-          this.close();
-          callback && callback();
-          _openDialog = null;
+          this.close()
+          callback && callback()
+          _openDialog = null
         }
       }]
-      if(cancel_label) buttons.push({
-        label: cancel_label,
-        action: () => {
-          this.close();
-          _openDialog = null;
-        },
-        key: Clutter.Escape
-      })
-      this.setButtons(buttons);
+      if (cancelLabel) {
+        buttons.push({
+          label: cancelLabel,
+          action: () => {
+            this.close()
+            _openDialog = null
+          },
+          key: Clutter.Escape
+        })
+      }
+      this.setButtons(buttons)
     }
   }
-);
+)
