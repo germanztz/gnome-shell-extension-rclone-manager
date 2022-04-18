@@ -161,3 +161,6 @@ msgstr "El monitor de ficheros se ha iniciado"
 
 msgid "Filemonitor has been stopped"
 msgstr "El monitor de ficheros se ha parado"
+
+msgid "Synchronization finished successfully"
+msgstr "Sincronización finalizada correctamente"

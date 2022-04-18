@@ -139,10 +139,12 @@ const RcloneManager = Lang.Class({
     const that = this
     if (regProf.syncType === fmh.ProfileStatus.WATCHED) {
       if (PREF_AUTOSYNC) {
-        that._onProfileStatusChanged(profile, fmh.ProfileStatus.BUSSY)
-        fmh.sync(profile, function (profile) {
-          fmh.initFilemonitor(profile,
-            function (profile, status, message) { that._onProfileStatusChanged(profile, status, message) })
+        fmh.sync(profile, (profile, status, message) => {
+          that._onProfileStatusChanged(profile, status, message)
+          if (status !== fmh.ProfileStatus.BUSSY) {
+            fmh.initFilemonitor(profile,
+              function (profile, status, message) { that._onProfileStatusChanged(profile, status, message) })
+          }
         })
       } else {
         fmh.initFilemonitor(profile,
@@ -234,21 +236,16 @@ const RcloneManager = Lang.Class({
 
   _onSubMenuActivated: function (menuItem) {
     fmh.PREF_DBG && log('rcm._onSubMenuActivated', menuItem.profile, menuItem.action)
-    if (['Watch', 'Mount', 'Sync', 'Disengage'].includes(menuItem.action)) {
-      this._onProfileStatusChanged(menuItem.profile, fmh.ProfileStatus.BUSSY)
-    }
     const that = this
 
     switch (menuItem.action) {
       case 'Watch':
         this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.WATCHED })
-        fmh.initFilemonitor(menuItem.profile,
-          (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) })
+        this._initProfile(menuItem.profile, { syncType: fmh.ProfileStatus.WATCHED })
         break
       case 'Mount':
         this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.MOUNTED })
-        fmh.mountProfile(menuItem.profile,
-          (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) })
+        this._initProfile(menuItem.profile, { syncType: fmh.ProfileStatus.MOUNTED })
         break
       case 'Sync':
         fmh.sync(menuItem.profile,

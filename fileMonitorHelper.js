@@ -77,9 +77,9 @@ function initFilemonitor (profile, onProfileStatusChanged) {
     _monitors[profile].ignores = PREF_IGNORE_PATTERNS.split(',')
     _monitors[profile].paths = {}
     _monitors[profile].basepath = PREF_BASE_MOUNT_PATH + profile
+    PREF_DBG && log('fmh.initFilemonitor', profile, _monitors[profile].basepath)
     success = addMonitorRecursive(profile, _monitors[profile].basepath, _monitors[profile].basepath, onProfileStatusChanged)
   }
-  PREF_DBG && log('fmh.initFilemonitor', profile, _monitors[profile].basepath)
   if (success) {
     onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.WATCHED, 'Filemonitor has been started')
   } else {
@@ -135,7 +135,7 @@ function onEvent (profile, monitor, file, otherFile, eventType, profileMountPath
 
   PREF_DBG && log('fmh.onEvent', profile, file.get_basename(), 'eventType:', eventType)
   let destinationFilePath = file.get_path().replace(profileMountPath, '')
-  const callback = function (status, stdoutLines, stderrLines) {
+  const callbackFn = function (status, stdoutLines, stderrLines) {
     onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged)
   }
 
@@ -147,15 +147,15 @@ function onEvent (profile, monitor, file, otherFile, eventType, profileMountPath
         destinationFilePath = destinationFilePath + file.get_basename()
       }
       onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
-      spawnAsyncCmd(PREF_RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callback)
+      spawnAsyncCmd(PREF_RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callbackFn)
       break
     case Gio.FileMonitorEvent.DELETED:
       onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
       if (isDir(file)) {
         deleteFileMonitor(profile, file.get_path())
-        spawnAsyncCmd(PREF_RC_DELETE_DIR, profile, '', destinationFilePath, callback)
+        spawnAsyncCmd(PREF_RC_DELETE_DIR, profile, '', destinationFilePath, callbackFn)
       } else {
-        spawnAsyncCmd(PREF_RC_DELETE_FILE, profile, '', destinationFilePath, callback)
+        spawnAsyncCmd(PREF_RC_DELETE_FILE, profile, '', destinationFilePath, callbackFn)
       }
       break
     case Gio.FileMonitorEvent.CHANGED:
@@ -276,12 +276,13 @@ function mountProfile (profile, onProfileStatusChanged) {
   try {
     if (!isDir(directory)) { directory.make_directory_with_parents(null, null) }
   } catch {}
+  onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
   spawnAsyncCmd(PREF_RC_MOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null,
     function (status, stdoutLines, stderrLines) {
       if (status === 0) {
-        if (onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, 'Mounted successfully')
+        onProfileStatusChanged && onProfileStatusChanged(profile, that.ProfileStatus.MOUNTED, 'Mounted successfully')
       } else {
-        if (onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.ERROR, stderrLines.join('\n'))
+        onProfileStatusChanged && onProfileStatusChanged(profile, that.ProfileStatus.ERROR, stderrLines.join('\n'))
       }
     })
 }
@@ -302,12 +303,13 @@ function profileHasDir (profile) {
  */
 function umount (profile, onProfileStatusChanged) {
   const that = this
+  onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
   spawnAsyncCmd(RC_UMOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null,
     function (status, stdoutLines, stderrLines) {
       if (status === 0) {
-        if (onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.DISCONNECTED, 'Umounted successfully')
+        onProfileStatusChanged && onProfileStatusChanged(profile, that.ProfileStatus.DISCONNECTED, 'Umounted successfully')
       } else {
-        if (onProfileStatusChanged) onProfileStatusChanged(profile, that.ProfileStatus.ERROR, stderrLines.join('\n'))
+        onProfileStatusChanged && onProfileStatusChanged(profile, that.ProfileStatus.ERROR, stderrLines.join('\n'))
       }
     })
 }
@@ -357,11 +359,12 @@ function reconnect (profile) {
  */
 function sync (profile, onProfileStatusChanged) {
   if (getStatus(profile) === ProfileStatus.MOUNTED) {
-    if (onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Mounted Profiles are already in sync')
+    onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Mounted Profiles are already in sync')
     return
   }
 
   PREF_DBG && log('fmh.sync', profile)
+  onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
 
   if (Object.prototype.hasOwnProperty.call(_monitors, profile)) {
     _monitors[profile].is_synching = true
@@ -374,9 +377,9 @@ function sync (profile, onProfileStatusChanged) {
       }
 
       if (status === 0) {
-        if (onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), stdoutLines.join('\n'))
+        onProfileStatusChanged && onProfileStatusChanged(profile, getStatus(profile), 'Synchronization finished successfully')
       } else {
-        if (onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, stderrLines.join('\n'))
+        onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, stderrLines.join('\n'))
       }
     })
 }
