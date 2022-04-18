@@ -239,8 +239,8 @@ function getFileMonitor (profile, path) {
 function onCmdFinished (status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged) {
   PREF_DBG && log('fmh.onCmdFinished', profile, file, status)
   if (status === 0) {
-    onProfileStatusChanged && onProfileStatusChanged(profile, getStatus(profile), stdoutLines.join('\n'))
-    PREF_DBG && log('stdoutLines', stdoutLines.join('\n'))
+    onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.WATCHED, file.get_path() + ' updated')
+    PREF_DBG && log('stdoutLines', file.get_path() + ' updated', stdoutLines.join('\n'))
   } else {
     onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.ERROR, stderrLines.join('\n'))
     PREF_DBG && log('stderrLines', stderrLines.join('\n'))

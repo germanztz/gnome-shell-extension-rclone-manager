@@ -41,7 +41,7 @@ const submenus = {
   Delete: 'user-trash-symbolic',
   Error: 'dialog-warning-symbolic',
   Log: 'dialog-warning-symbolic',
-  Disengage: 'image-zoom-out-symbolic'
+  Disengage: 'radio-mixed-symbolic'
 }
 
 const RcloneManager = Lang.Class({
@@ -358,9 +358,7 @@ const RcloneManager = Lang.Class({
         break
     }
     if (message) { this._addLog(profile, _(message)) }
-    try {
-      this._setMenuIcon(mItem, status)
-    } catch {}
+    this._setMenuIcon(mItem, status)
     this._buildSubmenu(mItem, profile, fmh.getStatus(profile))
   },
 
