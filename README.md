@@ -96,7 +96,7 @@ Please, send the resulting report in an issue in github
 
 From your extension local directory
 
-    $ make install && make run 2>&1 | grep -i -e rclone
+    $ clean && make install && make run 2>&1 | grep -i -e rclone
 
 ## Doc
 
@@ -114,7 +114,7 @@ https://rclone.org
 
 # ChangeLog
 
-## v1.0.0
+## v1.0
 
 - [x] Fix create basedir if not exist on mount
 - [x] Fix show actual status when mount fails

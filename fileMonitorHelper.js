@@ -25,7 +25,7 @@ const RC_LIST_REMOTES = 'rclone listremotes'
 const RC_COPYTO = 'rclone copyto %profile:%destination %source'
 const RC_ADDCONFIG = 'rclone config'
 const RC_DELETE_CONFIG = 'rclone config delete %profile'
-const RC_RECONNECT = 'rclone config reconnect %profile: %flags'
+const RC_RECONNECT = 'rclone config reconnect %profile:'
 const RC_UMOUNT = 'umount %source'
 const RC_GETMOUNTS = 'mount'
 const RC_VERSION = 'rclone version'
@@ -349,7 +349,7 @@ function getStatus (profile) {
  * @param {string} profile name
  */
 function reconnect (profile) {
-  launchTermCmd(RC_RECONNECT, profile)
+  launchTermCmd(RC_RECONNECT.replace('%profile', profile))
 }
 
 /**
@@ -583,7 +583,7 @@ function launchTermCmd (cmd, autoclose, sudo) {
       .replace('{0}', sudocmd)
       .replace('{1}', cmd)
       .replace('{2}', autoclosecmd)
-    PREF_DBG && log(cmd)
+    PREF_DBG && log('fmh.launchTermCmd', cmd)
     GLib.spawn_command_line_async(cmd)
   } catch (e) {
     logError(e)

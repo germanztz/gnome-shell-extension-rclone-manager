@@ -86,7 +86,7 @@ const RcloneManager = Lang.Class({
       const that = this
       const title = 'RClone Manager ' + _('Error')
       const subTitle = _('rclone Version: ') + rcVersion
-      const message = _("It seems you don't have rclone v1.53 or higher installed, this extension won't work without it")
+      const message = _("It seems you don't have rclone installed, this extension won't work without it")
       this._showNotification(title + ': ' + message, n => {
         n.addAction(_('Details'), Lang.bind(that, function () {
           ConfirmDialog.openConfirmDialog(title, subTitle, message, _('Ok'))
@@ -181,7 +181,7 @@ const RcloneManager = Lang.Class({
     settingsMenuItem.connect('activate', Lang.bind(this, this._openSettings))
 
     // Add 'About' button which shows info abou the extension
-    const aboutMenuItem = new PopupMenu.PopupImageMenuItem(_('About'), 'no-event-symbolic')
+    const aboutMenuItem = new PopupMenu.PopupImageMenuItem(_('About'), 'system-help-symbolic')
     this.menu.addMenuItem(aboutMenuItem)
     aboutMenuItem.connect('activate', Lang.bind(this, this._lauchAbout))
   },
@@ -445,14 +445,14 @@ const RcloneManager = Lang.Class({
     const rcVersion = fmh.getRcVersion()
     const contents =
 `
-RClone Manager extension for Gnome-Shell
+${Me.metadata.name} v${Me.metadata.version}
 
-Adds a rclone indicator to the top panel in roder to manage rclone configurations.
+${Me.metadata.description}
 
 AUTHOR: germanztz <avena.root@gmail.com>
 
 For bugs report and comments go to:
-https://github.com/germanztz/gnome-shell-extension-rclone-manager
+${Me.metadata.url}
 
 `
     ConfirmDialog.openConfirmDialog(_('About'), rcVersion, contents, _('Ok'))
