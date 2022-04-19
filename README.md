@@ -5,7 +5,7 @@ RClone Manager extension for Gnome-Shell - Adds a rclone indicator to the top pa
 
 ![The menu](docs/menu.png)
 
-Extension page on Gnome Extensions [RClone Manager](https://extensions.gnome.org/extension/rclone-manager@daimler.com)
+Extension page on Gnome Extensions [RClone Manager](https://extensions.gnome.org/extension/rclone-manager@germanztz.com)
 
 # **_DISCLAIMER_**
 
@@ -72,11 +72,11 @@ Zoho WorkDrive| The local filesystem
 
 Installation via git is performed by cloning the repo into your local gnome-shell extensions directory
 
-    $ git clone https://github.com/germanztz/gnome-shell-extension-rclone-manager ~/.local/share/gnome-shell/rclone-manager@daimler.com
+    $ git clone https://github.com/germanztz/gnome-shell-extension-rclone-manager ~/.local/share/gnome-shell/rclone-manager@germanztz.com
 
 After cloning the repo, the extension is practically installed yet disabled. 
 
-    $ gnome-extensions enable rclone-manager@daimler.com
+    $ gnome-extensions enable rclone-manager@germanztz.com
 
 ## Bug reports
 
