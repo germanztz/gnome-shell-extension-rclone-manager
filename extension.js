@@ -247,6 +247,11 @@ const RcloneManager = Lang.Class({
         this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.MOUNTED })
         this._initProfile(menuItem.profile, { syncType: fmh.ProfileStatus.MOUNTED })
         break
+      case 'Disengage':
+        this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.DISCONNECTED })
+        fmh.disengage(menuItem.profile,
+          (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) })
+        break
       case 'Sync':
         fmh.sync(menuItem.profile,
           (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) })
@@ -275,19 +280,7 @@ const RcloneManager = Lang.Class({
         )
         break
       case 'Log':
-        ConfirmDialog.openConfirmDialog(_('Log Detail'), menuItem.profile, this._configs[menuItem.profile].log, _('Ok'), null, function () {})
-        break
-      case 'Disengage':
-        this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.DISCONNECTED })
-        if (fmh.getStatus(menuItem.profile) === fmh.ProfileStatus.MOUNTED) {
-          fmh.umount(menuItem.profile,
-            (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) })
-        } else if (fmh.getStatus(menuItem.profile) === fmh.ProfileStatus.WATCHED) {
-          fmh.removeFilemonitor(menuItem.profile,
-            (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) })
-        } else {
-          this._onProfileStatusChanged(menuItem.profile, fmh.ProfileStatus.DISCONNECTED)
-        }
+        ConfirmDialog.openConfirmDialog(_('Log Detail'), menuItem.profile, this._configs[menuItem.profile].log, _('Ok'))
         break
       default:
         break
@@ -438,7 +431,11 @@ const RcloneManager = Lang.Class({
     }
 
     notification.setTransient(true)
-    if (Config.PACKAGE_VERSION < '3.36') { this._notifSource.notify(notification) } else { this._notifSource.showNotification(notification) }
+    if (Config.PACKAGE_VERSION < '3.36') { 
+      this._notifSource.notify(notification) 
+    } else { 
+      this._notifSource.showNotification(notification) 
+    }
   },
 
   _lauchAbout: function () {

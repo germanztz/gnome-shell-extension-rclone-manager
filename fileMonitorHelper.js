@@ -352,6 +352,18 @@ function reconnect (profile) {
   launchTermCmd(RC_RECONNECT.replace('%profile', profile))
 }
 
+
+function disengage (profile, onProfileStatusChanged) {
+  let profileStatus = getStatus(profile);
+  if (profileStatus === ProfileStatus.MOUNTED) {
+    umount(profile, onProfileStatusChanged)
+  } else if (profileStatus === ProfileStatus.WATCHED) {
+    removeFilemonitor(profile, onProfileStatusChanged)
+  } else {
+    onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DISCONNECTED)
+  }
+}
+
 /**
  * Lauch an RCLONE sincronization whith the remote repository
  * @param {string} profile name
