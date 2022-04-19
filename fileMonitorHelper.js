@@ -104,10 +104,13 @@ function addMonitorRecursive (profile, path, profileMountPath, onProfileStatusCh
 
     _monitors[profile].paths[directory.get_path()] = monitor
     PREF_DBG && log('fmh.addMonitorRecursive', profile, directory.get_path())
-    const subfolders = directory.enumerate_children('standard::name,standard::type', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null)
+    const filter = 'standard::name,standard::type'
+    const subfolders = directory.enumerate_children(filter, Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null)
     let fileInfo
     while ((fileInfo = subfolders.next_file(null)) != null) {
-      if (fileInfo.get_file_type() === Gio.FileType.DIRECTORY) { addMonitorRecursive(profile, path + '/' + fileInfo.get_name(), profileMountPath, onProfileStatusChanged) }
+      if (fileInfo.get_file_type() === Gio.FileType.DIRECTORY) {
+        addMonitorRecursive(profile, path + '/' + fileInfo.get_name(), profileMountPath, onProfileStatusChanged)
+      }
     }
     return true
   } catch (e) {
