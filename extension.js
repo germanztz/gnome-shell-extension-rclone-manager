@@ -10,10 +10,9 @@ const Main = imports.ui.main
 const PanelMenu = imports.ui.panelMenu
 const PopupMenu = imports.ui.popupMenu
 const Gettext = imports.gettext
-const _ = Gettext.domain('rclone-manager').gettext
-
 const ExtensionUtils = imports.misc.extensionUtils
 const Me = ExtensionUtils.getCurrentExtension()
+const _ = Gettext.domain(Me.metadata.name).gettext
 const Prefs = Me.imports.prefs
 
 const shellVersion = Number.parseInt(Config.PACKAGE_VERSION.split('.'))
@@ -45,7 +44,7 @@ const submenus = {
 }
 
 const RcloneManager = Lang.Class({
-  Name: 'RcloneManager',
+  Name: Me.metadata.name,
   Extends: PanelMenu.Button,
 
   _settingsChangedId: null,
@@ -59,7 +58,7 @@ const RcloneManager = Lang.Class({
 
   _init: function () {
     log('rcm._init')
-    this.parent(0.0, 'RcloneManager')
+    this.parent(0.0, Me.metadata.name)
     this._shortcutsBindingIds = []
     this.clipItemsRadioGroup = []
 
@@ -84,7 +83,7 @@ const RcloneManager = Lang.Class({
     const rcVersion = fmh.getRcVersion()
     if (!rcVersion || !rcVersion.includes('rclone')) {
       const that = this
-      const title = 'RClone Manager ' + _('Error')
+      const title = Me.metadata.name + ' ' + _('Error')
       const subTitle = _('rclone Version: ') + rcVersion
       const message = _("It seems you don't have rclone installed, this extension won't work without it")
       this._showNotification(title + ': ' + message, n => {
@@ -431,10 +430,10 @@ const RcloneManager = Lang.Class({
     }
 
     notification.setTransient(true)
-    if (Config.PACKAGE_VERSION < '3.36') { 
-      this._notifSource.notify(notification) 
-    } else { 
-      this._notifSource.showNotification(notification) 
+    if (Config.PACKAGE_VERSION < '3.36') {
+      this._notifSource.notify(notification)
+    } else {
+      this._notifSource.showNotification(notification)
     }
   },
 
