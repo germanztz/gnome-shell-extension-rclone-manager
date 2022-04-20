@@ -45,7 +45,7 @@ function init () {
 }
 
 const App = new Lang.Class({
-  Name: 'RcloneManager.App',
+  Name: Me.metadata.name + '-config',
   _init: function () {
     this.main = new Gtk.Grid({
       margin_top: 10,

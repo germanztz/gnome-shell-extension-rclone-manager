@@ -178,6 +178,11 @@ const RcloneManager = Lang.Class({
     const aboutMenuItem = new PopupMenu.PopupImageMenuItem(_('About'), 'system-help-symbolic')
     this.menu.addMenuItem(aboutMenuItem)
     aboutMenuItem.connect('activate', Lang.bind(this, this._lauchAbout))
+
+    // Add 'About' button which shows info abou the extension
+    const bkpRstMenuItem = new PopupMenu.PopupImageMenuItem(_('Backup'), 'backups-app-symbolic')
+    this.menu.addMenuItem(bkpRstMenuItem)
+    bkpRstMenuItem.connect('activate', Lang.bind(this, this._lauchBackup))
   },
 
   /**
@@ -459,6 +464,10 @@ ${Me.metadata.url}
 
 `
     ConfirmDialog.openConfirmDialog(_('About'), rcVersion, contents, _('Ok'))
+  },
+
+  _lauchBackup: function () {
+
   },
 
   destroy: function () {
