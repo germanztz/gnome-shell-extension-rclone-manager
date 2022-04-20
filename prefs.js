@@ -8,7 +8,7 @@ const ExtensionUtils = imports.misc.extensionUtils
 const Me = ExtensionUtils.getCurrentExtension()
 
 const Gettext = imports.gettext
-const _ = Gettext.domain('rclone-manager').gettext
+const _ = Gettext.domain(Me.metadata.name).gettext
 
 const Config = imports.misc.config
 const [major] = Config.PACKAGE_VERSION.split('.')
@@ -39,7 +39,9 @@ var Settings = new Gio.Settings({ settings_schema: SettingsSchema })
 
 function init () {
   const localeDir = Me.dir.get_child('locale')
-  if (localeDir.query_exists(null)) { Gettext.bindtextdomain('rclone-manager', localeDir.get_path()) }
+  if (localeDir.query_exists(null)) {
+    Gettext.bindtextdomain(Me.metadata.name, localeDir.get_path())
+  }
 }
 
 const App = new Lang.Class({

@@ -624,10 +624,10 @@ function fileToString (filePath, callbackFunction) {
                 callbackFunction('File contents are no Uint8Array')
               }
             } catch (e) {
-              logError(e, 'rclone-manager Error')
+              logError(e)
             }
           } else {
-            PREF_DBG && log('fmh.rclone load_contents_async failed')
+            PREF_DBG && log('fmh.fileToString', 'load_contents_async failed')
           }
         })
       })

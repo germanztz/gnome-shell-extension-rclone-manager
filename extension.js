@@ -48,11 +48,6 @@ const RcloneManager = Lang.Class({
   Extends: PanelMenu.Button,
 
   _settingsChangedId: null,
-  _clipboardTimeoutId: null,
-  _selectionOwnerChangedId: null,
-  _historyLabelTimeoutId: null,
-  _historyLabel: null,
-  _disableDownArrow: null,
   _configs: [],
   _registry: {},
 
@@ -294,7 +289,7 @@ const RcloneManager = Lang.Class({
     try {
       return JSON.parse(registry)
     } catch (e) {
-      logError(e, 'rclone-manager Error on read registry')
+      logError(e)
       return {}
     }
   },
@@ -318,37 +313,41 @@ const RcloneManager = Lang.Class({
   },
 
   _onProfileStatusChanged: function (profile, status, message) {
-    fmh.PREF_DBG && log('rcm._onProfileStatusChanged', profile, status, message)
-    const mItem = this._findProfileMenu(profile)
-    const that = this
-    switch (status) {
-      case fmh.ProfileStatus.DELETED:
-        mItem.destroy()
-        return
+    try {
+      fmh.PREF_DBG && log('rcm._onProfileStatusChanged', profile, status, message)
+      const mItem = this._findProfileMenu(profile)
+      const that = this
+      switch (status) {
+        case fmh.ProfileStatus.DELETED:
+          mItem.destroy()
+          return
 
-      case fmh.ProfileStatus.ERROR:
-        this.icon.icon_name = PROFILE_ERROR_ICON
-        this._showNotification(profile + ' ' + _('Error') + ': ' + _(message), n => {
-          n.addAction(_('Details'), Lang.bind(that, function () {
-            ConfirmDialog.openConfirmDialog(_('Log detail'), profile, _(message), _('Ok'))
-          }))
-        })
-        break
+        case fmh.ProfileStatus.ERROR:
+          this.icon.icon_name = PROFILE_ERROR_ICON
+          this._showNotification(profile + ' ' + _('Error') + ': ' + _(message), n => {
+            n.addAction(_('Details'), Lang.bind(that, function () {
+              ConfirmDialog.openConfirmDialog(_('Log detail'), profile, _(message), _('Ok'))
+            }))
+          })
+          break
 
-      case fmh.ProfileStatus.BUSSY:
-        this.icon.icon_name = PROFILE_BUSSY_ICON
-        break
+        case fmh.ProfileStatus.BUSSY:
+          this.icon.icon_name = PROFILE_BUSSY_ICON
+          break
 
-        // case fmh.ProfileStatus.MOUNTED:
-        // case fmh.ProfileStatus.WATCHED:
-        // case fmh.ProfileStatus.DISCONNECTED:
-      default:
-        this.icon.icon_name = INDICATOR_ICON
-        break
+          // case fmh.ProfileStatus.MOUNTED:
+          // case fmh.ProfileStatus.WATCHED:
+          // case fmh.ProfileStatus.DISCONNECTED:
+        default:
+          this.icon.icon_name = INDICATOR_ICON
+          break
+      }
+      if (message) { this._addLog(profile, _(message)) }
+      this._setMenuIcon(mItem, status)
+      this._buildSubmenu(mItem, profile, fmh.getStatus(profile))
+    } catch (e) {
+      logError(e)
     }
-    if (message) { this._addLog(profile, _(message)) }
-    this._setMenuIcon(mItem, status)
-    this._buildSubmenu(mItem, profile, fmh.getStatus(profile))
   },
 
   _addLog: function (profile, message) {
@@ -362,34 +361,42 @@ const RcloneManager = Lang.Class({
 
   _findProfileMenu: function (profile) {
     let retItem = null
-    this.menu._getMenuItems().forEach(function (mItem) {
-      if (mItem.profile && mItem.profile === profile) {
-        retItem = mItem
-      }
-    })
+    try {
+      this.menu._getMenuItems().forEach(function (mItem) {
+        if (mItem.profile && mItem.profile === profile) {
+          retItem = mItem
+        }
+      })
+    } catch (e) {
+      logError(e)
+    }
     return retItem
   },
 
   _setMenuIcon: function (menuItem, status) {
-    fmh.PREF_DBG && log('rcm._setMenuIcon', menuItem.profile, status)
-    switch (status) {
-      case fmh.ProfileStatus.MOUNTED:
-        menuItem.icon.icon_name = PROFILE_MOUNTED_ICON
-        break
-      case fmh.ProfileStatus.WATCHED:
-        menuItem.icon.icon_name = PROFILE_WATCHED_ICON
-        break
-      case fmh.ProfileStatus.BUSSY:
-        menuItem.icon.icon_name = PROFILE_BUSSY_ICON
-        break
-      case fmh.ProfileStatus.ERROR:
-        menuItem.icon.icon_name = PROFILE_ERROR_ICON
-        break
-      case fmh.ProfileStatus.DELETED:
-        break
-      default:
-        menuItem.icon.icon_name = PROFILE_IDLE_ICON
-        break
+    try {
+      fmh.PREF_DBG && log('rcm._setMenuIcon', menuItem.profile, status)
+      switch (status) {
+        case fmh.ProfileStatus.MOUNTED:
+          menuItem.icon.icon_name = PROFILE_MOUNTED_ICON
+          break
+        case fmh.ProfileStatus.WATCHED:
+          menuItem.icon.icon_name = PROFILE_WATCHED_ICON
+          break
+        case fmh.ProfileStatus.BUSSY:
+          menuItem.icon.icon_name = PROFILE_BUSSY_ICON
+          break
+        case fmh.ProfileStatus.ERROR:
+          menuItem.icon.icon_name = PROFILE_ERROR_ICON
+          break
+        case fmh.ProfileStatus.DELETED:
+          break
+        default:
+          menuItem.icon.icon_name = PROFILE_IDLE_ICON
+          break
+      }
+    } catch (e) {
+      logError(e)
     }
   },
 
@@ -463,13 +470,13 @@ ${Me.metadata.url}
 
 function init () {
   const localeDir = Me.dir.get_child('locale')
-  Gettext.bindtextdomain('rclone-manager', localeDir.get_path())
+  Gettext.bindtextdomain(Me.metadata.name, localeDir.get_path())
 }
 
 let rcloneManager
 function enable () {
   rcloneManager = new RcloneManager()
-  Main.panel.addToStatusArea('rcloneManager', rcloneManager, 1)
+  Main.panel.addToStatusArea(Me.metadata.name, rcloneManager, 1)
 }
 
 function disable () {
