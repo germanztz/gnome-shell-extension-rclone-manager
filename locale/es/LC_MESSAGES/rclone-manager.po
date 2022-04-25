@@ -164,3 +164,21 @@ msgstr "El monitor de ficheros se ha parado"
 
 msgid "Synchronization finished successfully"
 msgstr "Sincronización finalizada correctamente"
+
+msgid "Backup & restore"
+msgstr "Respaldar & restaurar"
+
+msgid "Backup"
+msgstr "Respaldar"
+
+msgid "Restore"
+msgstr "Restaurar"
+
+msgid "Select a profile where backup to or restorer from"
+msgstr "Selecciona un perfil hacia el que respaldar o desde el que restaurar"
+
+msgid "Operation failed"
+msgstr "La operación ha fallado"
+
+msgid "Operation succeed"
+msgstr "La operación se ha completado con éxito"

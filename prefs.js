@@ -3,14 +3,15 @@
 /* eslint-disable no-undef */
 const Gtk = imports.gi.Gtk
 const Gio = imports.gi.Gio
+const GLib = imports.gi.GLib
 const Lang = imports.lang
 const ExtensionUtils = imports.misc.extensionUtils
-const Me = ExtensionUtils.getCurrentExtension()
-
 const Gettext = imports.gettext
-const _ = Gettext.domain(Me.metadata.name).gettext
-
 const Config = imports.misc.config
+const Me = ExtensionUtils.getCurrentExtension()
+const fmh = Me.imports.fileMonitorHelper
+
+const _ = Gettext.domain(Me.metadata.name).gettext
 const [major] = Config.PACKAGE_VERSION.split('.')
 const shellVersion = Number.parseInt(major)
 
@@ -105,7 +106,13 @@ const App = new Lang.Class({
       halign: Gtk.Align.END
     })
     btReset.connect('clicked', this.resetAll)
+    const btBackup = new Gtk.Button({
+      label: _('Backup & restore'),
+      halign: Gtk.Align.END
+    })
+    btBackup.connect('clicked', () => this.launchBackupDialog())
     this.appendToBox(buttonsRow, btReset)
+    this.appendToBox(buttonsRow, btBackup)
 
     this.main.attach(buttonsRow, 1, SettingsSchema.list_keys().length + 1, 1, 1)
 
@@ -136,8 +143,69 @@ const App = new Lang.Class({
 
   resetAll: function () {
     SettingsSchema.list_keys().forEach(prefKey => Settings.reset(prefKey))
-  }
+  },
 
+  launchBackupDialog: function () {
+    const profiles = Object.entries(fmh.listremotes()).map(entry => entry[0])
+    const dialog = new Gtk.Dialog({
+      // default_height: 200,
+      // default_width: 200,
+      modal: true,
+      title: _('Backup & restore'),
+      use_header_bar: false
+    })
+    dialog.add_button(_('Backup'), 0)
+    dialog.add_button(_('Restore'), 1)
+    dialog.add_button(_('Cancel'), Gtk.ResponseType.NO)
+
+    dialog.connect('response', (dialog, response) => {
+      this.onBackupDialogResponse(dialog, response, profiles)
+    })
+
+    contentArea = dialog.get_content_area()
+    contentArea.append(new Gtk.Label({ label: _('Select a profile where backup to or restorer from'), vexpand: true }))
+    contentArea.append(Gtk.DropDown.new_from_strings(profiles))
+
+    dialog.show()
+  },
+
+  onBackupDialogResponse: function (dialog, response, profiles) {
+    fmh.PREF_RCONFIG_FILE_PATH = Settings.get_string(Fields.PREFKEY_RCONFIG_FILE_PATH)
+    fmh.PREF_BASE_MOUNT_PATH = Settings.get_string(Fields.PREFKEY_BASE_MOUNT_PATH)
+    fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
+    if (!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH + '/'
+    fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
+
+    const selected = dialog.get_content_area().get_last_child().get_selected()
+    const profile = profiles[selected]
+    dialog.destroy()
+    var statusResult, out, err
+    if (response === 0) {
+      // Backup
+      const source = Gio.file_new_for_path(fmh.PREF_RCONFIG_FILE_PATH)
+      const target = Gio.file_new_for_path(fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf')
+      restatusResult = source.copy(target, Gio.FileCopyFlags.OVERWRITE, null, null)
+    } else if (response === 1) {
+      // Restore
+      [statusResult, out, err] = fmh.spawnSync(fmh.RC_COPYTO
+        .replace('%profile', profile)
+        .replace('%source', '/.rclone.conf')
+        .replace('%destination', fmh.PREF_RCONFIG_FILE_PATH)
+        .split(' ')
+      )
+      log(`err, ${err}`)
+    }
+
+    log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}`)
+
+    const resultDialog = new Gtk.MessageDialog({
+      title: _('Backup & restore'),
+      text: statusResult ? _('Operation failed') + '\n' + err : _('Operation succeed'),
+      buttons: [Gtk.ButtonsType.OK]
+    })
+    resultDialog.connect('response', (resultDialog) => { resultDialog.destroy() })
+    resultDialog.show()
+  }
 })
 
 function buildPrefsWidget () {

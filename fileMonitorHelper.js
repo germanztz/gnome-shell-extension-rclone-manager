@@ -21,14 +21,14 @@ var PREF_RC_MOUNT
 var PREF_RC_SYNC
 var PREF_DBG
 
-const RC_LIST_REMOTES = 'rclone listremotes'
-const RC_COPYTO = 'rclone copyto %profile:%destination %source'
-const RC_ADDCONFIG = 'rclone config'
-const RC_DELETE_CONFIG = 'rclone config delete %profile'
-const RC_RECONNECT = 'rclone config reconnect %profile:'
-const RC_UMOUNT = 'umount %source'
-const RC_GETMOUNTS = 'mount'
-const RC_VERSION = 'rclone version'
+var RC_LIST_REMOTES = 'rclone listremotes'
+var RC_COPYTO = 'rclone copyto %profile:%source %destination'
+var RC_ADDCONFIG = 'rclone config'
+var RC_DELETE_CONFIG = 'rclone config delete %profile'
+var RC_RECONNECT = 'rclone config reconnect %profile:'
+var RC_UMOUNT = 'umount %source'
+var RC_GETMOUNTS = 'mount'
+var RC_VERSION = 'rclone version'
 
 var _monitors = {}
 var _configMonitor
@@ -42,6 +42,8 @@ var ProfileStatus = {
   BUSSY: 'BUSSY',
   ERROR: 'ERROR'
 }
+
+const MONITOR_EVENTS = ['CHANGED', 'CHANGES_DONE_HINT', 'DELETED', 'CREATED', 'ATTRIBUTE_CHANGED', 'PRE_UNMOUNT', 'UNMOUNTED', 'MOVED', 'RENAMED', 'MOVED_IN', 'MOVED_OUT']
 
 function getRcVersion () {
   const [, stdout] = spawnSync(RC_VERSION.split(' '))
@@ -136,7 +138,7 @@ function onEvent (profile, monitor, file, otherFile, eventType, profileMountPath
     return
   }
 
-  PREF_DBG && log('fmh.onEvent', profile, file.get_basename(), 'eventType:', eventType)
+  PREF_DBG && log('fmh.onEvent', profile, file.get_basename(), MONITOR_EVENTS[eventType])
   let destinationFilePath = file.get_path().replace(profileMountPath, '')
   const callbackFn = function (status, stdoutLines, stderrLines) {
     onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged)
@@ -144,13 +146,17 @@ function onEvent (profile, monitor, file, otherFile, eventType, profileMountPath
 
   switch (eventType) {
     case Gio.FileMonitorEvent.CHANGES_DONE_HINT:
-      destinationFilePath = destinationFilePath.replace(file.get_basename(), '')
-      if (isDir(file)) {
-        addMonitorRecursive(profile, file.get_path(), profileMountPath, onProfileStatusChanged)
-        destinationFilePath = destinationFilePath + file.get_basename()
+      if (GLib.file_test(file.get_path(), GLib.FileTest.EXISTS)) {
+        destinationFilePath = destinationFilePath.replace(file.get_basename(), '')
+        if (isDir(file)) {
+          addMonitorRecursive(profile, file.get_path(), profileMountPath, onProfileStatusChanged)
+          destinationFilePath = destinationFilePath + file.get_basename()
+        }
+        onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
+        spawnAsyncCmd(PREF_RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callbackFn)
+      } else {
+        log('fmh.onEvent', profile, file.get_basename(), 'file Doesn t exists on event')
       }
-      onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
-      spawnAsyncCmd(PREF_RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callbackFn)
       break
     case Gio.FileMonitorEvent.DELETED:
       onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
@@ -240,7 +246,7 @@ function getFileMonitor (profile, path) {
  * @param {fuction} onProfileStatusChanged callback function
  */
 function onCmdFinished (status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged) {
-  PREF_DBG && log('fmh.onCmdFinished', profile, file, status)
+  PREF_DBG && log('fmh.onCmdFinished', profile, file && file.get_path(), status)
   if (status === 0) {
     onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.WATCHED, file.get_path() + ' updated')
     PREF_DBG && log('stdoutLines', file.get_path() + ' updated', stdoutLines.join('\n'))
@@ -398,17 +404,6 @@ function sync (profile, onProfileStatusChanged) {
     })
 }
 
-function backup (profile, onProfileStatusChanged) {
-  spawnAsyncCmd(RC_COPYTO, profile, PREF_RCONFIG_FILE_PATH, '/.rclone.conf',
-    function (status, stdoutLines, stderrLines) {
-      if (status === 0) {
-        if (onProfileStatusChanged) onProfileStatusChanged(profile, getStatus(profile), stdoutLines.join('\n'))
-      } else {
-        if (onProfileStatusChanged) onProfileStatusChanged(profile, ProfileStatus.ERROR, stderrLines.join('\n'))
-      }
-    })
-}
-
 /**
  * Launch a file browser on the profile location
  * @param {string} profile name
@@ -417,10 +412,6 @@ function open (profile) {
   const cmd = PREF_EXTERNAL_FILE_BROWSER.split(' ')
   cmd.push(PREF_BASE_MOUNT_PATH + profile)
   this.spawnAsyncWithPipes(cmd)
-}
-
-function restore () {
-  this.spawnAsyncWithPipes(['ls', '-la', '.'], this.onCmdFinished)
 }
 
 /**
@@ -558,7 +549,7 @@ function spawnAsyncWithPipes (argv, callback) {
 function spawnSync (argv) {
   let out, err, status
   try {
-    PREF_DBG && log('fmh.spawnSync', argv.join(' '))
+    log(`fmh.spawnSync, ${argv.join(' ')}`)
     const [ok, stdout, stderr, exitStatus] = GLib.spawn_sync(
       // Working directory, passing %null to use the parent's
       null,
@@ -572,21 +563,15 @@ function spawnSync (argv) {
       // Child setup function
       null)
 
-    if (!ok) {
-      if (stderr instanceof Uint8Array) {
-        err = imports.byteArray.toString(stderr)
-        PREF_DBG && log(err)
-      }
-      // throw new Error(stderr);
-    }
+    if (stderr instanceof Uint8Array) err = imports.byteArray.toString(stderr)
+    if (stdout instanceof Uint8Array) out = imports.byteArray.toString(stdout)
+    log(`fmh.spawnSync, ok, ${ok}, status, ${exitStatus}, stderr, ${err}, stdout, ${stdout}`)
 
-    if (stdout instanceof Uint8Array) { out = imports.byteArray.toString(stdout) }
-
-    status = exitStatus
+    return [exitStatus, out, err]
   } catch (e) {
     logError(e)
+    return [1, e.message, e.message]
   }
-  return [status, out, err]
 }
 
 function launchTermCmd (cmd, autoclose, sudo) {

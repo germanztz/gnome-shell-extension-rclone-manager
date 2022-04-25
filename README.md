@@ -1,27 +1,27 @@
 RClone Manager
 ==============
 
-RClone Manager extension for Gnome-Shell - Adds a rclone indicator to the top panel in roder to manage rclone configurations.
+![The icon](docs/icon.png) 
+
+Is like Dropbox sync client but for more than 30 services, adds an indicator to the top panel so you can manage the rclone profiles configured in your system, perform operations such as mount as remote, watch for file modifications, sync with remote storage, navigate it's main folder. Also, it shows the status of each profile so you can supervise the operations, and provides an easy access log of events. Backup and restore the rclone configuration file, so you won't have to configure all your devices one by one
 
 ![The menu](docs/menu.png)
 
-Extension page on Gnome Extensions [RClone Manager](https://extensions.gnome.org/extension/rclone-manager@germanztz.com)
-
-# **_DISCLAIMER_**
-
-- **This program could delete all your files recursively, files backup is strongly advised**
-- **Absolutely no warranty, use under you own risk**
+Extension page on Gnome Extensions [RClone Manager](https://extensions.gnome.org/extension/5006/rclone-manager)
 
 # Features 
 
+- Does not track your data like Dropbox, Google or Microsoft's clients will do, plain functionality
 - Adds an indicator in the system tray to check and manage rclone configurations
-
 - Works with rclone
-- Cutomizable rclone commands
-![settings](docs/settings.png)
 - Two modes of work: **watch files** ![watch](docs/watch%20icon.png) and **mount remote** ![mount](docs/mount%20icon.png)  service
+- Customizable rclone commands
+- Customizable list os file extensions to be ignored
+- Backup and restore the rclone configuration file, so you won't have to configure all your devices one by one
+![settings](docs/settings.png)
+- Easy access log of events 
 - It has been tested on Dropbox, Gdrive, GooglePhotos, Mega, WebDAV (NextCloud), ftp and OneDrive. Other compatible cloud services may (not) work (see [rclone documentation](https://rclone.org/overview/)), hope you enjoy trying them
-- Potentialy compatible with those cloud services: 
+- Potentially compatible with those cloud services: 
 
 |||||||
 |--|--|--|--|--|--|
@@ -36,18 +36,18 @@ Seagate Lyve Cloud| SeaweedFS| SFTP| Sia| StackPath| Storj|
 SugarSync| Tencent Cloud Object Storage (COS)| Uptobox| Wasabi| WebDAV| Yandex Disk| 
 Zoho WorkDrive| The local filesystem 
 
-## ![watch](docs/watch%20icon.png) Features of watch mode 
+#### ![watch](docs/watch%20icon.png) Features of watch mode 
 
 ![watch menu](docs/watch%20menu.png)
 
-- Sycronices file downstream from cloud on start (see rclone sync docum)
+- Synchronizes file downstream from cloud on start (see rclone sync documentation)
 - Does monitor local files and keeps them in sync with cloud storage
 - Files are stored locally, you will be able to access them offline (offline changes will be lost on manual sync)
 - System tray icon show the sync status for easy check, system notifications show eventual errors
-- One clic sync repository
-- No loops or CPU consumiption when idle
+- One click sync repository
+- No loops or CPU consumption when idle
 
-## ![mount](docs/mount%20icon.png) Features of mount mode
+#### ![mount](docs/mount%20icon.png) Features of mount mode
 
 ![mount menu](docs/mount%20menu.png)
 
@@ -56,16 +56,21 @@ Zoho WorkDrive| The local filesystem
 
 # Limitations
 
-## ![watch](docs/watch%20icon.png) Limitations of watch Mode
+#### ![watch](docs/watch%20icon.png) Limitations of watch Mode
 
 - Does not monitor cloud services, and will not update local files with remote modifications "live", manual sync is needed
-- local offline changes will be losts on manual sync, allways check your changes have synched successfully
+- local offline changes will be lost on manual sync, always check your changes have synched successfully
 - May not delete local files on manually sync if files were deleted in the cloud
 
-## ![mount](docs/mount%20icon.png) Limitations of mount model
+#### ![mount](docs/mount%20icon.png) Limitations of mount model
 
 - Files are not stored locally, internet connection needed
 - It is slow to work with files in this mode
+
+# **_DISCLAIMER_**
+
+- **Files backup is strongly advised**
+- **Absolutely no warranty**
 
 # Develop and extend
 ## Installation
@@ -124,15 +129,18 @@ https://rclone.org
 - [x] Fix config persistence
 - [x] Add about button in setting
 - [x] Fix menu update after add config
-- [x] Fix permanent bussi on mount
+- [x] Fix permanent busy on mount
 - [x] Add log to file
 - [x] Translate spanish
 
+## v1.1
+
+- [x] Add function backup config
+- [x] Add function restore config
+
 ## TODO list
-- [ ] Add fuction backup config
-- [ ] Add fuction restore config
 - [ ] Fix show permanent notification
-- [ ] add fuction check: Checks the files in the source and destination match.
-- [ ] add fuction cleanup: Clean up the remote if possible.
-- [ ] add fuction size: Prints the total size and number of objects in remote:path.
+- [ ] add function check: Checks the files in the source and destination match.
+- [ ] add function cleanup: Clean up the remote if possible.
+- [ ] add function size: Prints the total size and number of objects in remote:path.
 

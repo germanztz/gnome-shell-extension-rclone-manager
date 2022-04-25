@@ -54,8 +54,6 @@ const RcloneManager = Lang.Class({
   _init: function () {
     log('rcm._init')
     this.parent(0.0, Me.metadata.name)
-    this._shortcutsBindingIds = []
-    this.clipItemsRadioGroup = []
 
     const hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box rclone-manager-hbox' })
     this.icon = new St.Icon({
@@ -178,11 +176,6 @@ const RcloneManager = Lang.Class({
     const aboutMenuItem = new PopupMenu.PopupImageMenuItem(_('About'), 'system-help-symbolic')
     this.menu.addMenuItem(aboutMenuItem)
     aboutMenuItem.connect('activate', Lang.bind(this, this._lauchAbout))
-
-    // Add 'About' button which shows info abou the extension
-    const bkpRstMenuItem = new PopupMenu.PopupImageMenuItem(_('Backup'), 'backups-app-symbolic')
-    this.menu.addMenuItem(bkpRstMenuItem)
-    bkpRstMenuItem.connect('activate', Lang.bind(this, this._lauchBackup))
   },
 
   /**
@@ -257,12 +250,6 @@ const RcloneManager = Lang.Class({
         break
       case 'Open':
         fmh.open(menuItem.profile)
-        break
-      case 'Backup':
-        fmh.backup(menuItem.profile)
-        break
-      case 'Restore':
-        fmh.restore(menuItem.profile)
         break
       case 'Reconnect':
         fmh.reconnect(menuItem.profile)
@@ -406,18 +393,17 @@ const RcloneManager = Lang.Class({
   },
 
   _openSettings: function () {
+    fmh.PREF_DBG && log('rcm._openSettings')
     if (typeof ExtensionUtils.openPrefs === 'function') {
-      fmh.PREF_DBG && log('rcm. openPrefs')
       ExtensionUtils.openPrefs()
     } else {
       Util.spawn(['gnome-shell-extension-prefs', Me.uuid])
-      fmh.PREF_DBG && log('rcm. Util.spawn')
     }
   },
 
   _initNotifSource: function () {
     if (!this._notifSource) {
-      this._notifSource = new MessageTray.Source('RcloneManager', INDICATOR_ICON)
+      this._notifSource = new MessageTray.Source(Me.metadata.name, INDICATOR_ICON)
       this._notifSource.connect('destroy', Lang.bind(this, function () {
         this._notifSource = null
       }))
@@ -464,10 +450,6 @@ ${Me.metadata.url}
 
 `
     ConfirmDialog.openConfirmDialog(_('About'), rcVersion, contents, _('Ok'))
-  },
-
-  _lauchBackup: function () {
-
   },
 
   destroy: function () {

@@ -2,3 +2,4 @@
 *.mo
 gschemas.compiled
 node_modules
+.vscode
