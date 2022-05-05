@@ -6,6 +6,7 @@
  * https://wiki.gnome.org/Projects/Vala/GIOSamples
  */
 
+const byteArray = imports.byteArray
 const GLib = imports.gi.GLib
 const Gio = imports.gi.Gio
 
@@ -58,6 +59,7 @@ function getRcVersion () {
 function listremotes () {
   const [, stdout] = spawnSync(RC_LIST_REMOTES.split(' '))
   const ret = stdout
+    // eslint-disable-next-line prefer-regex-literals
     .replace(new RegExp(':', 'g'), '')
     .split('\n')
     .filter(item => item.length > 1)
@@ -563,9 +565,9 @@ function spawnSync (argv) {
       // Child setup function
       null)
 
-    if (stderr instanceof Uint8Array) err = imports.byteArray.toString(stderr)
-    if (stdout instanceof Uint8Array) out = imports.byteArray.toString(stdout)
-    log(`fmh.spawnSync, ok, ${ok}, status, ${exitStatus}, stderr, ${err}, stdout, ${stdout}`)
+    if (stderr instanceof Uint8Array) err = byteArray.toString(stderr)
+    if (stdout instanceof Uint8Array) out = byteArray.toString(stdout)
+    log(`fmh.spawnSync, ok, ${ok}, status, ${exitStatus}, stderr, ${err}, stdout, ${out}`)
 
     return [exitStatus, out, err]
   } catch (e) {

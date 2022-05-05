@@ -1,12 +1,13 @@
 /* eslint-disable no-var */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
+const Lang = imports.lang
+const Gettext = imports.gettext
 const Gtk = imports.gi.Gtk
 const Gio = imports.gi.Gio
 const GLib = imports.gi.GLib
-const Lang = imports.lang
+const GObject = imports.gi.GObject
 const ExtensionUtils = imports.misc.extensionUtils
-const Gettext = imports.gettext
 const Config = imports.misc.config
 const Me = ExtensionUtils.getCurrentExtension()
 const fmh = Me.imports.fileMonitorHelper
@@ -159,32 +160,46 @@ const App = new Lang.Class({
     dialog.add_button(_('Cancel'), Gtk.ResponseType.NO)
 
     dialog.connect('response', (dialog, response) => {
-      this.onBackupDialogResponse(dialog, response, profiles)
+      this.onBackupDialogResponse(dialog, response)
     })
 
-    contentArea = dialog.get_content_area()
-    contentArea.append(new Gtk.Label({ label: _('Select a profile where backup to or restorer from'), vexpand: true }))
-    contentArea.append(Gtk.DropDown.new_from_strings(profiles))
+    const contentArea = dialog.get_content_area()
 
+    var liststore = new Gtk.ListStore()
+    liststore.set_column_types([GObject.TYPE_STRING])
+    profiles.forEach((profile) => { liststore.set(liststore.append(), [0], [profile]) })
+    const ComboBox = new Gtk.ComboBox({ model: liststore })
+    const renderer = new Gtk.CellRendererText()
+    ComboBox.pack_start(renderer, true)
+    ComboBox.add_attribute(renderer, 'text', 0)
+    ComboBox.connect('changed', function (entry) {
+      const [success, iter] = entry.get_active_iter()
+      if (!success) return
+      dialog.profile = liststore.get_value(iter, 0)
+    })
+    this.appendToBox(contentArea, ComboBox)
+    this.appendToBox(contentArea, new Gtk.Label({ label: _('Select a profile where backup to or restorer from'), vexpand: true }))
+    if (shellVersion < 40) {
+      contentArea.show_all()
+    }
     dialog.show()
   },
 
-  onBackupDialogResponse: function (dialog, response, profiles) {
+  onBackupDialogResponse: function (dialog, response) {
     fmh.PREF_RCONFIG_FILE_PATH = Settings.get_string(Fields.PREFKEY_RCONFIG_FILE_PATH)
     fmh.PREF_BASE_MOUNT_PATH = Settings.get_string(Fields.PREFKEY_BASE_MOUNT_PATH)
     fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
     if (!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH + '/'
     fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
 
-    const selected = dialog.get_content_area().get_last_child().get_selected()
-    const profile = profiles[selected]
+    const profile = dialog.profile
     dialog.destroy()
     var statusResult, out, err
     if (response === 0) {
       // Backup
       const source = Gio.file_new_for_path(fmh.PREF_RCONFIG_FILE_PATH)
       const target = Gio.file_new_for_path(fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf')
-      restatusResult = source.copy(target, Gio.FileCopyFlags.OVERWRITE, null, null)
+      statusResult = source.copy(target, Gio.FileCopyFlags.OVERWRITE, null, null)
     } else if (response === 1) {
       // Restore
       [statusResult, out, err] = fmh.spawnSync(fmh.RC_COPYTO
@@ -194,8 +209,9 @@ const App = new Lang.Class({
         .split(' ')
       )
       log(`err, ${err}`)
+    } else {
+      return
     }
-
     log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}`)
 
     const resultDialog = new Gtk.MessageDialog({
