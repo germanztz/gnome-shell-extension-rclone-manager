@@ -73,7 +73,7 @@ const App = new Lang.Class({
         let property = 'text'
 
         if (inputWidget instanceof Gtk.Switch) {
-          inputWidget = this.appendToBox(this.getHorizontalBox(), inputWidget)
+          inputWidget = this.appendToBox(this.getOrientedBox(Gtk.Orientation.HORIZONTAL), inputWidget)
           property = 'active'
         }
         inputWidget.hexpand = true
@@ -100,7 +100,7 @@ const App = new Lang.Class({
         }
       })
 
-    const buttonsRow = this.getHorizontalBox()
+    const buttonsRow = this.getOrientedBox(Gtk.Orientation.HORIZONTAL)
 
     const btReset = new Gtk.Button({
       label: _('Reset settings'),
@@ -122,12 +122,12 @@ const App = new Lang.Class({
     }
   },
 
-  getHorizontalBox: function () {
+  getOrientedBox: function (orientation) {
     let box = null
     if (shellVersion < 40) {
       box = new Gtk.HBox()
     } else {
-      box = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL })
+      box = new Gtk.Box({ orientation: orientation })
     }
     box.spacing = 18
     return box
@@ -164,6 +164,7 @@ const App = new Lang.Class({
     })
 
     const contentArea = dialog.get_content_area()
+    const contentBox = this.getOrientedBox(Gtk.Orientation.VERTICAL)
 
     var liststore = new Gtk.ListStore()
     liststore.set_column_types([GObject.TYPE_STRING])
@@ -177,8 +178,9 @@ const App = new Lang.Class({
       if (!success) return
       dialog.profile = liststore.get_value(iter, 0)
     })
-    this.appendToBox(contentArea, ComboBox)
-    this.appendToBox(contentArea, new Gtk.Label({ label: _('Select a profile where backup to or restorer from'), vexpand: true }))
+    this.appendToBox(contentBox, new Gtk.Label({ label: _('Select a profile where backup to or restorer from'), vexpand: true }))
+    this.appendToBox(contentBox, ComboBox)
+    this.appendToBox(contentArea, contentBox)
     if (shellVersion < 40) {
       contentArea.show_all()
     }
@@ -194,12 +196,13 @@ const App = new Lang.Class({
 
     const profile = dialog.profile
     dialog.destroy()
-    var statusResult, out, err
+    var statusResult, out, err, isSuccessful
     if (response === 0) {
       // Backup
       const source = Gio.file_new_for_path(fmh.PREF_RCONFIG_FILE_PATH)
       const target = Gio.file_new_for_path(fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf')
-      statusResult = source.copy(target, Gio.FileCopyFlags.OVERWRITE, null, null)
+      isSuccessful = source.copy(target, Gio.FileCopyFlags.OVERWRITE, null, null)
+      if (!isSuccessful) err = `${_('Operation failed')} ${_('Backup')} ${source.get_path()} -> ${target.get_path()}`
     } else if (response === 1) {
       // Restore
       [statusResult, out, err] = fmh.spawnSync(fmh.RC_COPYTO
@@ -209,6 +212,7 @@ const App = new Lang.Class({
         .split(' ')
       )
       log(`err, ${err}`)
+      isSuccessful = statusResult === 0
     } else {
       return
     }
@@ -216,7 +220,7 @@ const App = new Lang.Class({
 
     const resultDialog = new Gtk.MessageDialog({
       title: _('Backup & restore'),
-      text: statusResult ? _('Operation failed') + '\n' + err : _('Operation succeed'),
+      text: isSuccessful ? _('Operation succeed') : _('Operation failed') + '\n' + err,
       buttons: [Gtk.ButtonsType.OK]
     })
     resultDialog.connect('response', (resultDialog) => { resultDialog.destroy() })

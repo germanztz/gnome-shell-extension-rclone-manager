@@ -533,7 +533,7 @@ function spawnAsyncWithPipes (argv, callback) {
       if (status === 0) {
         PREF_DBG && log(stdoutLines.join('\n'))
       } else {
-        logError(new Error('Error executing command'), stderrLines.join('\n'))
+        log(`fmh.spawnAsyncWithPipes Error, ${argv.join(' ')} \n ${stderrLines.join('\n')}`)
       }
 
       // Ensure we close the remaining streams and process
