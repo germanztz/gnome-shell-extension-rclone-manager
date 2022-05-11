@@ -1,0 +1,184 @@
+# Dutch translation for gnome-shell-extension-rclone-manager.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the gnome-shell-extension-rclone-manager package.
+#
+# Heimen Stoffels <vistausss@fastmail.com>, 2022.
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-shell-extension-rclone-manager\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-04-12 13:20+0300\n"
+"PO-Revision-Date: 2022-05-10 13:08+0200\n"
+"Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
+"Language-Team: Dutch <kde-i18n-nl@kde.org>\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.0.1\n"
+
+msgid " was already mounted"
+msgstr " is al aangekoppeld"
+
+msgid "Add config"
+msgstr "Configuratie toevoegen"
+
+msgid "Settings"
+msgstr "Voorkeuren"
+
+msgid "Watch"
+msgstr "Bijhouden"
+
+msgid "Unwatch"
+msgstr "Niet meer bijhouden"
+
+msgid "Mount"
+msgstr "Aankoppelen"
+
+msgid "Umount"
+msgstr "Ontkoppelen"
+
+msgid "Open"
+msgstr "Openen"
+
+msgid "Reconnect"
+msgstr "Opnieuw verbinden"
+
+msgid "Sync"
+msgstr "Synchroniseren"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Error"
+msgstr "Foutmelding"
+
+msgid "Log"
+msgstr "Logboek"
+
+msgid "Disengage"
+msgstr "Ontkoppelen"
+
+msgid "Are you sure you want to delete?"
+msgstr "Weet u zeker dat u wilt doorgaan met verwijderen?"
+
+msgid "This action cannot be undone"
+msgstr "Deze actie kan niet ongedaan worden gemaakt."
+
+msgid "Confirm"
+msgstr "Bevestigen"
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "Log Detail"
+msgstr "Logboek bekijken"
+
+msgid "Ok"
+msgstr "Oké"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Rclone configuration file path"
+msgstr "Rclone-configuratielocatie"
+
+msgid "Base mount path"
+msgstr "Hoofd-aankoppellocatie"
+
+msgid "Path where the remote disks are mounted"
+msgstr "De locatie waar externe schijven worden aangekoppeld"
+
+msgid "Filenames to be ignored"
+msgstr "Te negeren bestandsnamen"
+
+msgid "Comma separed filenames to be ignored by inotify"
+msgstr "Een kommagescheiden lijst met bestandsnamen die dienen te worden genegeerd door inotify"
+
+msgid "Terminal command"
+msgstr "Terminalvenster"
+
+msgid "Command to call a new terminal window in order to perform rclone manager actions"
+msgstr "De opdracht om een nieuw terminalvenster te openen om Rclone-acties te kunnen uitvoeren"
+
+msgid "File browser command"
+msgstr "Bestandsbeheerder"
+
+msgid "Command to call a new file browser window in order to explore configuration folders"
+msgstr "De opdracht om een nieuw bestandsbeheervenster te openen om de configuratiemappen te verkennen"
+
+msgid "Sync files on start"
+msgstr "Automatisch synchroniseren"
+
+msgid "If is on will execute 'rclone sync' on start watching a profile"
+msgstr "Schakel in om ‘rclone sync’ uit te voeren zodra het bijhouden begint"
+
+msgid "Create command"
+msgstr "Maakopdracht"
+
+msgid "Delete dir command"
+msgstr "Mapverwijderingsopdracht"
+
+msgid "Delete file command"
+msgstr "Bestandsverwijderingsopdracht"
+
+msgid "Mount command"
+msgstr "Aankoppelopdracht"
+
+msgid "Sync command"
+msgstr "Synchronisatie-opdracht"
+
+msgid "Profile registry"
+msgstr "Profielregister"
+
+msgid "Stores profile status and configs"
+msgstr "Bewaart de profielstatus en configuraties"
+
+msgid "Debug mode"
+msgstr "Foutopsporingsmodus"
+
+msgid "Print verbose debug messages to the journalctl"
+msgstr "Leg uitgebreide foutopsporingsberichten vast in journalctl"
+
+msgid "Reset settings"
+msgstr "Standaardwaarden"
+
+msgid "About"
+msgstr "Over"
+
+msgid "It seems you don't have rclone installed, this extension won't work without it"
+msgstr "Het lijkt er op dat Rclone niet geïnstalleerd is. De uitbreiding kan niet werken zonder Rclone."
+
+msgid "Mounted successfully"
+msgstr "Aankoppelen voltooid"
+
+msgid "Umounted successfully"
+msgstr "Ontkoppelen voltooid"
+
+msgid "Filemonitor has been started"
+msgstr "De bestandsmonitor is gestart"
+
+msgid "Filemonitor has been stopped"
+msgstr "De bestandsmonitor is gestopt"
+
+msgid "Synchronization finished successfully"
+msgstr "Het synchroniseren is voltooid"
+
+msgid "Backup & restore"
+msgstr "Reservekopieën en herstel"
+
+msgid "Backup"
+msgstr "Reservekopie maken"
+
+msgid "Restore"
+msgstr "Herstellen"
+
+msgid "Select a profile where backup to or restorer from"
+msgstr "Kies het profiel waarvan een reservekopie moet worden gemaakt of dat moet worden hersteld"
+
+msgid "Operation failed"
+msgstr "De actie kan niet worden uitgevoerd"
+
+msgid "Operation succeed"
+msgstr "De actie is uitgevoerd"
