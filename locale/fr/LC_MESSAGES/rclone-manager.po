@@ -1,0 +1,112 @@
+# French translation for gnome-shell-extension-rclone-manager.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the gnome-shell-extension-rclone-manager package.
+#
+# Axel H. <noirbizarre@gmail.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-shell-extension-rclone-manager\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-05-26 15:41+0200\n"
+"PO-Revision-Date: 2022-05-26 15:50+0200\n"
+"Last-Translator: Axel H. <noirbizarre@gmail.com>\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: extension.js:79 extension.js:319
+msgid "Error"
+msgstr "Erreur"
+
+#: extension.js:80
+msgid "rclone Version: "
+msgstr "Version de rclone : "
+
+#: extension.js:81
+msgid ""
+"It seems you don't have rclone installed, this extension won't work without "
+"it"
+msgstr ""
+"Il semblerait que rclone ne soit pas isntallé, cette extension ne marchera "
+"pas sans"
+
+#: extension.js:83 extension.js:320
+msgid "Details"
+msgstr "Détails"
+
+#: extension.js:84 extension.js:269 extension.js:321 extension.js:452
+msgid "Ok"
+msgstr "Ok"
+
+#: extension.js:166
+msgid "Add config"
+msgstr "Ajouter config"
+
+#: extension.js:171
+msgid "Settings"
+msgstr "Réglages"
+
+#: extension.js:176 extension.js:452
+msgid "About"
+msgstr "À Propos"
+
+#: extension.js:258
+msgid "Delete"
+msgstr "Supprimer"
+
+#: extension.js:259
+msgid "Are you sure you want to delete?"
+msgstr "Êtes-vous sûr de vouloir supprimer ?"
+
+#: extension.js:260
+msgid "This action cannot be undone"
+msgstr "Cette action ne peut pas être défaite"
+
+#: extension.js:261
+msgid "Confirm"
+msgstr "Confirmer"
+
+#: extension.js:261 prefs.js:160
+msgid "Cancel"
+msgstr "Annuler"
+
+#: extension.js:269
+msgid "Log Detail"
+msgstr "Détail des logs"
+
+#: extension.js:321
+msgid "Log detail"
+msgstr "Détail des logs"
+
+#: prefs.js:106
+msgid "Reset settings"
+msgstr "Réinitialiser les réglages"
+
+#: prefs.js:111 prefs.js:155 prefs.js:222
+msgid "Backup & restore"
+msgstr "Sauvegarder & restaurer"
+
+#: prefs.js:158 prefs.js:205
+msgid "Backup"
+msgstr "Sauvegarder"
+
+#: prefs.js:159
+msgid "Restore"
+msgstr "Restaurer"
+
+#: prefs.js:181
+msgid "Select a profile where backup to or restorer from"
+msgstr "Choisissez un profile où sauvegarder ou restaurer de"
+
+#: prefs.js:205 prefs.js:223
+msgid "Operation failed"
+msgstr "Échec de l'opération"
+
+#: prefs.js:223
+msgid "Operation succeed"
+msgstr "Succès de l'opération"
