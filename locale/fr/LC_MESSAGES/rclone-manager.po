@@ -28,12 +28,8 @@ msgid "rclone Version: "
 msgstr "Version de rclone : "
 
 #: extension.js:81
-msgid ""
-"It seems you don't have rclone installed, this extension won't work without "
-"it"
-msgstr ""
-"Il semblerait que rclone ne soit pas isntallé, cette extension ne marchera "
-"pas sans"
+msgid "It seems you don't have rclone installed, this extension won't work without it"
+msgstr "Il semblerait que rclone ne soit pas isntallé, cette extension ne marchera pas sans"
 
 #: extension.js:83 extension.js:320
 msgid "Details"

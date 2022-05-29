@@ -450,9 +450,12 @@ const RcloneManager = Lang.Class({
 `
 ${Me.metadata.name} v${Me.metadata.version}
 
-${Me.metadata.description}
+AUTHORS: 
+German Ztz <avena.root@gmail.com>: Development 
+Heimen Stoffels: Dutch translation
+Axel H.: French translation 
 
-AUTHOR: germanztz <avena.root@gmail.com>
+${Me.metadata.description}
 
 For bugs report and comments go to:
 ${Me.metadata.url}
