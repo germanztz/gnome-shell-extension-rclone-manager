@@ -77,7 +77,7 @@ Zoho WorkDrive| The local filesystem
 
 Installation via git is performed by cloning the repo into your local gnome-shell extensions directory
 
-    $ git clone https://github.com/germanztz/gnome-shell-extension-rclone-manager ~/.local/share/gnome-shell/rclone-manager@germanztz.com
+    $ git clone https://github.com/germanztz/gnome-shell-extension-rclone-manager ~/.local/share/gnome-shell/rclone-manager@germanztz.com   
 
 After cloning the repo, the extension is practically installed yet disabled. 
 
@@ -137,9 +137,12 @@ https://rclone.org
 
 - [x] Add function backup config
 - [x] Add function restore config
+- [x] Some bug fixes
+- [x] Dutch translation **Thanks Heimen Stoffels!!**
 
 ## TODO list
 - [ ] Fix show permanent notification
+- [ ] Fix Backup / resotore dialog style
 - [ ] add function check: Checks the files in the source and destination match.
 - [ ] add function cleanup: Clean up the remote if possible.
 - [ ] add function size: Prints the total size and number of objects in remote:path.

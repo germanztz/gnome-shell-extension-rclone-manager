@@ -30,6 +30,7 @@ var RC_RECONNECT = 'rclone config reconnect %profile:'
 var RC_UMOUNT = 'umount %source'
 var RC_GETMOUNTS = 'mount'
 var RC_VERSION = 'rclone version'
+var RC_COPY = 'cp %source %destination'
 
 var _monitors = {}
 var _configMonitor

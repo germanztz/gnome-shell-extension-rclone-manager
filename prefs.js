@@ -164,6 +164,7 @@ const App = new Lang.Class({
     })
 
     const contentArea = dialog.get_content_area()
+    contentArea.style_class = 'dialog-backup'
     const contentBox = this.getOrientedBox(Gtk.Orientation.VERTICAL)
 
     var liststore = new Gtk.ListStore()
@@ -199,10 +200,11 @@ const App = new Lang.Class({
     var statusResult, out, err, isSuccessful
     if (response === 0) {
       // Backup
-      const source = Gio.file_new_for_path(fmh.PREF_RCONFIG_FILE_PATH)
-      const target = Gio.file_new_for_path(fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf')
-      isSuccessful = source.copy(target, Gio.FileCopyFlags.OVERWRITE, null, null)
-      if (!isSuccessful) err = `${_('Operation failed')} ${_('Backup')} ${source.get_path()} -> ${target.get_path()}`
+      [statusResult, out, err] = fmh.spawnSync(fmh.RC_COPY
+        .replace('%source', fmh.PREF_RCONFIG_FILE_PATH)
+        .replace('%destination', fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf')
+        .split(' ')
+      )
     } else if (response === 1) {
       // Restore
       [statusResult, out, err] = fmh.spawnSync(fmh.RC_COPYTO
@@ -211,16 +213,15 @@ const App = new Lang.Class({
         .replace('%destination', fmh.PREF_RCONFIG_FILE_PATH)
         .split(' ')
       )
-      log(`err, ${err}`)
-      isSuccessful = statusResult === 0
     } else {
       return
     }
+    log(`err, ${err}`)
     log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}`)
 
     const resultDialog = new Gtk.MessageDialog({
       title: _('Backup & restore'),
-      text: isSuccessful ? _('Operation succeed') : _('Operation failed') + '\n' + err,
+      text: statusResult === 0 ? _('Operation succeed') : _('Operation failed') + '\n' + err,
       buttons: [Gtk.ButtonsType.OK]
     })
     resultDialog.connect('response', (resultDialog) => { resultDialog.destroy() })

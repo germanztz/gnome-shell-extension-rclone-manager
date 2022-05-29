@@ -35,3 +35,7 @@
     column_homogeneous: true;
     row_homogeneous: false;
 } */
+
+.dialog-backup{
+    padding: 5px;
+}

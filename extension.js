@@ -120,7 +120,16 @@ const RcloneManager = Lang.Class({
 
   _initConfig: function () {
     fmh.PREF_DBG && log('rcm._initConfig')
+    const oldConfig = this._configs
     this._configs = fmh.listremotes()
+    // restores existing log
+    Object.entries(this._configs).forEach(entry => {
+      if (entry[0] in oldConfig) {
+        if (Object.prototype.hasOwnProperty.call(oldConfig[entry[0]], 'log')) {
+          this._configs[entry[0]].log = oldConfig[entry[0]].log
+        }
+      }
+    })
     this._buildMainMenu(this._configs)
     Object.entries(this._registry).forEach(registryProfile =>
       this._initProfile(registryProfile[0], registryProfile[1]))
