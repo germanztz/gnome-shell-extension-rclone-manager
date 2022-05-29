@@ -138,7 +138,8 @@ https://rclone.org
 - [x] Add function backup config
 - [x] Add function restore config
 - [x] Some bug fixes
-- [x] Dutch translation **Thanks Heimen Stoffels!!**
+- [x] Dutch translation **Thanks @Vistaus !!**
+- [x] French translation **Thanks @noirbizarre !!**
 
 ## TODO list
 - [ ] Fix show permanent notification
