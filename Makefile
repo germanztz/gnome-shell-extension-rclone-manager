@@ -20,8 +20,8 @@ install: all
 	mkdir -p $(INSTALLPATH)
 	cp -r $(MODULES) $(INSTALLPATH)/
 
-bundle: all
-	zip -r bundle.zip $(MODULES)
+release: all
+	zip -r rclone-manager@germanztz.com.zip $(MODULES)
 
 run:
 	dbus-run-session -- gnome-shell --nested --wayland

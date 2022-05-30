@@ -101,7 +101,7 @@ Please, send the resulting report in an issue in github
 
 From your extension local directory
 
-    $ clean && make install && make run 2>&1 | grep -i -e rclone
+    $ clear && make install && make run 2>&1 | grep -i -e rclone
 
 ## Doc
 
@@ -140,6 +140,10 @@ https://rclone.org
 - [x] Some bug fixes
 - [x] Dutch translation **Thanks @Vistaus !!**
 - [x] French translation **Thanks @noirbizarre !!**
+
+## v42.0
+
+- [x] Gnome Shell 42 compatibility
 
 ## TODO list
 - [ ] Fix show permanent notification

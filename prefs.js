@@ -13,8 +13,6 @@ const Me = ExtensionUtils.getCurrentExtension()
 const fmh = Me.imports.fileMonitorHelper
 
 const _ = Gettext.domain(Me.metadata.name).gettext
-const [major] = Config.PACKAGE_VERSION.split('.')
-const shellVersion = Number.parseInt(major)
 
 var Fields = {
   PREFKEY_RCONFIG_FILE_PATH: 'prefkey001-rconfig-file-path',
@@ -117,28 +115,16 @@ const App = new Lang.Class({
 
     this.main.attach(buttonsRow, 1, SettingsSchema.list_keys().length + 1, 1, 1)
 
-    if (shellVersion < 40) {
-      this.main.show_all()
-    }
   },
 
   getOrientedBox: function (orientation) {
-    let box = null
-    if (shellVersion < 40) {
-      box = new Gtk.HBox()
-    } else {
-      box = new Gtk.Box({ orientation: orientation })
-    }
+    let box = new Gtk.Box({ orientation: orientation })
     box.spacing = 18
     return box
   },
 
   appendToBox: function (box, input) {
-    if (shellVersion < 40) {
-      box.pack_end(input, false, false, 0)
-    } else {
-      box.append(input)
-    }
+    box.append(input)
     return box
   },
 
@@ -182,9 +168,6 @@ const App = new Lang.Class({
     this.appendToBox(contentBox, new Gtk.Label({ label: _('Select a profile where backup to or restorer from'), vexpand: true }))
     this.appendToBox(contentBox, ComboBox)
     this.appendToBox(contentArea, contentBox)
-    if (shellVersion < 40) {
-      contentArea.show_all()
-    }
     dialog.show()
   },
 
