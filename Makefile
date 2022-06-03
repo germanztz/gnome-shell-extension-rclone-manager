@@ -21,7 +21,7 @@ install: all
 	cp -r $(MODULES) $(INSTALLPATH)/
 
 bundle: all
-	zip -r bundle.zip $(MODULES)
+	zip -r rclone-manager@germanztz.com.zip $(MODULES) -x "*.po"
 
 run:
 	dbus-run-session -- gnome-shell --nested --wayland
