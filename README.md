@@ -17,8 +17,12 @@ Extension page on Gnome Extensions [RClone Manager](https://extensions.gnome.org
 - Two modes of work: **watch files** ![watch](docs/watch%20icon.png) and **mount remote** ![mount](docs/mount%20icon.png)  service
 - Customizable rclone commands
 - Customizable list os file extensions to be ignored
-- Backup and restore the rclone configuration file, so you won't have to configure all your devices one by one
 ![settings](docs/settings.png)
+- Backup and restore the rclone configuration file, so you won't have to configure all your devices one by one
+    1. Configure all your remote services profiles on the first device
+    2. Go to settings -> backup & restore -> select a profile -> Backup
+    3. On the rest devices, Go to settings -> backup & restore -> select a profile -> Restore
+![backup](docs/backup.png)
 - Easy access log of events 
 - It has been tested on Dropbox, Gdrive, GooglePhotos, Mega, WebDAV (NextCloud), ftp and OneDrive. Other compatible cloud services may (not) work (see [rclone documentation](https://rclone.org/overview/)), hope you enjoy trying them
 - Potentially compatible with those cloud services: 
@@ -72,50 +76,10 @@ Zoho WorkDrive| The local filesystem
 - **Files backup is strongly advised**
 - **Absolutely no warranty**
 
-# Develop and extend
-## Installation
+# Known errors
 
-Installation via git is performed by cloning the repo into your local gnome-shell extensions directory
-
-    $ git clone https://github.com/germanztz/gnome-shell-extension-rclone-manager ~/.local/share/gnome-shell/rclone-manager@germanztz.com   
-
-After cloning the repo, the extension is practically installed yet disabled. 
-
-    $ gnome-extensions enable rclone-manager@germanztz.com
-
-## Bug reports
-
-To Debug the installed Extension (extension.js), use this in terminal:
-
-    $ journalctl --no-pager --no-hostname --since "1 days ago" -b -g rclone -o cat /usr/bin/gnome-shell
-
-To Debug the Extension Preferences (prefs), use this in terminal:
-
-    $ journalctl -f -o cat /usr/bin/gnome-shell-extension-prefs
-
-Please, send the resulting report in an issue in github
-
-    $ https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues
-
-## Debugging and testing
-
-From your extension local directory
-
-    $ clean && make install && make run 2>&1 | grep -i -e rclone
-
-## Doc
-
-https://gjs.guide/
-
-https://gjs-docs.gnome.org
-
-https://wiki.gnome.org/
-
-https://www.codeproject.com/Articles/5271677/How-to-Create-A-GNOME-Extension
-
-https://github.com/julio641742/gnome-shell-extension-reference
-
-https://rclone.org
+ - Failed to create file system for "Mega:": didn't find backend called "mega"
+    - Your version of rclone doesn't support this backend, update rclone
 
 # ChangeLog
 
@@ -140,6 +104,10 @@ https://rclone.org
 - [x] Some bug fixes
 - [x] Dutch translation **Thanks @Vistaus !!**
 - [x] French translation **Thanks @noirbizarre !!**
+
+## v1.2
+
+- [x] Revision fixes
 
 ## TODO list
 - [ ] Fix show permanent notification

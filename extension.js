@@ -2,6 +2,8 @@
 /* eslint-disable no-undef */
 const Config = imports.misc.config
 const GLib = imports.gi.GLib
+const Gio = imports.gi.Gio
+const GObject = imports.gi.GObject
 const Lang = imports.lang
 const St = imports.gi.St
 const Util = imports.misc.util
@@ -43,17 +45,20 @@ const submenus = {
   Disengage: 'radio-mixed-symbolic'
 }
 
-const RcloneManager = Lang.Class({
-  Name: Me.metadata.name,
-  Extends: PanelMenu.Button,
-
-  _settingsChangedId: null,
-  _configs: [],
-  _registry: {},
-
-  _init: function () {
+const RcloneManager = GObject.registerClass({
+  GTypeName: 'RcloneManager'
+}, class RcloneManager extends PanelMenu.Button {
+  _init () {
+    super._init(0)
     log('rcm._init')
-    this.parent(0.0, Me.metadata.name)
+    this._settingsChangedId = null
+    this._configs = []
+    this._registry = {}
+
+    const schemaDir = Me.dir.get_child('schemas').get_path()
+    const SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false)
+    this.SettingsSchema = SettingsSchemaSource.lookup(Prefs.SCHEMA_NAME, false)
+    this.Settings = new Gio.Settings({ settings_schema: this.SettingsSchema })
 
     const hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box rclone-manager-hbox' })
     this.icon = new St.Icon({
@@ -69,9 +74,9 @@ const RcloneManager = Lang.Class({
       fmh.PREF_DBG && log('rcm.ConfigFileChanged', eventType)
       this._initConfig()
     })
-  },
+  }
 
-  _checkDependencies: function () {
+  _checkDependencies () {
     fmh.PREF_DBG && log('rcm._checkDependencies')
     const rcVersion = fmh.getRcVersion()
     if (!rcVersion || !rcVersion.includes('rclone')) {
@@ -80,45 +85,42 @@ const RcloneManager = Lang.Class({
       const subTitle = _('rclone Version: ') + rcVersion
       const message = _("It seems you don't have rclone installed, this extension won't work without it")
       this._showNotification(title + ': ' + message, n => {
-        n.addAction(_('Details'), Lang.bind(that, function () {
+        n.addAction(_('Details'), () => {
           ConfirmDialog.openConfirmDialog(title, subTitle, message, _('Ok'))
-        }))
+        })
       })
     }
-  },
+  }
 
-  _loadSettings: function () {
+  _loadSettings () {
     log('rcm._loadSettings')
-    this._settings = Prefs.Settings
-    this._settingsChangedId = this._settings.connect('changed',
-      Lang.bind(this, this._onSettingsChange))
-
+    this._settingsChangedId = this.Settings.connect('changed', this._onSettingsChange.bind(this))
     this._onSettingsChange()
-  },
+  }
 
-  _onSettingsChange: function () {
-    fmh.PREF_DBG = this._settings.get_boolean(Prefs.Fields.PREFKEY_DEBUG_MODE)
+  _onSettingsChange () {
+    fmh.PREF_DBG = this.Settings.get_boolean(Prefs.Fields.PREFKEY_DEBUG_MODE)
     fmh.PREF_DBG && log('rcm._onSettingsChange')
-    fmh.PREF_RCONFIG_FILE_PATH = this._settings.get_string(Prefs.Fields.PREFKEY_RCONFIG_FILE_PATH)
-    fmh.PREF_BASE_MOUNT_PATH = this._settings.get_string(Prefs.Fields.PREFKEY_BASE_MOUNT_PATH)
-    fmh.PREF_IGNORE_PATTERNS = this._settings.get_string(Prefs.Fields.PREFKEY_IGNORE_PATTERNS)
-    fmh.PREF_EXTERNAL_TERMINAL = this._settings.get_string(Prefs.Fields.PREFKEY_EXTERNAL_TERMINAL)
-    fmh.PREF_EXTERNAL_FILE_BROWSER = this._settings.get_string(Prefs.Fields.PREFKEY_EXTERNAL_FILE_BROWSER)
-    PREF_AUTOSYNC = this._settings.get_boolean(Prefs.Fields.PREFKEY_AUTOSYNC)
-    fmh.PREF_RC_CREATE_DIR = this._settings.get_string(Prefs.Fields.PREFKEY_RC_CREATE_DIR)
-    fmh.PREF_RC_DELETE_DIR = this._settings.get_string(Prefs.Fields.PREFKEY_RC_DELETE_DIR)
-    fmh.PREF_RC_DELETE_FILE = this._settings.get_string(Prefs.Fields.PREFKEY_RC_DELETE_FILE)
-    fmh.PREF_RC_MOUNT = this._settings.get_string(Prefs.Fields.PREFKEY_RC_MOUNT)
-    fmh.PREF_RC_SYNC = this._settings.get_string(Prefs.Fields.PREFKEY_RC_SYNC)
-    this._registry = this._readRegistry(this._settings.get_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY))
+    fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(Prefs.Fields.PREFKEY_RCONFIG_FILE_PATH)
+    fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(Prefs.Fields.PREFKEY_BASE_MOUNT_PATH)
+    fmh.PREF_IGNORE_PATTERNS = this.Settings.get_string(Prefs.Fields.PREFKEY_IGNORE_PATTERNS)
+    fmh.PREF_EXTERNAL_TERMINAL = this.Settings.get_string(Prefs.Fields.PREFKEY_EXTERNAL_TERMINAL)
+    fmh.PREF_EXTERNAL_FILE_BROWSER = this.Settings.get_string(Prefs.Fields.PREFKEY_EXTERNAL_FILE_BROWSER)
+    PREF_AUTOSYNC = this.Settings.get_boolean(Prefs.Fields.PREFKEY_AUTOSYNC)
+    fmh.PREF_RC_CREATE_DIR = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_CREATE_DIR)
+    fmh.PREF_RC_DELETE_DIR = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_DELETE_DIR)
+    fmh.PREF_RC_DELETE_FILE = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_DELETE_FILE)
+    fmh.PREF_RC_MOUNT = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_MOUNT)
+    fmh.PREF_RC_SYNC = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_SYNC)
+    this._registry = this._readRegistry(this.Settings.get_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY))
 
     fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
     if (!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH + '/'
 
     fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
-  },
+  }
 
-  _initConfig: function () {
+  _initConfig () {
     fmh.PREF_DBG && log('rcm._initConfig')
     const oldConfig = this._configs
     this._configs = fmh.listremotes()
@@ -133,9 +135,9 @@ const RcloneManager = Lang.Class({
     this._buildMainMenu(this._configs)
     Object.entries(this._registry).forEach(registryProfile =>
       this._initProfile(registryProfile[0], registryProfile[1]))
-  },
+  }
 
-  _initProfile: function (profile, regProf) {
+  _initProfile (profile, regProf) {
     fmh.PREF_DBG && log('rcm._initProfile', profile, JSON.stringify(regProf))
     const that = this
     if (regProf.syncType === fmh.ProfileStatus.WATCHED) {
@@ -158,9 +160,9 @@ const RcloneManager = Lang.Class({
       fmh.mountProfile(profile,
         function (profile, status, message) { that._onProfileStatusChanged(profile, status, message) })
     }
-  },
+  }
 
-  _buildMainMenu: function (profiles) {
+  _buildMainMenu (profiles) {
     fmh.PREF_DBG && log('rcm._buildMainMenu')
     // clean menu
     this.menu._getMenuItems().forEach(function (i) { i.destroy() })
@@ -174,18 +176,18 @@ const RcloneManager = Lang.Class({
     // Add 'Add config' button which adds new config to rclone
     const addMenuItem = new PopupMenu.PopupImageMenuItem(_('Add config'), 'folder-new-symbolic')
     this.menu.addMenuItem(addMenuItem)
-    addMenuItem.connect('activate', Lang.bind(this, this._addConfig))
+    addMenuItem.connect('activate', this._addConfig.bind(this))
 
     // Add 'Settings' menu item to open settings
     const settingsMenuItem = new PopupMenu.PopupImageMenuItem(_('Settings'), 'gnome-tweak-tool-symbolic')
     this.menu.addMenuItem(settingsMenuItem)
-    settingsMenuItem.connect('activate', Lang.bind(this, this._openSettings))
+    settingsMenuItem.connect('activate', () => { ExtensionUtils.openPrefs() })
 
     // Add 'About' button which shows info abou the extension
     const aboutMenuItem = new PopupMenu.PopupImageMenuItem(_('About'), 'system-help-symbolic')
     this.menu.addMenuItem(aboutMenuItem)
-    aboutMenuItem.connect('activate', Lang.bind(this, this._lauchAbout))
-  },
+    aboutMenuItem.connect('activate', this._lauchAbout.bind(this))
+  }
 
   /**
      * https://github.com/julio641742/gnome-shell-extension-reference/blob/master/tutorials/POPUPMENU-EXTENSION.md
@@ -198,9 +200,9 @@ const RcloneManager = Lang.Class({
     this._setMenuIcon(menuItem, status)
     this._buildSubmenu(menuItem, profile, status)
     return menuItem
-  },
+  }
 
-  _buildSubmenu: function (menuItem, profile, status) {
+  _buildSubmenu (menuItem, profile, status) {
     // clean submenu
     fmh.PREF_DBG && log('rcm._buildSubmenu', profile, status)
     menuItem.menu._getMenuItems().forEach(function (i) { i.destroy() })
@@ -225,17 +227,17 @@ const RcloneManager = Lang.Class({
     if (Object.prototype.hasOwnProperty.call(this._configs[profile], 'log')) {
       menuItem.menu.addMenuItem(this._buildSubMenuItem('Log', profile))
     }
-  },
+  }
 
-  _buildSubMenuItem: function (action, profile) {
+  _buildSubMenuItem (action, profile) {
     const subMenuItem = new PopupMenu.PopupImageMenuItem(_(action), submenus[action])
     subMenuItem.profile = profile
     subMenuItem.action = action
-    subMenuItem.connect('activate', Lang.bind(this, this._onSubMenuActivated))
+    subMenuItem.connect('activate', this._onSubMenuActivated.bind(this))
     return subMenuItem
-  },
+  }
 
-  _onSubMenuActivated: function (menuItem) {
+  _onSubMenuActivated (menuItem) {
     fmh.PREF_DBG && log('rcm._onSubMenuActivated', menuItem.profile, menuItem.action)
     const that = this
 
@@ -283,9 +285,9 @@ const RcloneManager = Lang.Class({
     if (shellVersion < 40) {
       this.menu.toggle()
     }
-  },
+  }
 
-  _readRegistry: function (registry) {
+  _readRegistry (registry) {
     fmh.PREF_DBG && log('rcm._readRegistry', registry)
     try {
       return JSON.parse(registry)
@@ -293,27 +295,27 @@ const RcloneManager = Lang.Class({
       logError(e)
       return {}
     }
-  },
+  }
 
-  _updateRegistry: function (key, value) {
+  _updateRegistry (key, value) {
     this._registry[key] = value
     fmh.PREF_DBG && log('rcm._updateRegistry', JSON.stringify(this._registry))
-    this._settings.set_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(this._registry))
-  },
+    this.Settings.set_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(this._registry))
+  }
 
-  _openRemote: function (autoSet) {
+  _openRemote (autoSet) {
     fmh.PREF_DBG && log(autoSet)
-  },
+  }
 
-  _restoreConfig: function () {
+  _restoreConfig () {
 
-  },
+  }
 
-  _addConfig: function () {
+  _addConfig () {
     fmh.addConfig()
-  },
+  }
 
-  _onProfileStatusChanged: function (profile, status, message) {
+  _onProfileStatusChanged (profile, status, message) {
     try {
       fmh.PREF_DBG && log('rcm._onProfileStatusChanged', profile, status, message)
       const mItem = this._findProfileMenu(profile)
@@ -326,9 +328,9 @@ const RcloneManager = Lang.Class({
         case fmh.ProfileStatus.ERROR:
           this.icon.icon_name = PROFILE_ERROR_ICON
           this._showNotification(profile + ' ' + _('Error') + ': ' + _(message), n => {
-            n.addAction(_('Details'), Lang.bind(that, function () {
+            n.addAction(_('Details'), () => {
               ConfirmDialog.openConfirmDialog(_('Log detail'), profile, _(message), _('Ok'))
-            }))
+            })
           })
           break
 
@@ -349,18 +351,18 @@ const RcloneManager = Lang.Class({
     } catch (e) {
       logError(e)
     }
-  },
+  }
 
-  _addLog: function (profile, message) {
+  _addLog (profile, message) {
     fmh.PREF_DBG && log('rcm._addLog', profile, message)
     if (Object.prototype.hasOwnProperty.call(this._configs[profile], 'log')) {
       this._configs[profile].log = this._configs[profile].log + '\n' + message
     } else {
       this._configs[profile].log = message
     }
-  },
+  }
 
-  _findProfileMenu: function (profile) {
+  _findProfileMenu (profile) {
     let retItem = null
     try {
       this.menu._getMenuItems().forEach(function (mItem) {
@@ -372,9 +374,9 @@ const RcloneManager = Lang.Class({
       logError(e)
     }
     return retItem
-  },
+  }
 
-  _setMenuIcon: function (menuItem, status) {
+  _setMenuIcon (menuItem, status) {
     try {
       fmh.PREF_DBG && log('rcm._setMenuIcon', menuItem.profile, status)
       switch (status) {
@@ -399,28 +401,17 @@ const RcloneManager = Lang.Class({
     } catch (e) {
       logError(e)
     }
-  },
+  }
 
-  _openSettings: function () {
-    fmh.PREF_DBG && log('rcm._openSettings')
-    if (typeof ExtensionUtils.openPrefs === 'function') {
-      ExtensionUtils.openPrefs()
-    } else {
-      Util.spawn(['gnome-shell-extension-prefs', Me.uuid])
-    }
-  },
-
-  _initNotifSource: function () {
+  _initNotifSource () {
     if (!this._notifSource) {
       this._notifSource = new MessageTray.Source(Me.metadata.name, INDICATOR_ICON)
-      this._notifSource.connect('destroy', Lang.bind(this, function () {
-        this._notifSource = null
-      }))
+      this._notifSource.connect('destroy', () => { this._notifSource = null })
       Main.messageTray.add(this._notifSource)
     }
-  },
+  }
 
-  _showNotification: function (message, transformFn) {
+  _showNotification (message, transformFn) {
     let notification = null
 
     this._initNotifSource()
@@ -442,9 +433,9 @@ const RcloneManager = Lang.Class({
     } else {
       this._notifSource.showNotification(notification)
     }
-  },
+  }
 
-  _lauchAbout: function () {
+  _lauchAbout () {
     const rcVersion = fmh.getRcVersion()
     const contents =
 `
@@ -462,13 +453,12 @@ ${Me.metadata.url}
 
 `
     ConfirmDialog.openConfirmDialog(_('About'), rcVersion, contents, _('Ok'))
-  },
-
-  destroy: function () {
-    // Call parent
-    this.parent()
   }
 
+  destroy () {
+    // Call parent
+    super.destroy()
+  }
 })
 
 function init () {
@@ -484,4 +474,5 @@ function enable () {
 
 function disable () {
   rcloneManager.destroy()
+  rcloneManager = null
 }

@@ -19,7 +19,7 @@
     </key>
 
     <key name="prefkey003-ignore-patterns" type="s">
-      <default>'.remmina.,~lock,.tmp,.log'</default>
+      <default>'.remmina.,~lock,.tmp,.log,.Trash-1000'</default>
         <summary>Filenames to be ignored</summary>
         <description>
             Comma separed filenames to be ignored by inotify

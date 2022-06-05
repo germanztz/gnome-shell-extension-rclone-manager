@@ -25,3 +25,8 @@ bundle: all
 
 run:
 	dbus-run-session -- gnome-shell --nested --wayland
+
+vmrun:
+	ps -ef | grep -v grep | grep testvm || vagrant up
+	vagrant ssh -c 'cd /vagrant_data && make install && sudo service gdm3 restart && journalctl -f --no-hostname --since "1 minute ago" -b /usr/bin/gnome-shell' testvm	
+

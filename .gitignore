@@ -4,3 +4,4 @@ gschemas.compiled
 node_modules
 .vscode
 .vagrant
+rclone.conf
