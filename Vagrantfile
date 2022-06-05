@@ -68,18 +68,14 @@ Vagrant.configure("2") do |config|
 
   config.trigger.after :up do |trigger|
     # trigger.only_on = ['testvm']
-    trigger.info = 'gnome-extensions enable'
-    trigger.run = {inline: "vagrant ssh -c 'gnome-extensions enable rclone-manager@germanztz.com' testvm"}
+    trigger.info = 'user configs'
+    trigger.run = {inline: 'vagrant ssh -c \'
+      gnome-extensions enable rclone-manager@germanztz.com
+      gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
+      gsettings set org.gnome.desktop.screensaver lock-enabled false
+      gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]"
+    \' testvm ' }
   end  
 
-  config.trigger.after :up do |trigger|
-    trigger.info = 'idle-activation-enabled false'
-    trigger.run = {inline: "vagrant ssh -c 'gsettings set org.gnome.desktop.screensaver idle-activation-enabled false' testvm"}
-  end  
-
-  config.trigger.after :up do |trigger|
-    trigger.info = 'lock-enabled false'
-    trigger.run = {inline: "vagrant ssh -c 'gsettings set org.gnome.desktop.screensaver lock-enabled false' testvm"}
-  end  
      
 end

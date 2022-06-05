@@ -48,9 +48,9 @@ var ProfileStatus = {
 const MONITOR_EVENTS = ['CHANGED', 'CHANGES_DONE_HINT', 'DELETED', 'CREATED', 'ATTRIBUTE_CHANGED', 'PRE_UNMOUNT', 'UNMOUNTED', 'MOVED', 'RENAMED', 'MOVED_IN', 'MOVED_OUT']
 
 function getRcVersion () {
-  const [, stdout] = spawnSync(RC_VERSION.split(' '))
-  log('fmh.rclone version', stdout)
-  return stdout
+  const [exitStatus, stdout] = spawnSync(RC_VERSION.split(' '))
+  log('fmh.rclone version', stdout, 'exitStatus', exitStatus)
+  return exitStatus === 0 ? stdout : undefined
 }
 
 /**
@@ -58,7 +58,8 @@ function getRcVersion () {
  * @returns {Object} An Object with the names of the RCLONE configurations as properties
  */
 function listremotes () {
-  const [, stdout] = spawnSync(RC_LIST_REMOTES.split(' '))
+  const [exitStatus, stdout] = spawnSync(RC_LIST_REMOTES.split(' '))
+  if (exitStatus !== 0) return {}
   const ret = stdout
     // eslint-disable-next-line prefer-regex-literals
     .replace(new RegExp(':', 'g'), '')

@@ -80,7 +80,7 @@ const RcloneManager = GObject.registerClass({
     fmh.PREF_DBG && log('rcm._checkDependencies')
     const rcVersion = fmh.getRcVersion()
     if (!rcVersion || !rcVersion.includes('rclone')) {
-      const that = this
+      log('Error: It seems you don\'t have rclone installed, this extension won\'t work without it')
       const title = Me.metadata.name + ' ' + _('Error')
       const subTitle = _('rclone Version: ') + rcVersion
       const message = _("It seems you don't have rclone installed, this extension won't work without it")
