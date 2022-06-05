@@ -107,6 +107,7 @@ Zoho WorkDrive| The local filesystem
 
 ## v1.2
 
+- [x] Vagrant test environment
 - [x] Revision fixes
 
 ## TODO list
