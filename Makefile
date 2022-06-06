@@ -27,6 +27,6 @@ run:
 	dbus-run-session -- gnome-shell --nested --wayland
 
 vmrun:
-	ps -ef | grep -v grep | grep testvm || vagrant up
-	vagrant ssh -c 'cd /vagrant_data && make install && sudo service gdm3 restart && journalctl -f --no-hostname -b /usr/bin/gnome-shell' testvm	
+	ps -ef | grep -v grep | grep focal || vagrant up focal
+	vagrant ssh -c 'cd /vagrant_data && make install && sudo service gdm3 restart && journalctl -f --no-hostname -b /usr/bin/gnome-shell' focal	
 
