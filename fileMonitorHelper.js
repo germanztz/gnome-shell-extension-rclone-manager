@@ -10,6 +10,24 @@ const byteArray = imports.byteArray
 const GLib = imports.gi.GLib
 const Gio = imports.gi.Gio
 
+var PrefsFields = {
+  PREFKEY_RCONFIG_FILE_PATH: 'prefkey001-rconfig-file-path',
+  PREFKEY_BASE_MOUNT_PATH: 'prefkey002-base-mount-path',
+  PREFKEY_IGNORE_PATTERNS: 'prefkey003-ignore-patterns',
+  PREFKEY_EXTERNAL_TERMINAL: 'prefkey004-external-terminal',
+  PREFKEY_EXTERNAL_FILE_BROWSER: 'prefkey005-external-file-browser',
+  PREFKEY_AUTOSYNC: 'prefkey006-autosync',
+  PREFKEY_RC_CREATE_DIR: 'prefkey007-rclone-copy',
+  PREFKEY_RC_DELETE_DIR: 'prefkey008-rclone-purge',
+  PREFKEY_RC_DELETE_FILE: 'prefkey009-rclone-delete',
+  PREFKEY_RC_MOUNT: 'prefkey010-rclone-mount',
+  PREFKEY_RC_SYNC: 'prefkey011-rclone-sync',
+  HIDDENKEY_PROFILE_REGISTRY: 'hiddenkey012-profile-registry',
+  PREFKEY_DEBUG_MODE: 'prefkey013-debug-mode'
+}
+
+var PREFS_SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager'
+
 var PREF_RCONFIG_FILE_PATH
 var PREF_BASE_MOUNT_PATH
 var PREF_IGNORE_PATTERNS

@@ -15,7 +15,6 @@ const Gettext = imports.gettext
 const ExtensionUtils = imports.misc.extensionUtils
 const Me = ExtensionUtils.getCurrentExtension()
 const _ = Gettext.domain(Me.metadata.name).gettext
-const Prefs = Me.imports.prefs
 
 const shellVersion = Number.parseInt(Config.PACKAGE_VERSION.split('.'))
 
@@ -57,7 +56,7 @@ const RcloneManager = GObject.registerClass({
 
     const schemaDir = Me.dir.get_child('schemas').get_path()
     const SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false)
-    this.SettingsSchema = SettingsSchemaSource.lookup(Prefs.SCHEMA_NAME, false)
+    this.SettingsSchema = SettingsSchemaSource.lookup(fmh.PREFS_SCHEMA_NAME, false)
     this.Settings = new Gio.Settings({ settings_schema: this.SettingsSchema })
 
     const hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box rclone-manager-hbox' })
@@ -89,7 +88,10 @@ const RcloneManager = GObject.registerClass({
           ConfirmDialog.openConfirmDialog(title, subTitle, message, _('Ok'))
         })
       })
+      this.icon.icon_name = PROFILE_ERROR_ICON
+      return false
     }
+    return true
   }
 
   _loadSettings () {
@@ -99,20 +101,20 @@ const RcloneManager = GObject.registerClass({
   }
 
   _onSettingsChange () {
-    fmh.PREF_DBG = this.Settings.get_boolean(Prefs.Fields.PREFKEY_DEBUG_MODE)
+    fmh.PREF_DBG = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_DEBUG_MODE)
     fmh.PREF_DBG && log('rcm._onSettingsChange')
-    fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(Prefs.Fields.PREFKEY_RCONFIG_FILE_PATH)
-    fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(Prefs.Fields.PREFKEY_BASE_MOUNT_PATH)
-    fmh.PREF_IGNORE_PATTERNS = this.Settings.get_string(Prefs.Fields.PREFKEY_IGNORE_PATTERNS)
-    fmh.PREF_EXTERNAL_TERMINAL = this.Settings.get_string(Prefs.Fields.PREFKEY_EXTERNAL_TERMINAL)
-    fmh.PREF_EXTERNAL_FILE_BROWSER = this.Settings.get_string(Prefs.Fields.PREFKEY_EXTERNAL_FILE_BROWSER)
-    PREF_AUTOSYNC = this.Settings.get_boolean(Prefs.Fields.PREFKEY_AUTOSYNC)
-    fmh.PREF_RC_CREATE_DIR = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_CREATE_DIR)
-    fmh.PREF_RC_DELETE_DIR = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_DELETE_DIR)
-    fmh.PREF_RC_DELETE_FILE = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_DELETE_FILE)
-    fmh.PREF_RC_MOUNT = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_MOUNT)
-    fmh.PREF_RC_SYNC = this.Settings.get_string(Prefs.Fields.PREFKEY_RC_SYNC)
-    this._registry = this._readRegistry(this.Settings.get_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY))
+    fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
+    fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_BASE_MOUNT_PATH)
+    fmh.PREF_IGNORE_PATTERNS = this.Settings.get_string(fmh.PrefsFields.PREFKEY_IGNORE_PATTERNS)
+    fmh.PREF_EXTERNAL_TERMINAL = this.Settings.get_string(fmh.PrefsFields.PREFKEY_EXTERNAL_TERMINAL)
+    fmh.PREF_EXTERNAL_FILE_BROWSER = this.Settings.get_string(fmh.PrefsFields.PREFKEY_EXTERNAL_FILE_BROWSER)
+    PREF_AUTOSYNC = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_AUTOSYNC)
+    fmh.PREF_RC_CREATE_DIR = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_CREATE_DIR)
+    fmh.PREF_RC_DELETE_DIR = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_DELETE_DIR)
+    fmh.PREF_RC_DELETE_FILE = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_DELETE_FILE)
+    fmh.PREF_RC_MOUNT = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_MOUNT)
+    fmh.PREF_RC_SYNC = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_SYNC)
+    this._registry = this._readRegistry(this.Settings.get_string(fmh.PrefsFields.HIDDENKEY_PROFILE_REGISTRY))
 
     fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
     if (!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH + '/'
@@ -205,6 +207,7 @@ const RcloneManager = GObject.registerClass({
   _buildSubmenu (menuItem, profile, status) {
     // clean submenu
     fmh.PREF_DBG && log('rcm._buildSubmenu', profile, status)
+    if (!menuItem) return
     menuItem.menu._getMenuItems().forEach(function (i) { i.destroy() })
 
     menuItem.menu.box.style_class = 'menuitem-menu-box'
@@ -300,7 +303,7 @@ const RcloneManager = GObject.registerClass({
   _updateRegistry (key, value) {
     this._registry[key] = value
     fmh.PREF_DBG && log('rcm._updateRegistry', JSON.stringify(this._registry))
-    this.Settings.set_string(Prefs.Fields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(this._registry))
+    this.Settings.set_string(fmh.PrefsFields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(this._registry))
   }
 
   _openRemote (autoSet) {
@@ -378,6 +381,7 @@ const RcloneManager = GObject.registerClass({
 
   _setMenuIcon (menuItem, status) {
     try {
+      if (!menuItem) return
       fmh.PREF_DBG && log('rcm._setMenuIcon', menuItem.profile, status)
       switch (status) {
         case fmh.ProfileStatus.MOUNTED:

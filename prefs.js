@@ -16,24 +16,6 @@ const _ = Gettext.domain(Me.metadata.name).gettext
 const [major] = Config.PACKAGE_VERSION.split('.')
 const shellVersion = Number.parseInt(major)
 
-var Fields = {
-  PREFKEY_RCONFIG_FILE_PATH: 'prefkey001-rconfig-file-path',
-  PREFKEY_BASE_MOUNT_PATH: 'prefkey002-base-mount-path',
-  PREFKEY_IGNORE_PATTERNS: 'prefkey003-ignore-patterns',
-  PREFKEY_EXTERNAL_TERMINAL: 'prefkey004-external-terminal',
-  PREFKEY_EXTERNAL_FILE_BROWSER: 'prefkey005-external-file-browser',
-  PREFKEY_AUTOSYNC: 'prefkey006-autosync',
-  PREFKEY_RC_CREATE_DIR: 'prefkey007-rclone-copy',
-  PREFKEY_RC_DELETE_DIR: 'prefkey008-rclone-purge',
-  PREFKEY_RC_DELETE_FILE: 'prefkey009-rclone-delete',
-  PREFKEY_RC_MOUNT: 'prefkey010-rclone-mount',
-  PREFKEY_RC_SYNC: 'prefkey011-rclone-sync',
-  HIDDENKEY_PROFILE_REGISTRY: 'hiddenkey012-profile-registry',
-  PREFKEY_DEBUG_MODE: 'prefkey013-debug-mode'
-}
-
-const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager'
-
 function init () {
   const localeDir = Me.dir.get_child('locale')
   if (localeDir.query_exists(null)) {
@@ -48,7 +30,7 @@ const App = GObject.registerClass({
     super._init()
     const schemaDir = Me.dir.get_child('schemas').get_path()
     const SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false)
-    this.SettingsSchema = SettingsSchemaSource.lookup(SCHEMA_NAME, false)
+    this.SettingsSchema = SettingsSchemaSource.lookup(fmh.PREFS_SCHEMA_NAME, false)
     this.Settings = new Gio.Settings({ settings_schema: this.SettingsSchema })
 
     this.main = new Gtk.Grid({
@@ -191,8 +173,8 @@ const App = GObject.registerClass({
   }
 
   onBackupDialogResponse (dialog, response) {
-    fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(Fields.PREFKEY_RCONFIG_FILE_PATH)
-    fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(Fields.PREFKEY_BASE_MOUNT_PATH)
+    fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
+    fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_BASE_MOUNT_PATH)
     fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
     if (!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH + '/'
     fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
