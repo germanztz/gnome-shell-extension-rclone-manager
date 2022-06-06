@@ -5,7 +5,6 @@ const Gio = imports.gi.Gio
 const GObject = imports.gi.GObject
 const St = imports.gi.St
 const Util = imports.misc.util
-const Config = imports.misc.config
 const ExtensionUtils = imports.misc.extensionUtils
 const MessageTray = imports.ui.messageTray
 const Main = imports.ui.main
@@ -14,8 +13,6 @@ const PopupMenu = imports.ui.popupMenu
 const Gettext = imports.gettext
 const Me = ExtensionUtils.getCurrentExtension()
 const _ = Gettext.domain(Me.metadata.name).gettext
-
-const shellVersion = Number.parseInt(Config.PACKAGE_VERSION.split('.'))
 
 const fmh = Me.imports.fileMonitorHelper
 const ConfirmDialog = Me.imports.confirmDialog
@@ -282,9 +279,6 @@ const RcloneManager = GObject.registerClass({
       default:
         break
     }
-    if (shellVersion < 40) {
-      this.menu.toggle()
-    }
   }
 
   _readRegistry (registry) {
@@ -426,12 +420,7 @@ const RcloneManager = GObject.registerClass({
       transformFn(notification)
     }
 
-    notification.setTransient(true)
-    if (Config.PACKAGE_VERSION < '3.36') {
-      this._notifSource.notify(notification)
-    } else {
-      this._notifSource.showNotification(notification)
-    }
+    this._notifSource.showNotification(notification)
   }
 
   _lauchAbout () {

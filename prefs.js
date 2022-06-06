@@ -7,13 +7,9 @@ const Gio = imports.gi.Gio
 const GLib = imports.gi.GLib
 const GObject = imports.gi.GObject
 const ExtensionUtils = imports.misc.extensionUtils
-const Config = imports.misc.config
 const Me = ExtensionUtils.getCurrentExtension()
 const fmh = Me.imports.fileMonitorHelper
-
 const _ = Gettext.domain(Me.metadata.name).gettext
-const [major] = Config.PACKAGE_VERSION.split('.')
-const shellVersion = Number.parseInt(major)
 
 function init () {
   const localeDir = Me.dir.get_child('locale')
@@ -56,7 +52,8 @@ const App = GObject.registerClass({
         let property = 'text'
 
         if (inputWidget instanceof Gtk.Switch) {
-          inputWidget = this.appendToBox(this.getOrientedBox(Gtk.Orientation.HORIZONTAL), inputWidget)
+          inputWidget = this.getOrientedBox(Gtk.Orientation.HORIZONTAL)
+          inputWidget.append(inputWidget)
           property = 'active'
         }
         inputWidget.hexpand = true
@@ -95,33 +92,15 @@ const App = GObject.registerClass({
       halign: Gtk.Align.END
     })
     btBackup.connect('clicked', () => this.launchBackupDialog())
-    this.appendToBox(buttonsRow, btReset)
-    this.appendToBox(buttonsRow, btBackup)
+    buttonsRow.append(btReset)
+    buttonsRow.append(btBackup)
 
     this.main.attach(buttonsRow, 1, this.SettingsSchema.list_keys().length + 1, 1, 1)
-
-    if (shellVersion < 40) {
-      this.main.show_all()
-    }
   }
 
   getOrientedBox (orientation) {
-    let box = null
-    if (shellVersion < 40) {
-      box = new Gtk.HBox()
-    } else {
-      box = new Gtk.Box({ orientation: orientation })
-    }
+    const box = new Gtk.Box({ orientation: orientation })
     box.spacing = 18
-    return box
-  }
-
-  appendToBox (box, input) {
-    if (shellVersion < 40) {
-      box.pack_end(input, false, false, 0)
-    } else {
-      box.append(input)
-    }
     return box
   }
 
@@ -162,12 +141,9 @@ const App = GObject.registerClass({
       if (!success) return
       dialog.profile = liststore.get_value(iter, 0)
     })
-    this.appendToBox(contentBox, new Gtk.Label({ label: _('Select a profile where backup to or restorer from'), vexpand: true }))
-    this.appendToBox(contentBox, ComboBox)
-    this.appendToBox(contentArea, contentBox)
-    if (shellVersion < 40) {
-      contentArea.show_all()
-    }
+    contentBox.append(new Gtk.Label({ label: _('Select a profile where backup to or restorer from'), vexpand: true }))
+    contentBox.append(ComboBox)
+    contentArea.append(contentBox)
     dialog.show()
   }
 

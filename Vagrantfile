@@ -60,14 +60,13 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLoginEnable ).*,\\1= True,' /etc/gdm3/custom.conf"
   config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLogin ).*,\\1= vagrant,' /etc/gdm3/custom.conf"
 
-  config.vm.define :testvm do |config|
-    config.vm.box = "chenhan/ubuntu-desktop-20.04"
-    # config.vm.box = "fasmat/ubuntu2204-desktop"
-    config.vm.hostname = "testvm"
+  config.vm.define :jellyfish do |config|
+    config.vm.box = "fasmat/ubuntu2204-desktop"
+    config.vm.hostname = "jellyfish"
   end
 
   config.trigger.after :up do |trigger|
-    # trigger.only_on = ['testvm']
+    # trigger.only_on = ['jellyfish']
     trigger.info = 'user configs'
     trigger.run = {inline: 'vagrant ssh -c \'
       gnome-extensions enable rclone-manager@germanztz.com
@@ -75,7 +74,7 @@ Vagrant.configure("2") do |config|
       gsettings set org.gnome.desktop.screensaver lock-enabled false
       gsettings set org.gnome.desktop.session idle-delay 0
       gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]"
-    \' testvm ' }
+    \' jellyfish ' }
   end  
 
      
