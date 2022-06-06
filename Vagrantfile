@@ -73,6 +73,7 @@ Vagrant.configure("2") do |config|
       gnome-extensions enable rclone-manager@germanztz.com
       gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
       gsettings set org.gnome.desktop.screensaver lock-enabled false
+      gsettings set org.gnome.desktop.session idle-delay 0
       gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]"
     \' testvm ' }
   end  

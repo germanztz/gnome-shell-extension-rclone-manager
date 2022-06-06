@@ -67,7 +67,7 @@ const MONITOR_EVENTS = ['CHANGED', 'CHANGES_DONE_HINT', 'DELETED', 'CREATED', 'A
 
 function getRcVersion () {
   const [exitStatus, stdout] = spawnSync(RC_VERSION.split(' '))
-  log('fmh.rclone version', stdout, 'exitStatus', exitStatus)
+  PREF_DBG && log('fmh.rclone version', stdout, 'exitStatus', exitStatus)
   return exitStatus === 0 ? stdout : undefined
 }
 
@@ -177,7 +177,7 @@ function onEvent (profile, monitor, file, otherFile, eventType, profileMountPath
         onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
         spawnAsyncCmd(PREF_RC_CREATE_DIR, profile, file.get_path(), destinationFilePath, callbackFn)
       } else {
-        log('fmh.onEvent', profile, file.get_basename(), 'file Doesn t exists on event')
+        log('fmh.onEvent WARN', profile, file.get_basename(), 'file Doesn t exists on event')
       }
       break
     case Gio.FileMonitorEvent.DELETED:
@@ -553,7 +553,7 @@ function spawnAsyncWithPipes (argv, callback) {
       if (status === 0) {
         PREF_DBG && log(stdoutLines.join('\n'))
       } else {
-        log(`fmh.spawnAsyncWithPipes Error, ${argv.join(' ')} \n ${stderrLines.join('\n')}`)
+        log(`fmh.spawnAsyncWithPipes ERROR, ${argv.join(' ')} \n ${stderrLines.join('\n')}`)
       }
 
       // Ensure we close the remaining streams and process
@@ -571,7 +571,7 @@ function spawnAsyncWithPipes (argv, callback) {
 function spawnSync (argv) {
   let out, err, status
   try {
-    log(`fmh.spawnSync, ${argv.join(' ')}`)
+    PREF_DBG && log(`fmh.spawnSync, ${argv.join(' ')}`)
     const [ok, stdout, stderr, exitStatus] = GLib.spawn_sync(
       // Working directory, passing %null to use the parent's
       null,
@@ -587,7 +587,7 @@ function spawnSync (argv) {
 
     if (stderr instanceof Uint8Array) err = byteArray.toString(stderr)
     if (stdout instanceof Uint8Array) out = byteArray.toString(stdout)
-    log(`fmh.spawnSync, ok, ${ok}, status, ${exitStatus}, stderr, ${err}, stdout, ${out}`)
+    PREF_DBG && log(`fmh.spawnSync, ok, ${ok}, status, ${exitStatus}, stderr, ${err}, stdout, ${out}`)
 
     return [exitStatus, out, err]
   } catch (e) {

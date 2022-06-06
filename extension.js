@@ -1,18 +1,17 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
-const Config = imports.misc.config
 const GLib = imports.gi.GLib
 const Gio = imports.gi.Gio
 const GObject = imports.gi.GObject
-const Lang = imports.lang
 const St = imports.gi.St
 const Util = imports.misc.util
+const Config = imports.misc.config
+const ExtensionUtils = imports.misc.extensionUtils
 const MessageTray = imports.ui.messageTray
 const Main = imports.ui.main
 const PanelMenu = imports.ui.panelMenu
 const PopupMenu = imports.ui.popupMenu
 const Gettext = imports.gettext
-const ExtensionUtils = imports.misc.extensionUtils
 const Me = ExtensionUtils.getCurrentExtension()
 const _ = Gettext.domain(Me.metadata.name).gettext
 
@@ -50,14 +49,12 @@ const RcloneManager = GObject.registerClass({
   _init () {
     super._init(0)
     log('rcm._init')
+    this._initNotifSource()
+    this.Settings = ExtensionUtils.getSettings(fmh.PREFS_SCHEMA_NAME)
     this._settingsChangedId = null
+
     this._configs = []
     this._registry = {}
-
-    const schemaDir = Me.dir.get_child('schemas').get_path()
-    const SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false)
-    this.SettingsSchema = SettingsSchemaSource.lookup(fmh.PREFS_SCHEMA_NAME, false)
-    this.Settings = new Gio.Settings({ settings_schema: this.SettingsSchema })
 
     const hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box rclone-manager-hbox' })
     this.icon = new St.Icon({
@@ -79,7 +76,7 @@ const RcloneManager = GObject.registerClass({
     fmh.PREF_DBG && log('rcm._checkDependencies')
     const rcVersion = fmh.getRcVersion()
     if (!rcVersion || !rcVersion.includes('rclone')) {
-      log('Error: It seems you don\'t have rclone installed, this extension won\'t work without it')
+      log('rcm._checkDependencies ERROR: It seems you don\'t have rclone installed, this extension won\'t work without it')
       const title = Me.metadata.name + ' ' + _('Error')
       const subTitle = _('rclone Version: ') + rcVersion
       const message = _("It seems you don't have rclone installed, this extension won't work without it")
@@ -95,7 +92,7 @@ const RcloneManager = GObject.registerClass({
   }
 
   _loadSettings () {
-    log('rcm._loadSettings')
+    fmh.PREF_DBG && log('rcm._loadSettings')
     this._settingsChangedId = this.Settings.connect('changed', this._onSettingsChange.bind(this))
     this._onSettingsChange()
   }
@@ -418,8 +415,6 @@ const RcloneManager = GObject.registerClass({
   _showNotification (message, transformFn) {
     let notification = null
 
-    this._initNotifSource()
-
     if (this._notifSource.count === 0) {
       notification = new MessageTray.Notification(this._notifSource, message)
     } else {
@@ -466,8 +461,7 @@ ${Me.metadata.url}
 })
 
 function init () {
-  const localeDir = Me.dir.get_child('locale')
-  Gettext.bindtextdomain(Me.metadata.name, localeDir.get_path())
+  ExtensionUtils.initTranslations(Me.metadata.uuid)
 }
 
 let rcloneManager

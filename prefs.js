@@ -1,7 +1,6 @@
 /* eslint-disable no-var */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
-const Lang = imports.lang
 const Gettext = imports.gettext
 const Gtk = imports.gi.Gtk
 const Gio = imports.gi.Gio
@@ -31,7 +30,7 @@ const App = GObject.registerClass({
     const schemaDir = Me.dir.get_child('schemas').get_path()
     const SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false)
     this.SettingsSchema = SettingsSchemaSource.lookup(fmh.PREFS_SCHEMA_NAME, false)
-    this.Settings = new Gio.Settings({ settings_schema: this.SettingsSchema })
+    this.Settings = ExtensionUtils.getSettings(fmh.PREFS_SCHEMA_NAME)
 
     this.main = new Gtk.Grid({
       margin_top: 10,
@@ -200,8 +199,7 @@ const App = GObject.registerClass({
     } else {
       return
     }
-    log(`err, ${err}`)
-    log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}`)
+    fmh.PREF_DBG && log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}, err, ${err}`)
 
     const resultDialog = new Gtk.MessageDialog({
       title: _('Backup & restore'),
