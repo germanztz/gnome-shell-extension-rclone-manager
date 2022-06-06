@@ -1,7 +1,6 @@
 /* eslint-disable no-var */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
-const Lang = imports.lang
 const Gettext = imports.gettext
 const Gtk = imports.gi.Gtk
 const Gio = imports.gi.Gio
@@ -16,29 +15,6 @@ const _ = Gettext.domain(Me.metadata.name).gettext
 const [major] = Config.PACKAGE_VERSION.split('.')
 const shellVersion = Number.parseInt(major)
 
-var Fields = {
-  PREFKEY_RCONFIG_FILE_PATH: 'prefkey001-rconfig-file-path',
-  PREFKEY_BASE_MOUNT_PATH: 'prefkey002-base-mount-path',
-  PREFKEY_IGNORE_PATTERNS: 'prefkey003-ignore-patterns',
-  PREFKEY_EXTERNAL_TERMINAL: 'prefkey004-external-terminal',
-  PREFKEY_EXTERNAL_FILE_BROWSER: 'prefkey005-external-file-browser',
-  PREFKEY_AUTOSYNC: 'prefkey006-autosync',
-  PREFKEY_RC_CREATE_DIR: 'prefkey007-rclone-copy',
-  PREFKEY_RC_DELETE_DIR: 'prefkey008-rclone-purge',
-  PREFKEY_RC_DELETE_FILE: 'prefkey009-rclone-delete',
-  PREFKEY_RC_MOUNT: 'prefkey010-rclone-mount',
-  PREFKEY_RC_SYNC: 'prefkey011-rclone-sync',
-  HIDDENKEY_PROFILE_REGISTRY: 'hiddenkey012-profile-registry',
-  PREFKEY_DEBUG_MODE: 'prefkey013-debug-mode'
-}
-
-const SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager'
-
-const schemaDir = Me.dir.get_child('schemas').get_path()
-const SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false)
-const SettingsSchema = SettingsSchemaSource.lookup(SCHEMA_NAME, false)
-var Settings = new Gio.Settings({ settings_schema: SettingsSchema })
-
 function init () {
   const localeDir = Me.dir.get_child('locale')
   if (localeDir.query_exists(null)) {
@@ -46,9 +22,16 @@ function init () {
   }
 }
 
-const App = new Lang.Class({
-  Name: Me.metadata.name + '-config',
-  _init: function () {
+const App = GObject.registerClass({
+  GTypeName: 'App'
+}, class App extends GObject.Object {
+  _init () {
+    super._init()
+    const schemaDir = Me.dir.get_child('schemas').get_path()
+    const SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false)
+    this.SettingsSchema = SettingsSchemaSource.lookup(fmh.PREFS_SCHEMA_NAME, false)
+    this.Settings = ExtensionUtils.getSettings(fmh.PREFS_SCHEMA_NAME)
+
     this.main = new Gtk.Grid({
       margin_top: 10,
       margin_bottom: 10,
@@ -65,7 +48,7 @@ const App = new Lang.Class({
       return (input, prefKey) => {
         let inputWidget = input
         const LabelWidget = new Gtk.Label({
-          label: _(SettingsSchema.get_key(prefKey).get_summary()),
+          label: _(this.SettingsSchema.get_key(prefKey).get_summary()),
           hexpand: false,
           halign: Gtk.Align.START
         })
@@ -81,17 +64,17 @@ const App = new Lang.Class({
         main.attach(LabelWidget, 0, row, 1, 1)
         main.attach(inputWidget, 1, row, 1, 1)
 
-        Settings.bind(prefKey, input, property, Gio.SettingsBindFlags.DEFAULT)
+        this.Settings.bind(prefKey, input, property, Gio.SettingsBindFlags.DEFAULT)
 
         row++
       }
     })(this.main)
 
-    SettingsSchema.list_keys()
+    this.SettingsSchema.list_keys()
       .filter(prefKey => !prefKey.includes('hidden'))
       .sort()
       .forEach((prefKey) => {
-        const type = SettingsSchema.get_key(prefKey).get_value_type().dup_string()
+        const type = this.SettingsSchema.get_key(prefKey).get_value_type().dup_string()
         switch (type) {
           case 's':
             addRow(new Gtk.Entry(), prefKey); break
@@ -106,7 +89,7 @@ const App = new Lang.Class({
       label: _('Reset settings'),
       halign: Gtk.Align.END
     })
-    btReset.connect('clicked', this.resetAll)
+    btReset.connect('clicked', () => this.resetAll())
     const btBackup = new Gtk.Button({
       label: _('Backup & restore'),
       halign: Gtk.Align.END
@@ -115,14 +98,14 @@ const App = new Lang.Class({
     this.appendToBox(buttonsRow, btReset)
     this.appendToBox(buttonsRow, btBackup)
 
-    this.main.attach(buttonsRow, 1, SettingsSchema.list_keys().length + 1, 1, 1)
+    this.main.attach(buttonsRow, 1, this.SettingsSchema.list_keys().length + 1, 1, 1)
 
     if (shellVersion < 40) {
       this.main.show_all()
     }
-  },
+  }
 
-  getOrientedBox: function (orientation) {
+  getOrientedBox (orientation) {
     let box = null
     if (shellVersion < 40) {
       box = new Gtk.HBox()
@@ -131,22 +114,22 @@ const App = new Lang.Class({
     }
     box.spacing = 18
     return box
-  },
+  }
 
-  appendToBox: function (box, input) {
+  appendToBox (box, input) {
     if (shellVersion < 40) {
       box.pack_end(input, false, false, 0)
     } else {
       box.append(input)
     }
     return box
-  },
+  }
 
-  resetAll: function () {
-    SettingsSchema.list_keys().forEach(prefKey => Settings.reset(prefKey))
-  },
+  resetAll () {
+    this.SettingsSchema.list_keys().forEach(prefKey => this.Settings.reset(prefKey))
+  }
 
-  launchBackupDialog: function () {
+  launchBackupDialog () {
     const profiles = Object.entries(fmh.listremotes()).map(entry => entry[0])
     const dialog = new Gtk.Dialog({
       // default_height: 200,
@@ -186,11 +169,11 @@ const App = new Lang.Class({
       contentArea.show_all()
     }
     dialog.show()
-  },
+  }
 
-  onBackupDialogResponse: function (dialog, response) {
-    fmh.PREF_RCONFIG_FILE_PATH = Settings.get_string(Fields.PREFKEY_RCONFIG_FILE_PATH)
-    fmh.PREF_BASE_MOUNT_PATH = Settings.get_string(Fields.PREFKEY_BASE_MOUNT_PATH)
+  onBackupDialogResponse (dialog, response) {
+    fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
+    fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_BASE_MOUNT_PATH)
     fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
     if (!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH + '/'
     fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
@@ -216,8 +199,7 @@ const App = new Lang.Class({
     } else {
       return
     }
-    log(`err, ${err}`)
-    log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}`)
+    fmh.PREF_DBG && log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}, err, ${err}`)
 
     const resultDialog = new Gtk.MessageDialog({
       title: _('Backup & restore'),
