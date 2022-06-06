@@ -110,6 +110,11 @@ Zoho WorkDrive| The local filesystem
 - [x] Vagrant test environment
 - [x] Revision fixes
 
+## v42.0
+
+- [x] Shell 42 version update
+
+
 ## TODO list
 - [ ] Fix show permanent notification
 - [ ] Fix Backup / resotore dialog style
