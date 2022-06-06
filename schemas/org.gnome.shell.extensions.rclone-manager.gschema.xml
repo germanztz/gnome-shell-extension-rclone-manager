@@ -19,7 +19,7 @@
     </key>
 
     <key name="prefkey003-ignore-patterns" type="s">
-      <default>'.remmina.,~lock,.tmp,.log'</default>
+      <default>'.remmina.,~lock,.tmp,.log,.Trash-1000'</default>
         <summary>Filenames to be ignored</summary>
         <description>
             Comma separed filenames to be ignored by inotify
@@ -69,7 +69,7 @@
     </key>
 
     <key name="prefkey010-rclone-mount" type="s">
-      <default>'rclone mount %profile: %source --volname %profile --file-perms 0777 --allow-other --write-back-cache --no-modtime --daemon --daemon-timeout 30s'</default>
+      <default>'rclone mount %profile: %source --volname %profile --file-perms 0777 --write-back-cache --no-modtime --daemon --daemon-timeout 30s'</default>
         <summary>Mount command</summary>
         <description>Mount command</description>
     </key>
