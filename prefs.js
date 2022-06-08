@@ -12,10 +12,7 @@ const fmh = Me.imports.fileMonitorHelper
 const _ = Gettext.domain(Me.metadata.name).gettext
 
 function init () {
-  const localeDir = Me.dir.get_child('locale')
-  if (localeDir.query_exists(null)) {
-    Gettext.bindtextdomain(Me.metadata.name, localeDir.get_path())
-  }
+  ExtensionUtils.initTranslations(Me.metadata.uuid)
 }
 
 const App = GObject.registerClass({
@@ -53,7 +50,7 @@ const App = GObject.registerClass({
 
         if (inputWidget instanceof Gtk.Switch) {
           inputWidget = this.getOrientedBox(Gtk.Orientation.HORIZONTAL)
-          inputWidget.append(inputWidget)
+          inputWidget.append(input)
           property = 'active'
         }
         inputWidget.hexpand = true
