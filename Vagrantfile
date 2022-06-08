@@ -56,7 +56,7 @@ Vagrant.configure("2") do |config|
   # config.vm.provision :shell, inline: "apt purge -y libreoffice-common thunderbird gnome-initial-setup"
   # config.vm.provision :shell, inline: "apt autoremove -y && apt autoclean"
   config.vm.provision :shell, inline: "apt update"
-  config.vm.provision :shell, inline: "apt install -y gnome-shell-extensions rclone gettext"
+  config.vm.provision :shell, inline: "apt install -y gnome-shell-extension-manager rclone gettext"
   config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLoginEnable ).*,\\1= True,' /etc/gdm3/custom.conf"
   config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLogin ).*,\\1= vagrant,' /etc/gdm3/custom.conf"
 

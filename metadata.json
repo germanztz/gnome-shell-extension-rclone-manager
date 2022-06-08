@@ -1,6 +1,7 @@
 {
     "shell-version": [
-      "42"
+      "42",
+      "42.1"
     ],
     "uuid": "rclone-manager@germanztz.com",
     "name": "rclone-manager",
