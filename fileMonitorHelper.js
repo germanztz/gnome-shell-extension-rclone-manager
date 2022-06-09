@@ -436,7 +436,7 @@ function checkNsync (profile, onProfileStatusChanged) {
   if ( !Object.prototype.hasOwnProperty.call(_monitors, profile) || 
     Object.prototype.hasOwnProperty.call(_monitors[profile], 'is_checking') ||
     Object.prototype.hasOwnProperty.call(_monitors[profile], 'is_synching')) {
-      log(`${profile} is already checking or synching, exiting`)
+      log(`fmh.checkNsync WARN ${profile} is already checking or synching, exiting`)
       return
   }  else {
     _monitors[profile].is_checking = true
