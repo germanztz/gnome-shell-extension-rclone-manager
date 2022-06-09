@@ -80,6 +80,12 @@
       <description>Sync command </description>
     </key>
 
+    <key name="prefkey0111-rclone-check" type="s">
+      <default>'rclone check --size-only --one-way %profile: %destination'</default>
+      <summary>Check command</summary>
+      <description>Checks the files in the source and destination match</description>
+    </key>
+
     <key name="hiddenkey012-profile-registry" type="s">
       <default>'{}'</default>
       <summary>Profile registry</summary>

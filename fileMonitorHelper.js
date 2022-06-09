@@ -22,6 +22,7 @@ var PrefsFields = {
   PREFKEY_RC_DELETE_FILE: 'prefkey009-rclone-delete',
   PREFKEY_RC_MOUNT: 'prefkey010-rclone-mount',
   PREFKEY_RC_SYNC: 'prefkey011-rclone-sync',
+  PREFKEY_RC_CHECK: 'prefkey0111-rclone-check',
   HIDDENKEY_PROFILE_REGISTRY: 'hiddenkey012-profile-registry',
   PREFKEY_DEBUG_MODE: 'prefkey013-debug-mode',
   PREFKEY_CHECK_INTERVAL: 'prefkey0051-check-interval'
@@ -39,6 +40,7 @@ var PREF_RC_DELETE_DIR
 var PREF_RC_DELETE_FILE
 var PREF_RC_MOUNT
 var PREF_RC_SYNC
+var PREF_RC_CHECK
 var PREF_DBG
 var PREF_CHECK_INTERVAL
 
@@ -51,7 +53,6 @@ var RC_UMOUNT = 'umount %source'
 var RC_GETMOUNTS = 'mount'
 var RC_VERSION = 'rclone version'
 var RC_COPY = 'cp %source %destination'
-var RC_CHECK = 'rclone check --one-way %profile: %destination'
 
 var _monitors = {}
 var _configMonitor
@@ -429,8 +430,28 @@ function sync (profile, onProfileStatusChanged) {
     })
 }
 
-function check (profile) {
-  PREF_DBG && log('fmh.sync', profile)
+function checkNsync (profile, onProfileStatusChanged) {
+  PREF_DBG && log('fmh.checkNsync', profile)
+
+  if ( !Object.prototype.hasOwnProperty.call(_monitors, profile) || 
+    Object.prototype.hasOwnProperty.call(_monitors[profile], 'is_checking') ||
+    Object.prototype.hasOwnProperty.call(_monitors[profile], 'is_synching')) {
+      log(`${profile} is already checking or synching, exiting`)
+      return
+  }  else {
+    _monitors[profile].is_checking = true
+  }  
+  spawnAsyncCmd(PREF_RC_CHECK, profile, null, PREF_BASE_MOUNT_PATH + profile,
+    function (status, stdoutLines, stderrLines) {
+      if (Object.prototype.hasOwnProperty.call(_monitors, profile)) {
+        delete (_monitors[profile].is_checking)
+      }
+      PREF_DBG && log(`check status: ${status}`)
+
+      if (status === 256) {
+        sync (profile, onProfileStatusChanged)
+      } 
+    })
 }
 
 /**
@@ -474,7 +495,7 @@ function deleteConfig (profile, onProfileStatusChanged) {
  * @param {string} callback
  * @param {string} flags
  */
-function spawnAsyncCmd (cmd, profile, file, destination, callback, flags) {
+function spawnAsyncCmd (cmd, profile, file, destination, callback) {
   const cmdArray = cmd.split(' ')
   PREF_DBG && log('fmh.spawnAsyncCmd', profile, cmd)
   for (let i = 0; i < cmdArray.length; i++) {
@@ -482,7 +503,6 @@ function spawnAsyncCmd (cmd, profile, file, destination, callback, flags) {
       .replace('%profile', profile)
       .replace('%source', file)
       .replace('%destination', destination)
-      .replace('%flags', flags)
   }
   spawnAsyncWithPipes(cmdArray, callback)
 }

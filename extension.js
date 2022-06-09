@@ -109,6 +109,7 @@ const RcloneManager = GObject.registerClass({
     fmh.PREF_RC_DELETE_FILE = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_DELETE_FILE)
     fmh.PREF_RC_MOUNT = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_MOUNT)
     fmh.PREF_RC_SYNC = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_SYNC)
+    fmh.PREF_RC_CHECK = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_CHECK)
     this._registry = this._readRegistry(this.Settings.get_string(fmh.PrefsFields.HIDDENKEY_PROFILE_REGISTRY))
 
     fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
@@ -120,13 +121,13 @@ const RcloneManager = GObject.registerClass({
   }
 
   _resetCheckInterval () {
-    fmh.PREF_DBG && log('rcm._resetCheckInterval')
     this._removeCheckInterval()
     if (this.PREF_CHECK_INTERVAL !== 0) {
-      this.checkTimeoutId = Mainloop.timeout_add(this.PREF_CHECK_INTERVAL, () => {
+      fmh.PREF_DBG && log(`rcm._resetCheckInterval, interval: ${this.PREF_CHECK_INTERVAL}`)
+      this.checkTimeoutId = Mainloop.timeout_add(this.PREF_CHECK_INTERVAL*60000, () => {
         Object.entries(this._registry)
           .filter(p => p[1].syncType === fmh.ProfileStatus.WATCHED)
-          .forEach(p => fmh.check(p[0]))
+          .forEach(p => fmh.checkNsync(p[0], (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) }))
         return true
       })
     }
@@ -134,6 +135,7 @@ const RcloneManager = GObject.registerClass({
 
   _removeCheckInterval () {
     if (this.checkTimeoutId) {
+      fmh.PREF_DBG && log(`rcm._removeCheckInterval`)
       Mainloop.source_remove(this.checkTimeoutId)
       this.checkTimeoutId = null
     }
@@ -172,6 +174,7 @@ const RcloneManager = GObject.registerClass({
         fmh.initFilemonitor(profile,
           function (profile, status, message) { that._onProfileStatusChanged(profile, status, message) })
       }
+      this._resetCheckInterval ()
     } else if (Object.prototype.hasOwnProperty.call(fmh.getMounts(), profile)) {
       // if is already mounted just leave it
       this._onProfileStatusChanged(profile, fmh.ProfileStatus.MOUNTED, profile + ' was already mounted')
