@@ -4,94 +4,103 @@
 
     <key name="prefkey001-rconfig-file-path" type="s">
       <default>'~/.config/rclone/rclone.conf'</default>
-        <summary>Rclone configuration file path</summary>
-        <description>
-            Rclone configuration file path
-        </description>
+      <summary>Rclone configuration file path</summary>
+      <description>
+        Rclone configuration file path
+      </description>
     </key>
 
     <key name="prefkey002-base-mount-path" type="s">
       <default>'~/'</default>
-        <summary>Base mount path</summary>
-        <description>
-            Path where the remote disks are mounted
-        </description>
+      <summary>Base mount path</summary>
+      <description>
+        Path where the remote disks are mounted
+      </description>
     </key>
 
     <key name="prefkey003-ignore-patterns" type="s">
       <default>'.remmina.,~lock,.tmp,.log,.Trash-1000'</default>
-        <summary>Filenames to be ignored</summary>
-        <description>
-            Comma separed filenames to be ignored by inotify
-        </description>
+      <summary>Filenames to be ignored</summary>
+      <description>
+        Comma separed filenames to be ignored by inotify
+      </description>
     </key>
 
     <key name="prefkey004-external-terminal" type="s">
       <default>'gnome-terminal --window -- '</default>
-        <summary>Terminal command</summary>
-        <description>
-            Command to call a new terminal window in order to perform rclone manager actions
-        </description>
+      <summary>Terminal command</summary>
+      <description>
+        Command to call a new terminal window in order to perform rclone manager actions
+      </description>
     </key>
 
     <key name="prefkey005-external-file-browser" type="s">
       <default>'nautilus'</default>
-        <summary>File browser command</summary>
-        <description>
-            Command to call a new file browser window in order to explore configuration folders
-        </description>
+      <summary>File browser command</summary>
+      <description>
+        Command to call a new file browser window in order to explore configuration folders
+      </description>
     </key>
 
     <key name="prefkey006-autosync" type="b">
       <default>true</default>
-        <summary>Sync files on start</summary>
-        <description>
-            If is on will execute 'rclone sync' on start watching a profile
-        </description>
+      <summary>Sync files on start</summary>
+      <description>
+        If is on will execute 'rclone sync' on start watching a profile
+      </description>
     </key>
 
     <key name="prefkey007-rclone-copy" type="s">
       <default>'rclone copy %source %profile:%destination --create-empty-src-dirs'</default>
-        <summary>Create command</summary>
-        <description>Create command</description>
+      <summary>Create command</summary>
+      <description>Create command</description>
     </key>
 
     <key name="prefkey008-rclone-purge" type="s">
       <default>'rclone purge %profile:%destination --ignore-errors'</default>
-        <summary>Delete dir command</summary>
-        <description>Delete dir command</description>
+      <summary>Delete dir command</summary>
+      <description>Delete dir command</description>
     </key>
 
     <key name="prefkey009-rclone-delete" type="s">
       <default>'rclone delete %profile:%destination --ignore-errors'</default>
-        <summary>Delete file command</summary>
-        <description>Delete file command</description>
+      <summary>Delete file command</summary>
+      <description>Delete file command</description>
     </key>
 
     <key name="prefkey010-rclone-mount" type="s">
       <default>'rclone mount %profile: %source --volname %profile --file-perms 0777 --write-back-cache --no-modtime --daemon --daemon-timeout 30s'</default>
-        <summary>Mount command</summary>
-        <description>Mount command</description>
+      <summary>Mount command</summary>
+      <description>Mount command</description>
     </key>
 
     <key name="prefkey011-rclone-sync" type="s">
       <default>'rclone sync %profile: %source --create-empty-src-dirs'</default>
-        <summary>Sync command</summary>
-        <description>Sync command </description>
+      <summary>Sync command</summary>
+      <description>Sync command </description>
     </key>
 
     <key name="hiddenkey012-profile-registry" type="s">
       <default>'{}'</default>
-        <summary>Profile registry</summary>
-        <description>Stores profile status and configs</description>
+      <summary>Profile registry</summary>
+      <description>Stores profile status and configs</description>
     </key>
 
     <key name="prefkey013-debug-mode" type="b">
       <default>false</default>
-        <summary>Debug mode</summary>
-        <description>
-            Print verbose debug messages to the journalctl
-        </description>
+      <summary>Debug mode</summary>
+      <description>
+        Print verbose debug messages to the journalctl
+      </description>
+    </key>
+
+    <key name="prefkey0051-check-interval" type="i">
+      <default>3</default>
+      <range min="0" max="999"/>
+      <summary>Check interval in minuts</summary>
+      <description>
+        Checks the files in the source and destination match
+      </description>
     </key>
 
   </schema>

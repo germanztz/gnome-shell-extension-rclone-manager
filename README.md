@@ -83,6 +83,23 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v42.0
+
+- [x] Shell 42 version update
+
+## v1.2
+
+- [x] Vagrant test environment
+- [x] Revision fixes
+
+## v1.1
+
+- [x] Add function backup config
+- [x] Add function restore config
+- [x] Some bug fixes
+- [x] Dutch translation **Thanks @Vistaus !!**
+- [x] French translation **Thanks @noirbizarre !!**
+
 ## v1.0
 
 - [x] Fix create basedir if not exist on mount
@@ -97,28 +114,11 @@ Zoho WorkDrive| The local filesystem
 - [x] Add log to file
 - [x] Translate spanish
 
-## v1.1
-
-- [x] Add function backup config
-- [x] Add function restore config
-- [x] Some bug fixes
-- [x] Dutch translation **Thanks @Vistaus !!**
-- [x] French translation **Thanks @noirbizarre !!**
-
-## v1.2
-
-- [x] Vagrant test environment
-- [x] Revision fixes
-
-## v42.0
-
-- [x] Shell 42 version update
-
-
 ## TODO list
 - [ ] Fix show permanent notification
 - [ ] Fix Backup / resotore dialog style
 - [ ] add function check: Checks the files in the source and destination match.
 - [ ] add function cleanup: Clean up the remote if possible.
 - [ ] add function size: Prints the total size and number of objects in remote:path.
+- [ ] add [encripted config support](https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues/11)
 

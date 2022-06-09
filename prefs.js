@@ -52,6 +52,8 @@ const App = GObject.registerClass({
           inputWidget = this.getOrientedBox(Gtk.Orientation.HORIZONTAL)
           inputWidget.append(input)
           property = 'active'
+        } else if (inputWidget instanceof Gtk.SpinButton) {
+          property = 'value'
         }
         inputWidget.hexpand = true
 
@@ -74,6 +76,10 @@ const App = GObject.registerClass({
             addRow(new Gtk.Entry(), prefKey); break
           case 'b':
             addRow(new Gtk.Switch(), prefKey); break
+          case 'i':
+            addRow(new Gtk.SpinButton({
+              adjustment: new Gtk.Adjustment({ lower: 0, upper: 999, step_increment: 1 })
+            }), prefKey); break
         }
       })
 

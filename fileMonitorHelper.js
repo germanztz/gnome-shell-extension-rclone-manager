@@ -23,7 +23,8 @@ var PrefsFields = {
   PREFKEY_RC_MOUNT: 'prefkey010-rclone-mount',
   PREFKEY_RC_SYNC: 'prefkey011-rclone-sync',
   HIDDENKEY_PROFILE_REGISTRY: 'hiddenkey012-profile-registry',
-  PREFKEY_DEBUG_MODE: 'prefkey013-debug-mode'
+  PREFKEY_DEBUG_MODE: 'prefkey013-debug-mode',
+  PREFKEY_CHECK_INTERVAL: 'prefkey0051-check-interval'
 }
 
 var PREFS_SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager'
@@ -39,6 +40,7 @@ var PREF_RC_DELETE_FILE
 var PREF_RC_MOUNT
 var PREF_RC_SYNC
 var PREF_DBG
+var PREF_CHECK_INTERVAL
 
 var RC_LIST_REMOTES = 'rclone listremotes'
 var RC_COPYTO = 'rclone copyto %profile:%source %destination'
@@ -49,6 +51,7 @@ var RC_UMOUNT = 'umount %source'
 var RC_GETMOUNTS = 'mount'
 var RC_VERSION = 'rclone version'
 var RC_COPY = 'cp %source %destination'
+var RC_CHECK = 'rclone check --one-way %profile: %destination'
 
 var _monitors = {}
 var _configMonitor
@@ -424,6 +427,10 @@ function sync (profile, onProfileStatusChanged) {
         onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, stderrLines.join('\n'))
       }
     })
+}
+
+function check (profile) {
+  PREF_DBG && log('fmh.sync', profile)
 }
 
 /**
