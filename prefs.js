@@ -144,7 +144,7 @@ const App = GObject.registerClass({
       if (!success) return
       dialog.profile = liststore.get_value(iter, 0)
     })
-    contentBox.append(new Gtk.Label({ label: _('Select a profile where backup to or restorer from'), vexpand: true }))
+    contentBox.append(new Gtk.Label({ label: _('Select a profile where backup to or restore from'), vexpand: true }))
     contentBox.append(ComboBox)
     contentArea.append(contentBox)
     dialog.show()

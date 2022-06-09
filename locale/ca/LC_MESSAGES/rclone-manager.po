@@ -1,4 +1,4 @@
-# Spanish translation for gnome-shell-extension-rclone-manager.
+# Catalan translation for gnome-shell-extension-rclone-manager.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the gnome-shell-extension-rclone-manager package.
 # Germán Z <germanztz@github.com>, 2022.
@@ -19,34 +19,34 @@ msgstr ""
 "X-Generator: Poedit 2.0.6\n"
 
 msgid " was already mounted"
-msgstr " ya estaba montado"
+msgstr " ja estava muntat"
 
 msgid "Add config"
-msgstr "Añadir configuración"
+msgstr "Afegir configuració"
 
 msgid "Settings"
-msgstr "Configuración"
+msgstr "Configuració"
 
 msgid "Watch"
-msgstr "Monitorizar"
+msgstr "Monitorar"
 
 msgid "Unwatch"
-msgstr "Desmonitorizar"
+msgstr "Desmonitorar"
 
 msgid "Mount"
-msgstr "Montar"
+msgstr "Muntar"
 
 msgid "Umount"
-msgstr "Desmontar"
+msgstr "Desmuntar"
 
 msgid "Open"
-msgstr "Abrir"
+msgstr "Obrir"
 
 msgid "Reconnect"
-msgstr "Reconectar"
+msgstr "Reconnectar"
 
 msgid "Sync"
-msgstr "Sincronizar"
+msgstr "Sincronitzar"
 
 msgid "Delete"
 msgstr "Eliminar"
@@ -61,130 +61,130 @@ msgid "Disengage"
 msgstr "Deshabilitar"
 
 msgid "Are you sure you want to delete?"
-msgstr "¿Seguro que deseas eliminar?"
+msgstr "¿Segur que desitges eliminar?"
 
 msgid "This action cannot be undone"
-msgstr "Esta acción no se puede deshacer"
+msgstr "Aquesta acció no es pot desfer"
 
 msgid "Confirm"
 msgstr "Confirmar"
 
 msgid "Cancel"
-msgstr "Cancelar"
+msgstr "Cancel·lar"
 
 msgid "Log Detail"
-msgstr "Detalle del log"
+msgstr "Detall del log"
 
 msgid "Ok"
 msgstr "Ok"
 
 msgid "Details"
-msgstr "Detalles"
+msgstr "Detalls"
 
 msgid "Rclone configuration file path"
-msgstr "Ruta a la configuración"
+msgstr "Ruta a la configuració"
 
 msgid "Base mount path"
-msgstr "Ruta base de montaje"
+msgstr "Ruta base de muntatge"
 
 msgid "Path where the remote disks are mounted"
-msgstr "Ruta donde se montarán los discos remotos"
+msgstr "Ruta on se muntaran els discs remots"
 
 msgid "Filenames to be ignored"
-msgstr "Nombre de fichero a ignorar"
+msgstr "Nom de fitxers a ignorar"
 
 msgid "Comma separed filenames to be ignored by inotify"
-msgstr "Nombre de fichero a ignorar separados por comas"
+msgstr "Nom de fitxers a ignorar separats per comes"
 
 msgid "Terminal command"
-msgstr "Comando de terminal"
+msgstr "Ordre de terminal"
 
 msgid "Command to call a new terminal window in order to perform rclone manager actions"
-msgstr "Comando para llamar a una ventana del terminal para realizar acciones de rclone"
+msgstr "Ordre per obrir una finestra del terminal per a realitzar accions de rclone"
 
 msgid "File browser command"
-msgstr "Comando de explorador de archivos"
+msgstr "Ordre del navegador de fitxers"
 
 msgid "Command to call a new file browser window in order to explore configuration folders"
-msgstr "Comando para llamar al explorador de archivos"
+msgstr "Ordre per cridar una finestra nova del navegador de fitxers per explorar les carpetes de configuració"
 
 msgid "Sync files on start"
-msgstr "Sincronizar al iniciar"
+msgstr "Sincronitzar al iniciar"
 
 msgid "If is on will execute 'rclone sync' on start watching a profile"
-msgstr "Si está encendido ejecutará 'rclone sync' al inicializar un perfil"
+msgstr "Si està activat, executarà 'rclone sync' en començar a monitoritzar un perfil"
 
 msgid "Create command"
-msgstr "Comando de crear"
+msgstr "Ordre de crear"
 
 msgid "Delete dir command"
-msgstr "Comando de eliminar directorio"
+msgstr "Ordre de eliminar carpeta"
 
 msgid "Delete file command"
-msgstr "Comando de eliminar archivo"
+msgstr "Ordre de eliminar arxiu"
 
 msgid "Mount command"
-msgstr "Comando de montar"
+msgstr "Ordre de muntar"
 
 msgid "Sync command"
-msgstr "Comando de sincronizar"
+msgstr "Ordre de sincronitzar"
 
 msgid "Profile registry"
-msgstr "Registro de perfiles"
+msgstr "Registre de perfils"
 
 msgid "Stores profile status and configs"
-msgstr "Almacena el estado de los perfiles y configuraciones"
+msgstr "Emmagatzema l'estat del perfil i les configuracions"
 
 msgid "Debug mode"
-msgstr "Modo Debug"
+msgstr "Mode Depuració"
 
 msgid "Print verbose debug messages to the journalctl"
-msgstr "Imprime mensajes de debug en el journalctl"
+msgstr "Imprimeix els missatges de depuració detallats al"
 
 msgid "Reset settings"
-msgstr "Restaurar valores"
+msgstr "Restablir valors"
 
 msgid "About"
-msgstr "Acerca de"
+msgstr "Sobre"
 
 msgid "It seems you don't have rclone installed, this extension won't work without it"
-msgstr "Parece que rclone no está instalado, esta extensión no funcionará sin él"
+msgstr "Sembla que no teniu instal·lat el rclone, aquesta extensió no funcionarà sense"
 
 msgid "Mounted successfully"
-msgstr "Montada correctamente"
+msgstr "Muntada correctament"
 
 msgid "Umounted successfully"
-msgstr "Desmontada correctamente"
+msgstr "Desmuntada correctament"
 
 msgid "Filemonitor has been started"
-msgstr "El monitor de ficheros se ha iniciado"
+msgstr "El monitor de fitxers s'ha iniciat"
 
 msgid "Filemonitor has been stopped"
-msgstr "El monitor de ficheros se ha parado"
+msgstr "El monitor de fitxers s'ha parat"
 
 msgid "Synchronization finished successfully"
-msgstr "Sincronización finalizada correctamente"
+msgstr "Sincronització finalitzada correctament"
 
 msgid "Backup & restore"
-msgstr "Respaldar & restaurar"
+msgstr "Còpia & restabliment"
 
 msgid "Backup"
-msgstr "Respaldar"
+msgstr "Copiar"
 
 msgid "Restore"
-msgstr "Restaurar"
+msgstr "Restablir"
 
 msgid "Select a profile where backup to or restore from"
-msgstr "Selecciona un perfil hacia el que respaldar o desde el que restaurar"
+msgstr "Seleccioneu un perfil des d'on fer una còpia de seguretat o restaurar"
 
 msgid "Operation failed"
-msgstr "La operación ha fallado"
+msgstr "Ha fallat l'operació"
 
 msgid "Operation succeed"
-msgstr "La operación se ha completado con éxito"
+msgstr "Operació correcta"
 
 msgid "Check interval in minuts"
-msgstr "Intervalo de comprobación en min"
+msgstr "Interval de comprovació en minuts"
 
 msgid "Checks the files in the source and destination match"
-msgstr "Comprueba que los archivos coincidan en origen y destino"
+msgstr "Comprova que els arxius coincideixin en origen i destinació"
