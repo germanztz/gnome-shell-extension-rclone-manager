@@ -56,17 +56,17 @@ Vagrant.configure("2") do |config|
   # config.vm.provision :shell, inline: "apt purge -y libreoffice-common thunderbird gnome-initial-setup"
   # config.vm.provision :shell, inline: "apt autoremove -y && apt autoclean"
   config.vm.provision :shell, inline: "apt update"
-  config.vm.provision :shell, inline: "apt install -y gnome-shell-extensions rclone gettext"
+  config.vm.provision :shell, inline: "apt install -y gnome-shell-extension-manager rclone gettext"
   config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLoginEnable ).*,\\1= True,' /etc/gdm3/custom.conf"
   config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLogin ).*,\\1= vagrant,' /etc/gdm3/custom.conf"
 
-  config.vm.define :focal do |config|
-    config.vm.box = "chenhan/ubuntu-desktop-20.04"
-    config.vm.hostname = "focal"
+  config.vm.define :jellyfish do |config|
+    config.vm.box = "fasmat/ubuntu2204-desktop"
+    config.vm.hostname = "jellyfish"
   end
 
   config.trigger.after :up do |trigger|
-    # trigger.only_on = ['focal']
+    # trigger.only_on = ['jellyfish']
     trigger.info = 'user configs'
     trigger.run = {inline: 'vagrant ssh -c \'
       gnome-extensions enable rclone-manager@germanztz.com
@@ -74,7 +74,7 @@ Vagrant.configure("2") do |config|
       gsettings set org.gnome.desktop.screensaver lock-enabled false
       gsettings set org.gnome.desktop.session idle-delay 0
       gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]"
-    \' focal ' }
+    \' jellyfish ' }
   end  
 
      

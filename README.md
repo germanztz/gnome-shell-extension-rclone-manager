@@ -50,6 +50,8 @@ Zoho WorkDrive| The local filesystem
 - System tray icon show the sync status for easy check, system notifications show eventual errors
 - One click sync repository
 - No loops or CPU consumption when idle
+- **NEW!** Does monitor cloud services for changes, and will update local files with remote modifications "live"
+
 
 #### ![mount](docs/mount%20icon.png) Features of mount mode
 
@@ -62,7 +64,6 @@ Zoho WorkDrive| The local filesystem
 
 #### ![watch](docs/watch%20icon.png) Limitations of watch Mode
 
-- Does not monitor cloud services, and will not update local files with remote modifications "live", manual sync is needed
 - local offline changes will be lost on manual sync, always check your changes have synched successfully
 - May not delete local files on manually sync if files were deleted in the cloud
 
@@ -83,6 +84,24 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v42.0
+
+- [x] Shell 42 version update
+- [x] add function check: Checks the files in the source and destination match.
+
+## v1.2
+
+- [x] Vagrant test environment
+- [x] Revision fixes
+
+## v1.1
+
+- [x] Add function backup config
+- [x] Add function restore config
+- [x] Some bug fixes
+- [x] Dutch translation **Thanks @Vistaus !!**
+- [x] French translation **Thanks @noirbizarre !!**
+
 ## v1.0
 
 - [x] Fix create basedir if not exist on mount
@@ -97,23 +116,10 @@ Zoho WorkDrive| The local filesystem
 - [x] Add log to file
 - [x] Translate spanish
 
-## v1.1
-
-- [x] Add function backup config
-- [x] Add function restore config
-- [x] Some bug fixes
-- [x] Dutch translation **Thanks @Vistaus !!**
-- [x] French translation **Thanks @noirbizarre !!**
-
-## v1.2
-
-- [x] Vagrant test environment
-- [x] Revision fixes
-
 ## TODO list
 - [ ] Fix show permanent notification
 - [ ] Fix Backup / resotore dialog style
-- [ ] add function check: Checks the files in the source and destination match.
 - [ ] add function cleanup: Clean up the remote if possible.
 - [ ] add function size: Prints the total size and number of objects in remote:path.
+- [ ] add [encripted config support](https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues/11)
 

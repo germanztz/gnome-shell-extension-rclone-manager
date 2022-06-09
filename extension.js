@@ -5,17 +5,15 @@ const Gio = imports.gi.Gio
 const GObject = imports.gi.GObject
 const St = imports.gi.St
 const Util = imports.misc.util
-const Config = imports.misc.config
 const ExtensionUtils = imports.misc.extensionUtils
 const MessageTray = imports.ui.messageTray
 const Main = imports.ui.main
 const PanelMenu = imports.ui.panelMenu
 const PopupMenu = imports.ui.popupMenu
+const Mainloop = imports.mainloop
 const Gettext = imports.gettext
 const Me = ExtensionUtils.getCurrentExtension()
 const _ = Gettext.domain(Me.metadata.name).gettext
-
-const shellVersion = Number.parseInt(Config.PACKAGE_VERSION.split('.'))
 
 const fmh = Me.imports.fileMonitorHelper
 const ConfirmDialog = Me.imports.confirmDialog
@@ -26,8 +24,6 @@ const PROFILE_WATCHED_ICON = 'folder-saved-search-symbolic'
 const PROFILE_MOUNTED_ICON = 'folder-remote-symbolic'
 const PROFILE_BUSSY_ICON = 'system-run-symbolic'
 const PROFILE_ERROR_ICON = 'dialog-warning-symbolic'
-
-let PREF_AUTOSYNC = true
 
 const submenus = {
   Watch: 'folder-saved-search-symbolic',
@@ -51,8 +47,9 @@ const RcloneManager = GObject.registerClass({
     log('rcm._init')
     this._initNotifSource()
     this.Settings = ExtensionUtils.getSettings(fmh.PREFS_SCHEMA_NAME)
-    this._settingsChangedId = null
-
+    this.PREF_AUTOSYNC = true
+    this.PREF_CHECK_INTERVAL = 3
+    this.checkTimeoutId = null
     this._configs = []
     this._registry = {}
 
@@ -93,7 +90,7 @@ const RcloneManager = GObject.registerClass({
 
   _loadSettings () {
     fmh.PREF_DBG && log('rcm._loadSettings')
-    this._settingsChangedId = this.Settings.connect('changed', this._onSettingsChange.bind(this))
+    this.Settings.connect('changed', this._onSettingsChange.bind(this))
     this._onSettingsChange()
   }
 
@@ -105,18 +102,43 @@ const RcloneManager = GObject.registerClass({
     fmh.PREF_IGNORE_PATTERNS = this.Settings.get_string(fmh.PrefsFields.PREFKEY_IGNORE_PATTERNS)
     fmh.PREF_EXTERNAL_TERMINAL = this.Settings.get_string(fmh.PrefsFields.PREFKEY_EXTERNAL_TERMINAL)
     fmh.PREF_EXTERNAL_FILE_BROWSER = this.Settings.get_string(fmh.PrefsFields.PREFKEY_EXTERNAL_FILE_BROWSER)
-    PREF_AUTOSYNC = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_AUTOSYNC)
+    this.PREF_AUTOSYNC = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_AUTOSYNC)
+    this.PREF_CHECK_INTERVAL = this.Settings.get_int(fmh.PrefsFields.PREFKEY_CHECK_INTERVAL)
     fmh.PREF_RC_CREATE_DIR = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_CREATE_DIR)
     fmh.PREF_RC_DELETE_DIR = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_DELETE_DIR)
     fmh.PREF_RC_DELETE_FILE = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_DELETE_FILE)
     fmh.PREF_RC_MOUNT = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_MOUNT)
     fmh.PREF_RC_SYNC = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_SYNC)
+    fmh.PREF_RC_CHECK = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_CHECK)
     this._registry = this._readRegistry(this.Settings.get_string(fmh.PrefsFields.HIDDENKEY_PROFILE_REGISTRY))
 
     fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
     if (!fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH + '/'
 
     fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
+
+    this._resetCheckInterval()
+  }
+
+  _resetCheckInterval () {
+    this._removeCheckInterval()
+    if (this.PREF_CHECK_INTERVAL !== 0) {
+      fmh.PREF_DBG && log(`rcm._resetCheckInterval, interval: ${this.PREF_CHECK_INTERVAL}`)
+      this.checkTimeoutId = Mainloop.timeout_add(this.PREF_CHECK_INTERVAL*60000, () => {
+        Object.entries(this._registry)
+          .filter(p => p[1].syncType === fmh.ProfileStatus.WATCHED)
+          .forEach(p => fmh.checkNsync(p[0], (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) }))
+        return true
+      })
+    }
+  }
+
+  _removeCheckInterval () {
+    if (this.checkTimeoutId) {
+      fmh.PREF_DBG && log(`rcm._removeCheckInterval`)
+      Mainloop.source_remove(this.checkTimeoutId)
+      this.checkTimeoutId = null
+    }
   }
 
   _initConfig () {
@@ -140,7 +162,7 @@ const RcloneManager = GObject.registerClass({
     fmh.PREF_DBG && log('rcm._initProfile', profile, JSON.stringify(regProf))
     const that = this
     if (regProf.syncType === fmh.ProfileStatus.WATCHED) {
-      if (PREF_AUTOSYNC) {
+      if (this.PREF_AUTOSYNC) {
         fmh.sync(profile, (profile, status, message) => {
           that._onProfileStatusChanged(profile, status, message)
           if (status !== fmh.ProfileStatus.BUSSY) {
@@ -152,6 +174,7 @@ const RcloneManager = GObject.registerClass({
         fmh.initFilemonitor(profile,
           function (profile, status, message) { that._onProfileStatusChanged(profile, status, message) })
       }
+      this._resetCheckInterval ()
     } else if (Object.prototype.hasOwnProperty.call(fmh.getMounts(), profile)) {
       // if is already mounted just leave it
       this._onProfileStatusChanged(profile, fmh.ProfileStatus.MOUNTED, profile + ' was already mounted')
@@ -281,9 +304,6 @@ const RcloneManager = GObject.registerClass({
         break
       default:
         break
-    }
-    if (shellVersion < 40) {
-      this.menu.toggle()
     }
   }
 
@@ -426,12 +446,7 @@ const RcloneManager = GObject.registerClass({
       transformFn(notification)
     }
 
-    notification.setTransient(true)
-    if (Config.PACKAGE_VERSION < '3.36') {
-      this._notifSource.notify(notification)
-    } else {
-      this._notifSource.showNotification(notification)
-    }
+    this._notifSource.showNotification(notification)
   }
 
   _lauchAbout () {
@@ -457,6 +472,7 @@ ${Me.metadata.url}
   destroy () {
     // Call parent
     super.destroy()
+    this._removeCheckInterval()
   }
 })
 
