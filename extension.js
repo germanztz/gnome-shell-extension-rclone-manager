@@ -124,7 +124,7 @@ const RcloneManager = GObject.registerClass({
     this._removeCheckInterval()
     if (this.PREF_CHECK_INTERVAL !== 0) {
       fmh.PREF_DBG && log(`rcm._resetCheckInterval, interval: ${this.PREF_CHECK_INTERVAL}`)
-      this.checkTimeoutId = Mainloop.timeout_add(this.PREF_CHECK_INTERVAL*60000, () => {
+      this.checkTimeoutId = Mainloop.timeout_add(this.PREF_CHECK_INTERVAL * 60000, () => {
         Object.entries(this._registry)
           .filter(p => p[1].syncType === fmh.ProfileStatus.WATCHED)
           .forEach(p => fmh.checkNsync(p[0], (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) }))
@@ -135,7 +135,7 @@ const RcloneManager = GObject.registerClass({
 
   _removeCheckInterval () {
     if (this.checkTimeoutId) {
-      fmh.PREF_DBG && log(`rcm._removeCheckInterval`)
+      fmh.PREF_DBG && log('rcm._removeCheckInterval')
       Mainloop.source_remove(this.checkTimeoutId)
       this.checkTimeoutId = null
     }
@@ -174,7 +174,7 @@ const RcloneManager = GObject.registerClass({
         fmh.initFilemonitor(profile,
           function (profile, status, message) { that._onProfileStatusChanged(profile, status, message) })
       }
-      this._resetCheckInterval ()
+      this._resetCheckInterval()
     } else if (Object.prototype.hasOwnProperty.call(fmh.getMounts(), profile)) {
       // if is already mounted just leave it
       this._onProfileStatusChanged(profile, fmh.ProfileStatus.MOUNTED, profile + ' was already mounted')
