@@ -14,6 +14,9 @@ const Mainloop = imports.mainloop
 const Gettext = imports.gettext
 const Me = ExtensionUtils.getCurrentExtension()
 const _ = Gettext.domain(Me.metadata.name).gettext
+const Config = imports.misc.config
+const [major] = Config.PACKAGE_VERSION.split('.')
+const shellVersion = Number.parseInt(major)
 
 const fmh = Me.imports.fileMonitorHelper
 const ConfirmDialog = Me.imports.confirmDialog
@@ -304,6 +307,9 @@ const RcloneManager = GObject.registerClass({
         break
       default:
         break
+    }
+    if (shellVersion < 40) {
+      this.menu.toggle()
     }
   }
 

@@ -433,14 +433,14 @@ function sync (profile, onProfileStatusChanged) {
 function checkNsync (profile, onProfileStatusChanged) {
   PREF_DBG && log('fmh.checkNsync', profile)
 
-  if ( !Object.prototype.hasOwnProperty.call(_monitors, profile) || 
+  if (!Object.prototype.hasOwnProperty.call(_monitors, profile) ||
     Object.prototype.hasOwnProperty.call(_monitors[profile], 'is_checking') ||
     Object.prototype.hasOwnProperty.call(_monitors[profile], 'is_synching')) {
-      log(`fmh.checkNsync WARN ${profile} is already checking or synching, exiting`)
-      return
-  }  else {
+    log(`fmh.checkNsync WARN ${profile} is already checking or synching, exiting`)
+    return
+  } else {
     _monitors[profile].is_checking = true
-  }  
+  }
   spawnAsyncCmd(PREF_RC_CHECK, profile, null, PREF_BASE_MOUNT_PATH + profile,
     function (status, stdoutLines, stderrLines) {
       if (Object.prototype.hasOwnProperty.call(_monitors, profile)) {
@@ -449,8 +449,8 @@ function checkNsync (profile, onProfileStatusChanged) {
       PREF_DBG && log(`check status: ${status}`)
 
       if (status === 256) {
-        sync (profile, onProfileStatusChanged)
-      } 
+        sync(profile, onProfileStatusChanged)
+      }
     })
 }
 

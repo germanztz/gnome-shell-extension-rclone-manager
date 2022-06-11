@@ -36,7 +36,13 @@ From your extension local directory
 
 ## Debugging and testing in Virtual dev environment
 
-    $ make vmrun
+Launch in Ubuntu 20.04
+
+    $ make vm=focal vmrun
+
+Or Ubuntu 22.04
+
+    $ make vm=jellyfish vmrun
 
 ## Doc
 
