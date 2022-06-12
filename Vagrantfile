@@ -60,22 +60,34 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLoginEnable ).*,\\1= True,' /etc/gdm3/custom.conf"
   config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLogin ).*,\\1= vagrant,' /etc/gdm3/custom.conf"
 
+  triggercrpt = 'vagrant ssh -c \'
+  gnome-extensions enable rclone-manager@germanztz.com
+  gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
+  gsettings set org.gnome.desktop.screensaver lock-enabled false
+  gsettings set org.gnome.desktop.session idle-delay 0
+  gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]"
+  whoami \''
+
+  config.vm.define :focal do |config|
+    config.vm.box = "chenhan/ubuntu-desktop-20.04"
+    config.vm.hostname = "focal"
+  end
+
+  config.trigger.after :up do |trigger|
+    trigger.only_on = ['focal']
+    trigger.info = 'user configs'
+    trigger.run = {inline: "#{triggercrpt} focal"}
+  end  
+
   config.vm.define :jellyfish do |config|
     config.vm.box = "fasmat/ubuntu2204-desktop"
     config.vm.hostname = "jellyfish"
   end
 
   config.trigger.after :up do |trigger|
-    # trigger.only_on = ['jellyfish']
+    trigger.only_on = ['jellyfish']
     trigger.info = 'user configs'
-    trigger.run = {inline: 'vagrant ssh -c \'
-      gnome-extensions enable rclone-manager@germanztz.com
-      gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
-      gsettings set org.gnome.desktop.screensaver lock-enabled false
-      gsettings set org.gnome.desktop.session idle-delay 0
-      gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]"
-    \' jellyfish ' }
+    trigger.run = {inline: "#{triggercrpt} jellyfish"}
   end  
-
      
 end

@@ -174,7 +174,7 @@ msgstr "Reservekopie maken"
 msgid "Restore"
 msgstr "Herstellen"
 
-msgid "Select a profile where backup to or restorer from"
+msgid "Select a profile where backup to or restore from"
 msgstr "Kies het profiel waarvan een reservekopie moet worden gemaakt of dat moet worden hersteld"
 
 msgid "Operation failed"

@@ -96,7 +96,7 @@ msgid "Restore"
 msgstr "Restaurer"
 
 #: prefs.js:181
-msgid "Select a profile where backup to or restorer from"
+msgid "Select a profile where backup to or restore from"
 msgstr "Choisissez un profile où sauvegarder ou restaurer de"
 
 #: prefs.js:205 prefs.js:223
