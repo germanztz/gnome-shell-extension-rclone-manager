@@ -65,7 +65,8 @@ Vagrant.configure("2") do |config|
   gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
   gsettings set org.gnome.desktop.screensaver lock-enabled false
   gsettings set org.gnome.desktop.session idle-delay 0
-  gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]"'
+  gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]"
+  whoami \''
 
   config.vm.define :focal do |config|
     config.vm.box = "chenhan/ubuntu-desktop-20.04"
