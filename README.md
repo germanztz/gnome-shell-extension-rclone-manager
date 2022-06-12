@@ -84,6 +84,11 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v42.1
+
+- [x] Revision fixes
+- [x] Unify versions v1 and v42
+
 ## v42.0
 
 - [x] Shell 42 version update
