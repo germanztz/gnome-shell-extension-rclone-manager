@@ -98,7 +98,7 @@ const RcloneManager = GObject.registerClass({
   }
 
   _onSettingsChange () {
-    fmh.PREF_DBG = true //this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_DEBUG_MODE)
+    fmh.PREF_DBG = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_DEBUG_MODE)
     fmh.PREF_DBG && log('rcm._onSettingsChange')
     fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
     fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_BASE_MOUNT_PATH)
@@ -480,10 +480,10 @@ const RcloneManager = GObject.registerClass({
 `
 ${Me.metadata.name} v${Me.metadata.version}
 
-AUTHORS: 
-German Ztz <avena.root@gmail.com>: Development 
+AUTHORS:
+German Ztz <avena.root@gmail.com>: Development
 Heimen Stoffels: Dutch translation
-Axel H.: French translation 
+Axel H.: French translation
 
 ${Me.metadata.description}
 
