@@ -98,7 +98,7 @@ const RcloneManager = GObject.registerClass({
   }
 
   _onSettingsChange () {
-    fmh.PREF_DBG = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_DEBUG_MODE)
+    fmh.PREF_DBG = true //this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_DEBUG_MODE)
     fmh.PREF_DBG && log('rcm._onSettingsChange')
     fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
     fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_BASE_MOUNT_PATH)
@@ -148,6 +148,7 @@ const RcloneManager = GObject.registerClass({
     fmh.PREF_DBG && log('rcm._initConfig')
     const oldConfig = this._configs
     this._configs = fmh.listremotes()
+    this._cleanRegistry()
     // restores existing log
     Object.entries(this._configs).forEach(entry => {
       if (entry[0] in oldConfig) {
@@ -159,6 +160,19 @@ const RcloneManager = GObject.registerClass({
     this._buildMainMenu(this._configs)
     Object.entries(this._registry).forEach(registryProfile =>
       this._initProfile(registryProfile[0], registryProfile[1]))
+  }
+
+  _cleanRegistry(){
+    fmh.PREF_DBG && log('rcm._cleanRegistry', JSON.stringify(this._registry), JSON.stringify(this._configs))
+
+    Object.entries(this._registry).forEach(registryProfile => {
+      if(!(registryProfile[0] in this._configs)){
+        delete this._registry[registryProfile[0]]
+        fmh.PREF_DBG && log('rcm._cleanRegistry', JSON.stringify(this._registry), 'has beed deleted from registry')
+        this._updateRegistry(this._registry)
+      }
+    })
+
   }
 
   _initProfile (profile, regProf) {
@@ -269,15 +283,15 @@ const RcloneManager = GObject.registerClass({
 
     switch (menuItem.action) {
       case 'Watch':
-        this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.WATCHED })
+        this._updateRegistryItem(menuItem.profile, { syncType: fmh.ProfileStatus.WATCHED })
         this._initProfile(menuItem.profile, { syncType: fmh.ProfileStatus.WATCHED })
         break
       case 'Mount':
-        this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.MOUNTED })
+        this._updateRegistryItem(menuItem.profile, { syncType: fmh.ProfileStatus.MOUNTED })
         this._initProfile(menuItem.profile, { syncType: fmh.ProfileStatus.MOUNTED })
         break
       case 'Disengage':
-        this._updateRegistry(menuItem.profile, { syncType: fmh.ProfileStatus.DISCONNECTED })
+        this._updateRegistryItem(menuItem.profile, { syncType: fmh.ProfileStatus.DISCONNECTED })
         fmh.disengage(menuItem.profile,
           (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) })
         break
@@ -323,10 +337,14 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _updateRegistry (key, value) {
+  _updateRegistryItem (key, value) {
     this._registry[key] = value
-    fmh.PREF_DBG && log('rcm._updateRegistry', JSON.stringify(this._registry))
-    this.Settings.set_string(fmh.PrefsFields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(this._registry))
+    this._updateRegistry(this._registry)
+  }
+
+  _updateRegistry (newRegistry) {
+    fmh.PREF_DBG && log('rcm._updateRegistry', JSON.stringify(newRegistry))
+    this.Settings.set_string(fmh.PrefsFields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(newRegistry))
   }
 
   _openRemote (autoSet) {
@@ -349,6 +367,7 @@ const RcloneManager = GObject.registerClass({
       switch (status) {
         case fmh.ProfileStatus.DELETED:
           mItem.destroy()
+          this._cleanRegistry()
           return
 
         case fmh.ProfileStatus.ERROR:

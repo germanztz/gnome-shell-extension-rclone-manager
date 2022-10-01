@@ -84,6 +84,11 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v42.2
+
+- [x] bug fixes
+  - [x] https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues/18
+
 ## v42.1
 
 - [x] Revision fixes

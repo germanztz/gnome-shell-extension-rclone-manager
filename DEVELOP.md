@@ -31,8 +31,9 @@ From your extension local directory
 
 ## Prepare Virtual dev environment
 
-    $ apt install vagrant
-    $ vagrant up
+    $ wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    $ echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+    $ sudo apt update && sudo apt install vagrant
 
 ## Debugging and testing in Virtual dev environment
 
@@ -43,6 +44,16 @@ Launch in Ubuntu 20.04
 Or Ubuntu 22.04
 
     $ make vm=jellyfish vmrun
+
+## My Release checklist protocol
+
+- [x] Update version in extension.js 
+- [x] Update changelog from README.md
+- [x] package
+- [x] create tag and release on github
+- [x] close issues on github
+- [x] Upload to gnome extensions
+
 
 ## Doc
 
