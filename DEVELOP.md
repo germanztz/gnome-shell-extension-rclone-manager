@@ -33,7 +33,7 @@ From your extension local directory
 
     $ wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
     $ echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-    $ sudo apt update && sudo apt install vagrant
+    $ sudo apt update && sudo apt install vagrant gettext
 
 ## Debugging and testing in Virtual dev environment
 
@@ -50,6 +50,8 @@ Or Ubuntu 22.04
 - [x] Update version in extension.js 
 - [x] Update changelog from README.md
 - [x] package
+- [x] Push to branche on github
+- [x] Pull request to master on github
 - [x] create tag and release on github
 - [x] close issues on github
 - [x] Upload to gnome extensions
