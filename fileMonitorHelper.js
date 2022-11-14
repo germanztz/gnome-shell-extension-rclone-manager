@@ -160,6 +160,8 @@ function onEvent (profile, monitor, file, otherFile, eventType, profileMountPath
     if (file.get_path().search(_monitors[profile].ignores[idx], 0) > 0) return
   }
 
+  log('fmh.onEvent INFO', profile, file.get_path())
+
   if (Object.prototype.hasOwnProperty.call(_monitors[profile], 'is_synching')) {
     return
   }

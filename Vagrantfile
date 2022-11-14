@@ -10,14 +10,13 @@ Vagrant.configure("2") do |config|
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
 
-  config.vagrant.plugins = ["vagrant-reload"]
+  # config.vagrant.plugins = ["vagrant-reload"]
 
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
-
+  config.vm.synced_folder ".", "/home/vagrant/.local/share/gnome-shell/extensions/rclone-manager@germanztz.com"
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   #
@@ -36,58 +35,38 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.box_check_update = true
-  config.vm.synced_folder ".", "/vagrant_data"
   # config.vm.network :private_network, ip: config_jenkins_ip, libvirt__forward_mode: 'route', libvirt__dhcp_enabled: false
   # Enable provisioning with a shell script. Additional provisioners such as
-  # config.vm.provision "shell", inline: <<-SHELL
-  #   apt-get update
-  #   apt-get install -y codium git
-  # SHELL
+  config.vm.provision "file", source: "~/.config/rclone/rclone.conf", destination: "/home/vagrant/.config/rclone/rclone.conf"
+  config.vm.provision "shell", inline: <<-SHELL
+    systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+    timedatectl set-timezone Europe/Madrid
+    
+    apt update
+    apt install -y rclone gettext tasksel
+    tasksel install ubuntu-desktop
+    apt install -y gnome-shell-extension-manager gnome-terminal nautilus
+    sed -i -E 's,^#?[ ]*( AutomaticLoginEnable ).*,\\1= True,' /etc/gdm3/custom.conf
+    sed -i -E 's,^#?[ ]*( AutomaticLogin ).*,\\1= vagrant,' /etc/gdm3/custom.conf
+
+    init 6
+    SHELL
+
   config.vm.post_up_message = "vm started!!!"
-
-
-  config.vm.provision :shell, inline: "mkdir -p /home/vagrant/.local/share/gnome-shell/extensions/rclone-manager@germanztz.com"
-  config.vm.provision :shell, inline: "cp -R /vagrant_data/* /home/vagrant/.local/share/gnome-shell/extensions/rclone-manager@germanztz.com"
-  config.vm.provision :shell, inline: "chown -R vagrant:vagrant /home/vagrant/.local/share/gnome-shell"
-  config.vm.provision :shell, inline: "systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target"
-  config.vm.provision :shell, inline: "timedatectl set-timezone Europe/Madrid"
-   
-  config.vm.provision :shell, inline: "apt purge -y gnome-initial-setup"
-  # config.vm.provision :shell, inline: "apt purge -y libreoffice-common thunderbird gnome-initial-setup"
-  # config.vm.provision :shell, inline: "apt autoremove -y && apt autoclean"
-  config.vm.provision :shell, inline: "apt update"
-  config.vm.provision :shell, inline: "apt install -y gnome-shell-extension-manager rclone gettext"
-  config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLoginEnable ).*,\\1= True,' /etc/gdm3/custom.conf"
-  config.vm.provision :shell, inline: "sed -i -E 's,^#?[ ]*( AutomaticLogin ).*,\\1= vagrant,' /etc/gdm3/custom.conf"
-
-  triggercrpt = 'vagrant ssh -c \'
-  gnome-extensions enable rclone-manager@germanztz.com
-  gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
-  gsettings set org.gnome.desktop.screensaver lock-enabled false
-  gsettings set org.gnome.desktop.session idle-delay 0
-  gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]"
-  whoami \''
-
+  
   config.vm.define :focal do |config|
     config.vm.box = "chenhan/ubuntu-desktop-20.04"
     config.vm.hostname = "focal"
   end
-
-  config.trigger.after :up do |trigger|
-    trigger.only_on = ['focal']
-    trigger.info = 'user configs'
-    trigger.run = {inline: "#{triggercrpt} focal"}
-  end  
 
   config.vm.define :jellyfish do |config|
     config.vm.box = "fasmat/ubuntu2204-desktop"
     config.vm.hostname = "jellyfish"
   end
 
-  config.trigger.after :up do |trigger|
-    trigger.only_on = ['jellyfish']
-    trigger.info = 'user configs'
-    trigger.run = {inline: "#{triggercrpt} jellyfish"}
-  end  
+  config.vm.define :kinetic do |config|
+    config.vm.box = "ubuntu/kinetic64"
+    config.vm.hostname = "kinetic"
+  end
      
 end

@@ -37,13 +37,11 @@ From your extension local directory
 
 ## Debugging and testing in Virtual dev environment
 
-Launch in Ubuntu 20.04
+Launch in vm Ubuntu
 
-    $ make vm=focal vmrun
-
-Or Ubuntu 22.04
-
-    $ make vm=jellyfish vmrun
+vm = focal | jellyfish | kinetic
+    
+    $ make vm=kinetic vmrun
 
 ## My Release checklist protocol
 
