@@ -1,0 +1,190 @@
+# Spanish translation for gnome-shell-extension-rclone-manager.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the gnome-shell-extension-rclone-manager package.
+# Germán Z <hildogjr@github.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-shell-extension-rclone-manager\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-10-15 13:20+0300\n"
+"PO-Revision-Date: 2022-10-15 09:43-0600\n"
+"Last-Translator: Hildo Guillardi Júnior <hildogjr@github.com>\n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.6\n"
+
+msgid " was already mounted"
+msgstr " já estava montado"
+
+msgid "Add config"
+msgstr "Configurar"
+
+msgid "Settings"
+msgstr "Configurações"
+
+msgid "Watch"
+msgstr "Monitorar"
+
+msgid "Unwatch"
+msgstr "Desmonitorar"
+
+msgid "Mount"
+msgstr "Montar"
+
+msgid "Umount"
+msgstr "Desmontar"
+
+msgid "Open"
+msgstr "Abrir"
+
+msgid "Reconnect"
+msgstr "Reconectar"
+
+msgid "Sync"
+msgstr "Sincronizar"
+
+msgid "Delete"
+msgstr "Dletar"
+
+msgid "Error"
+msgstr "Erro"
+
+msgid "Log"
+msgstr "Log"
+
+msgid "Disengage"
+msgstr "Deshabilitar"
+
+msgid "Are you sure you want to delete?"
+msgstr "Tem certeza que deseja deletar?"
+
+msgid "This action cannot be undone"
+msgstr "Esta ação não poderá ser desafeita"
+
+msgid "Confirm"
+msgstr "Confirmar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Log Detail"
+msgstr "Log detalhado"
+
+msgid "Ok"
+msgstr "Ok"
+
+msgid "Details"
+msgstr "Detalhes"
+
+msgid "Rclone configuration file path"
+msgstr "Camiho para arquivo configuração do Rclone"
+
+msgid "Base mount path"
+msgstr "Diretório base"
+
+msgid "Path where the remote disks are mounted"
+msgstr "Base de montagem para unidades remotas"
+
+msgid "Filenames to be ignored"
+msgstr "Arquivos a serem ignorados"
+
+msgid "Comma separed filenames to be ignored by inotify"
+msgstr "Os arquivos a serem ignorados devem ser separados por vírgulas"
+
+msgid "Terminal command"
+msgstr "Comando de terminal"
+
+msgid "Command to call a new terminal window in order to perform rclone manager actions"
+msgstr "Comando para llamar a una ventana del terminal para realizar acciones de rclone"
+
+msgid "File browser command"
+msgstr "Comando de explorador de archivos"
+
+msgid "Command to call a new file browser window in order to explore configuration folders"
+msgstr "Comando para llamar al explorador de archivos"
+
+msgid "Sync files on start"
+msgstr "Sincronizar al iniciar"
+
+msgid "If is on will execute 'rclone sync' on start watching a profile"
+msgstr "Si está encendido ejecutará 'rclone sync' al inicializar un perfil"
+
+msgid "Create command"
+msgstr "Comando de crear"
+
+msgid "Delete dir command"
+msgstr "Comando de eliminar directorio"
+
+msgid "Delete file command"
+msgstr "Comando de eliminar archivo"
+
+msgid "Mount command"
+msgstr "Comando de montar"
+
+msgid "Sync command"
+msgstr "Comando de sincronizar"
+
+msgid "Profile registry"
+msgstr "Registro de perfiles"
+
+msgid "Stores profile status and configs"
+msgstr "Almacena el estado de los perfiles y configuraciones"
+
+msgid "Debug mode"
+msgstr "Modo Debug"
+
+msgid "Print verbose debug messages to the journalctl"
+msgstr "Imprime mensajes de debug en el journalctl"
+
+msgid "Reset settings"
+msgstr "Restaurar valores"
+
+msgid "About"
+msgstr "Acerca de"
+
+msgid "It seems you don't have rclone installed, this extension won't work without it"
+msgstr "Parece que rclone no está instalado, esta extensión no funcionará sin él"
+
+msgid "Mounted successfully"
+msgstr "Montada correctamente"
+
+msgid "Umounted successfully"
+msgstr "Desmontada correctamente"
+
+msgid "Filemonitor has been started"
+msgstr "El monitor de ficheros se ha iniciado"
+
+msgid "Filemonitor has been stopped"
+msgstr "El monitor de ficheros se ha parado"
+
+msgid "Synchronization finished successfully"
+msgstr "Sincronización finalizada correctamente"
+
+msgid "Backup & restore"
+msgstr "Respaldar & restaurar"
+
+msgid "Backup"
+msgstr "Respaldar"
+
+msgid "Restore"
+msgstr "Restaurar"
+
+msgid "Select a profile where backup to or restore from"
+msgstr "Selecciona un perfil hacia el que respaldar o desde el que restaurar"
+
+msgid "Operation failed"
+msgstr "La operación ha fallado"
+
+msgid "Operation succeed"
+msgstr "La operación se ha completado con éxito"
+
+msgid "Check interval in minuts"
+msgstr "Intervalo de comprobación en min"
+
+msgid "Checks the files in the source and destination match"
+msgstr "Comprueba que los archivos coincidan en origen y destino"
