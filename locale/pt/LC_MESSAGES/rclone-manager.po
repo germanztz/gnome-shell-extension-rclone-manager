@@ -1,7 +1,7 @@
 # Spanish translation for gnome-shell-extension-rclone-manager.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the gnome-shell-extension-rclone-manager package.
-# Germán Z <hildogjr@github.com>, 2022.
+# Hildo Guillardi Júnior <hildogjr@github.com>, 2022.
 #
 msgid ""
 msgstr ""
