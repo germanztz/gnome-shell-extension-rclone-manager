@@ -97,31 +97,31 @@ msgid "Comma separed filenames to be ignored by inotify"
 msgstr "Os arquivos a serem ignorados devem ser separados por vírgulas"
 
 msgid "Terminal command"
-msgstr "Comando de terminal"
+msgstr "Terminal de comando"
 
 msgid "Command to call a new terminal window in order to perform rclone manager actions"
-msgstr "Comando para llamar a una ventana del terminal para realizar acciones de rclone"
+msgstr "Abre terminal para rclone manager"
 
 msgid "File browser command"
-msgstr "Comando de explorador de archivos"
+msgstr "Abre explorador de arquivos"
 
 msgid "Command to call a new file browser window in order to explore configuration folders"
-msgstr "Comando para llamar al explorador de archivos"
+msgstr "Abre explorador de arquivos com o arquivo de configurações"
 
 msgid "Sync files on start"
-msgstr "Sincronizar al iniciar"
+msgstr "Sincronizar ao iniciar"
 
 msgid "If is on will execute 'rclone sync' on start watching a profile"
-msgstr "Si está encendido ejecutará 'rclone sync' al inicializar un perfil"
+msgstr "Se selecionado, executará 'rclone sync' na inicialização"
 
 msgid "Create command"
-msgstr "Comando de crear"
+msgstr "Comando de criação"
 
 msgid "Delete dir command"
-msgstr "Comando de eliminar directorio"
+msgstr "Comando de deletar directorio"
 
 msgid "Delete file command"
-msgstr "Comando de eliminar archivo"
+msgstr "Comando de deletar arquivo"
 
 msgid "Mount command"
 msgstr "Comando de montar"
@@ -130,61 +130,61 @@ msgid "Sync command"
 msgstr "Comando de sincronizar"
 
 msgid "Profile registry"
-msgstr "Registro de perfiles"
+msgstr "Registro de profiles"
 
 msgid "Stores profile status and configs"
-msgstr "Almacena el estado de los perfiles y configuraciones"
+msgstr "Armazena o estado e configurações"
 
 msgid "Debug mode"
-msgstr "Modo Debug"
+msgstr "Modo de debug"
 
 msgid "Print verbose debug messages to the journalctl"
-msgstr "Imprime mensajes de debug en el journalctl"
+msgstr "Imprime mensages de debug no journalctl"
 
 msgid "Reset settings"
 msgstr "Restaurar valores"
 
 msgid "About"
-msgstr "Acerca de"
+msgstr "Sobre"
 
 msgid "It seems you don't have rclone installed, this extension won't work without it"
-msgstr "Parece que rclone no está instalado, esta extensión no funcionará sin él"
+msgstr "Parece que rclone no está instalado, esta extensão não funcionará"
 
 msgid "Mounted successfully"
-msgstr "Montada correctamente"
+msgstr "Montada correcamente"
 
 msgid "Umounted successfully"
-msgstr "Desmontada correctamente"
+msgstr "Desmontada corretamente"
 
 msgid "Filemonitor has been started"
-msgstr "El monitor de ficheros se ha iniciado"
+msgstr "O monitor de arquivos foi iniciado"
 
 msgid "Filemonitor has been stopped"
-msgstr "El monitor de ficheros se ha parado"
+msgstr "O monitor de arquivos foi parado"
 
 msgid "Synchronization finished successfully"
-msgstr "Sincronización finalizada correctamente"
+msgstr "Sincronização finalizada corretamente"
 
 msgid "Backup & restore"
-msgstr "Respaldar & restaurar"
+msgstr "Backup & restaurar"
 
 msgid "Backup"
-msgstr "Respaldar"
+msgstr "Backup"
 
 msgid "Restore"
 msgstr "Restaurar"
 
 msgid "Select a profile where backup to or restore from"
-msgstr "Selecciona un perfil hacia el que respaldar o desde el que restaurar"
+msgstr "Seleciona um perfil para aplicar o backup"
 
 msgid "Operation failed"
-msgstr "La operación ha fallado"
+msgstr "A operação falou"
 
 msgid "Operation succeed"
-msgstr "La operación se ha completado con éxito"
+msgstr "A operação foi concluída com exito"
 
 msgid "Check interval in minuts"
-msgstr "Intervalo de comprobación en min"
+msgstr "Intervalo de checagem en min"
 
 msgid "Checks the files in the source and destination match"
-msgstr "Comprueba que los archivos coincidan en origen y destino"
+msgstr "Checa a coincidência entre os arquivos de origem e destino"
