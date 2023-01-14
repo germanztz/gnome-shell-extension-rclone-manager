@@ -11,12 +11,14 @@ Vagrant.configure("2") do |config|
   # https://docs.vagrantup.com.
 
   # config.vagrant.plugins = ["vagrant-reload"]
+  config.vm.box = "daimler/ubuntu-desktop-22.10"
+
 
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder ".", "/home/vagrant/.local/share/gnome-shell/extensions/rclone-manager@germanztz.com"
+  config.vm.synced_folder ".", "/home/vagrant/rclone-manager@germanztz.com"
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   #
@@ -27,7 +29,6 @@ Vagrant.configure("2") do |config|
     # Display the VirtualBox GUI when booting the machine
     vb.gui = true
     vb.customize ['modifyvm', :id, '--cableconnected1', 'on']
-    vb.customize ["modifyvm", :id, '--groups', '/extensiontest']
     vb.customize ["modifyvm", :id, '--usbxhci', 'off']
     vb.customize ["modifyvm", :id, '--audio', 'none']
     vb.customize ['modifyvm', :id, '--clipboard-mode', 'bidirectional']
@@ -39,34 +40,13 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   config.vm.provision "file", source: "~/.config/rclone/rclone.conf", destination: "/home/vagrant/.config/rclone/rclone.conf"
   config.vm.provision "shell", inline: <<-SHELL
+
     systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
     timedatectl set-timezone Europe/Madrid
-    
     apt update
-    apt install -y rclone gettext tasksel
-    tasksel install ubuntu-desktop
-    apt install -y gnome-shell-extension-manager gnome-terminal nautilus
-    sed -i -E 's,^#?[ ]*( AutomaticLoginEnable ).*,\\1= True,' /etc/gdm3/custom.conf
-    sed -i -E 's,^#?[ ]*( AutomaticLogin ).*,\\1= vagrant,' /etc/gdm3/custom.conf
-
-    init 6
+    apt install -y rclone gnome-shell-extension-manager 
     SHELL
 
   config.vm.post_up_message = "vm started!!!"
-  
-  config.vm.define :focal do |config|
-    config.vm.box = "chenhan/ubuntu-desktop-20.04"
-    config.vm.hostname = "focal"
-  end
-
-  config.vm.define :jellyfish do |config|
-    config.vm.box = "fasmat/ubuntu2204-desktop"
-    config.vm.hostname = "jellyfish"
-  end
-
-  config.vm.define :kinetic do |config|
-    config.vm.box = "ubuntu/kinetic64"
-    config.vm.hostname = "kinetic"
-  end
-     
+       
 end

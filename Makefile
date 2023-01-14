@@ -26,12 +26,11 @@ bundle: all
 run:
 	dbus-run-session -- gnome-shell --nested --wayland
 
-vmrun:
-	ps -ef | grep -v grep | grep -e 'virtualbox.*$(vm)' || vagrant up $(vm)
-	vagrant ssh -c 'gnome-extensions enable rclone-manager@germanztz.com && \
-	    gsettings set org.gnome.desktop.screensaver idle-activation-enabled false && \
-	    gsettings set org.gnome.desktop.screensaver lock-enabled false && \
-    	gsettings set org.gnome.desktop.session idle-delay 0 && \
-    	gsettings set org.gnome.desktop.input-sources sources "[(\"xkb\", \"es\")]" && \
-		sudo service gdm3 restart && \
-		journalctl -f --no-hostname -b /usr/bin/gnome-shell' $(vm)
+vmrun: bundle
+	ps -ef | grep -v grep | grep -e 'virtualbox.*rclone-manager' || vagrant up 
+	vagrant ssh -c '\
+gsettings set org.gnome.shell disable-user-extensions false && \
+gnome-extensions install --force ~/rclone-manager@germanztz.com/rclone-manager@germanztz.com.zip && \
+sudo service gdm3 restart && \
+gnome-extensions enable rclone-manager@germanztz.com && \
+journalctl -f --no-hostname -b /usr/bin/gnome-shell'

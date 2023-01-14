@@ -39,9 +39,7 @@ From your extension local directory
 
 Launch in vm Ubuntu
 
-vm = focal | jellyfish | kinetic
-    
-    $ make vm=kinetic vmrun
+    $ make vmrun
 
 ## My Release checklist protocol
 

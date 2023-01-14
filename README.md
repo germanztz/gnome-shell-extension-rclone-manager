@@ -84,6 +84,12 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v43.0
+
+- [x] Shell 43 version update
+- [x] bug fixes
+- [x] Add pt_BR language **Thanks @hildogjr !!**
+
 ## v42.2
 
 - [x] bug fixes
@@ -128,7 +134,7 @@ Zoho WorkDrive| The local filesystem
 
 ## TODO list
 - [ ] Fix show permanent notification
-- [ ] Fix Backup / resotore dialog style
+- [ ] Fix Backup / restore dialog style
 - [ ] add function cleanup: Clean up the remote if possible.
 - [ ] add function size: Prints the total size and number of objects in remote:path.
 - [ ] add [encripted config support](https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues/11)

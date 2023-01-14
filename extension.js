@@ -45,7 +45,7 @@ const submenus = {
 const RcloneManager = GObject.registerClass({
   GTypeName: 'RcloneManager'
 }, class RcloneManager extends PanelMenu.Button {
-  _init () {
+  _init() {
     super._init(0)
     log('rcm._init')
     this._initNotifSource()
@@ -72,7 +72,7 @@ const RcloneManager = GObject.registerClass({
     })
   }
 
-  _checkDependencies () {
+  _checkDependencies() {
     fmh.PREF_DBG && log('rcm._checkDependencies')
     const rcVersion = fmh.getRcVersion()
     if (!rcVersion || !rcVersion.includes('rclone')) {
@@ -91,13 +91,13 @@ const RcloneManager = GObject.registerClass({
     return true
   }
 
-  _loadSettings () {
+  _loadSettings() {
     fmh.PREF_DBG && log('rcm._loadSettings')
     this.Settings.connect('changed', this._onSettingsChange.bind(this))
     this._onSettingsChange()
   }
 
-  _onSettingsChange () {
+  _onSettingsChange() {
     fmh.PREF_DBG = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_DEBUG_MODE)
     fmh.PREF_DBG && log('rcm._onSettingsChange')
     fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
@@ -123,7 +123,7 @@ const RcloneManager = GObject.registerClass({
     this._resetCheckInterval()
   }
 
-  _resetCheckInterval () {
+  _resetCheckInterval() {
     this._removeCheckInterval()
     if (this.PREF_CHECK_INTERVAL !== 0) {
       fmh.PREF_DBG && log(`rcm._resetCheckInterval, interval: ${this.PREF_CHECK_INTERVAL}`)
@@ -136,7 +136,7 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _removeCheckInterval () {
+  _removeCheckInterval() {
     if (this.checkTimeoutId) {
       fmh.PREF_DBG && log('rcm._removeCheckInterval')
       Mainloop.source_remove(this.checkTimeoutId)
@@ -144,7 +144,7 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _initConfig () {
+  _initConfig() {
     fmh.PREF_DBG && log('rcm._initConfig')
     const oldConfig = this._configs
     this._configs = fmh.listremotes()
@@ -162,11 +162,11 @@ const RcloneManager = GObject.registerClass({
       this._initProfile(registryProfile[0], registryProfile[1]))
   }
 
-  _cleanRegistry(){
+  _cleanRegistry() {
     fmh.PREF_DBG && log('rcm._cleanRegistry', JSON.stringify(this._registry), JSON.stringify(this._configs))
 
     Object.entries(this._registry).forEach(registryProfile => {
-      if(!(registryProfile[0] in this._configs)){
+      if (!(registryProfile[0] in this._configs)) {
         delete this._registry[registryProfile[0]]
         fmh.PREF_DBG && log('rcm._cleanRegistry', JSON.stringify(this._registry), 'has beed deleted from registry')
         this._updateRegistry(this._registry)
@@ -175,7 +175,7 @@ const RcloneManager = GObject.registerClass({
 
   }
 
-  _initProfile (profile, regProf) {
+  _initProfile(profile, regProf) {
     fmh.PREF_DBG && log('rcm._initProfile', profile, JSON.stringify(regProf))
     const that = this
     if (regProf.syncType === fmh.ProfileStatus.WATCHED) {
@@ -201,7 +201,7 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _buildMainMenu (profiles) {
+  _buildMainMenu(profiles) {
     fmh.PREF_DBG && log('rcm._buildMainMenu')
     // clean menu
     this.menu._getMenuItems().forEach(function (i) { i.destroy() })
@@ -233,7 +233,7 @@ const RcloneManager = GObject.registerClass({
      * @param {string} profile
      * @returns {PopupSubMenuMenuItem}
      */
-  _buildMenuItem (profile, status) {
+  _buildMenuItem(profile, status) {
     const menuItem = new PopupMenu.PopupSubMenuMenuItem(profile, true)
     menuItem.profile = profile
     this._setMenuIcon(menuItem, status)
@@ -241,7 +241,7 @@ const RcloneManager = GObject.registerClass({
     return menuItem
   }
 
-  _buildSubmenu (menuItem, profile, status) {
+  _buildSubmenu(menuItem, profile, status) {
     // clean submenu
     fmh.PREF_DBG && log('rcm._buildSubmenu', profile, status)
     if (!menuItem) return
@@ -269,7 +269,7 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _buildSubMenuItem (action, profile) {
+  _buildSubMenuItem(action, profile) {
     const subMenuItem = new PopupMenu.PopupImageMenuItem(_(action), submenus[action])
     subMenuItem.profile = profile
     subMenuItem.action = action
@@ -277,7 +277,7 @@ const RcloneManager = GObject.registerClass({
     return subMenuItem
   }
 
-  _onSubMenuActivated (menuItem) {
+  _onSubMenuActivated(menuItem) {
     fmh.PREF_DBG && log('rcm._onSubMenuActivated', menuItem.profile, menuItem.action)
     const that = this
 
@@ -327,7 +327,7 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _readRegistry (registry) {
+  _readRegistry(registry) {
     fmh.PREF_DBG && log('rcm._readRegistry', registry)
     try {
       return JSON.parse(registry)
@@ -337,29 +337,29 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _updateRegistryItem (key, value) {
+  _updateRegistryItem(key, value) {
     this._registry[key] = value
     this._updateRegistry(this._registry)
   }
 
-  _updateRegistry (newRegistry) {
+  _updateRegistry(newRegistry) {
     fmh.PREF_DBG && log('rcm._updateRegistry', JSON.stringify(newRegistry))
     this.Settings.set_string(fmh.PrefsFields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(newRegistry))
   }
 
-  _openRemote (autoSet) {
+  _openRemote(autoSet) {
     fmh.PREF_DBG && log(autoSet)
   }
 
-  _restoreConfig () {
+  _restoreConfig() {
 
   }
 
-  _addConfig () {
+  _addConfig() {
     fmh.addConfig()
   }
 
-  _onProfileStatusChanged (profile, status, message) {
+  _onProfileStatusChanged(profile, status, message) {
     try {
       fmh.PREF_DBG && log('rcm._onProfileStatusChanged', profile, status, message)
       const mItem = this._findProfileMenu(profile)
@@ -383,9 +383,9 @@ const RcloneManager = GObject.registerClass({
           this.icon.icon_name = PROFILE_BUSSY_ICON
           break
 
-          // case fmh.ProfileStatus.MOUNTED:
-          // case fmh.ProfileStatus.WATCHED:
-          // case fmh.ProfileStatus.DISCONNECTED:
+        // case fmh.ProfileStatus.MOUNTED:
+        // case fmh.ProfileStatus.WATCHED:
+        // case fmh.ProfileStatus.DISCONNECTED:
         default:
           this.icon.icon_name = INDICATOR_ICON
           break
@@ -398,7 +398,7 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _addLog (profile, message) {
+  _addLog(profile, message) {
     fmh.PREF_DBG && log('rcm._addLog', profile, message)
     if (Object.prototype.hasOwnProperty.call(this._configs[profile], 'log')) {
       this._configs[profile].log = this._configs[profile].log + '\n' + message
@@ -407,7 +407,7 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _findProfileMenu (profile) {
+  _findProfileMenu(profile) {
     let retItem = null
     try {
       this.menu._getMenuItems().forEach(function (mItem) {
@@ -421,7 +421,7 @@ const RcloneManager = GObject.registerClass({
     return retItem
   }
 
-  _setMenuIcon (menuItem, status) {
+  _setMenuIcon(menuItem, status) {
     try {
       if (!menuItem) return
       fmh.PREF_DBG && log('rcm._setMenuIcon', menuItem.profile, status)
@@ -449,7 +449,7 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _initNotifSource () {
+  _initNotifSource() {
     if (!this._notifSource) {
       this._notifSource = new MessageTray.Source(Me.metadata.name, INDICATOR_ICON)
       this._notifSource.connect('destroy', () => { this._notifSource = null })
@@ -457,8 +457,9 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _showNotification (message, transformFn) {
+  _showNotification(message, transformFn) {
     let notification = null
+    this._initNotifSource()
 
     if (this._notifSource.count === 0) {
       notification = new MessageTray.Notification(this._notifSource, message)
@@ -474,10 +475,10 @@ const RcloneManager = GObject.registerClass({
     this._notifSource.showNotification(notification)
   }
 
-  _lauchAbout () {
+  _lauchAbout() {
     const rcVersion = fmh.getRcVersion()
     const contents =
-`
+      `
 ${Me.metadata.name} v${Me.metadata.version}
 
 AUTHORS:
@@ -494,24 +495,24 @@ ${Me.metadata.url}
     ConfirmDialog.openConfirmDialog(_('About'), rcVersion, contents, _('Ok'))
   }
 
-  destroy () {
+  destroy() {
     // Call parent
     super.destroy()
     this._removeCheckInterval()
   }
 })
 
-function init () {
-  ExtensionUtils.initTranslations(Me.metadata.uuid)
+function init() {
+  ExtensionUtils.initTranslations(Me.metadata.name)
 }
 
 let rcloneManager
-function enable () {
+function enable() {
   rcloneManager = new RcloneManager()
   Main.panel.addToStatusArea(Me.metadata.name, rcloneManager, 1)
 }
 
-function disable () {
+function disable() {
   rcloneManager.destroy()
   rcloneManager = null
 }
