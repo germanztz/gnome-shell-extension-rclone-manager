@@ -49,7 +49,7 @@ msgid "Sync"
 msgstr "Sincronizar"
 
 msgid "Delete"
-msgstr "Dletar"
+msgstr "Deletar"
 
 msgid "Error"
 msgstr "Erro"
@@ -58,7 +58,7 @@ msgid "Log"
 msgstr "Log"
 
 msgid "Disengage"
-msgstr "Deshabilitar"
+msgstr "Desabilitar"
 
 msgid "Are you sure you want to delete?"
 msgstr "Tem certeza que deseja deletar?"
@@ -82,7 +82,7 @@ msgid "Details"
 msgstr "Detalhes"
 
 msgid "Rclone configuration file path"
-msgstr "Camiho para arquivo configuração do Rclone"
+msgstr "Camiho para arquivo de configuração do Rclone"
 
 msgid "Base mount path"
 msgstr "Diretório base"
@@ -118,7 +118,7 @@ msgid "Create command"
 msgstr "Comando de criação"
 
 msgid "Delete dir command"
-msgstr "Comando de deletar directorio"
+msgstr "Comando de deletar diretorio"
 
 msgid "Delete file command"
 msgstr "Comando de deletar arquivo"
@@ -148,10 +148,10 @@ msgid "About"
 msgstr "Sobre"
 
 msgid "It seems you don't have rclone installed, this extension won't work without it"
-msgstr "Parece que rclone no está instalado, esta extensão não funcionará"
+msgstr "Parece que rclone não está instalado, esta extensão não funcionará"
 
 msgid "Mounted successfully"
-msgstr "Montada correcamente"
+msgstr "Montada corretamente"
 
 msgid "Umounted successfully"
 msgstr "Desmontada corretamente"
