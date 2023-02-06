@@ -12,6 +12,7 @@ const Gio = imports.gi.Gio
 
 var PrefsFields = {
   PREFKEY_RCONFIG_FILE_PATH: 'prefkey001-rconfig-file-path',
+  PREFKEY_RCONFIG_PASSWORD: 'prefkey0011-rconfig-password',
   PREFKEY_BASE_MOUNT_PATH: 'prefkey002-base-mount-path',
   PREFKEY_IGNORE_PATTERNS: 'prefkey003-ignore-patterns',
   PREFKEY_EXTERNAL_TERMINAL: 'prefkey004-external-terminal',
@@ -31,6 +32,7 @@ var PrefsFields = {
 var PREFS_SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager'
 
 var PREF_RCONFIG_FILE_PATH
+var PREF_RCONFIG_PASSWORD
 var PREF_BASE_MOUNT_PATH
 var PREF_IGNORE_PATTERNS
 var PREF_EXTERNAL_TERMINAL
@@ -45,10 +47,10 @@ var PREF_DBG
 var PREF_CHECK_INTERVAL
 
 var RC_LIST_REMOTES = 'rclone listremotes'
-var RC_COPYTO = 'rclone copyto %profile:%source %destination'
-var RC_ADDCONFIG = 'rclone config'
-var RC_DELETE_CONFIG = 'rclone config delete %profile'
-var RC_RECONNECT = 'rclone config reconnect %profile:'
+var RC_COPYTO = 'rclone --password-command %passwordcmd copyto %profile:%source %destination '
+var RC_ADDCONFIG = 'rclone --password-command %passwordcmd config'
+var RC_DELETE_CONFIG = 'rclone --password-command %passwordcmd config delete %profile'
+var RC_RECONNECT = 'rclone --password-command %passwordcmd config reconnect %profile:'
 var RC_UMOUNT = 'umount %source'
 var RC_GETMOUNTS = 'mount'
 var RC_VERSION = 'rclone version'
@@ -505,6 +507,7 @@ function spawnAsyncCmd (cmd, profile, file, destination, callback) {
       .replace('%profile', profile)
       .replace('%source', file)
       .replace('%destination', destination)
+      .replace('%passwordcmd', `echo ${PREF_RCONFIG_PASSWORD}`)
   }
   spawnAsyncWithPipes(cmdArray, callback)
 }

@@ -10,6 +10,14 @@
       </description>
     </key>
 
+    <key name="prefkey0011-rconfig-password" type="s">
+      <default>''</default>
+      <summary>Configuration password</summary>
+      <description>
+        Rclone configuration file password set by "rclone config" -> "Set configuration password"
+      </description>
+    </key>
+
     <key name="prefkey002-base-mount-path" type="s">
       <default>'~/'</default>
       <summary>Base mount path</summary>
