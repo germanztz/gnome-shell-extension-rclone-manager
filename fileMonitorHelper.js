@@ -46,7 +46,7 @@ var PREF_RC_CHECK
 var PREF_DBG
 var PREF_CHECK_INTERVAL
 
-var RC_LIST_REMOTES = 'rclone listremotes'
+var RC_LIST_REMOTES = 'rclone listremotes --password-command %passwordcmd'
 var RC_COPYTO = 'rclone --password-command %passwordcmd copyto %profile:%source %destination '
 var RC_ADDCONFIG = 'rclone --password-command %passwordcmd config'
 var RC_DELETE_CONFIG = 'rclone --password-command %passwordcmd config delete %profile'
@@ -71,7 +71,7 @@ var ProfileStatus = {
 
 const MONITOR_EVENTS = ['CHANGED', 'CHANGES_DONE_HINT', 'DELETED', 'CREATED', 'ATTRIBUTE_CHANGED', 'PRE_UNMOUNT', 'UNMOUNTED', 'MOVED', 'RENAMED', 'MOVED_IN', 'MOVED_OUT']
 
-function getRcVersion () {
+function getRcVersion() {
   const [exitStatus, stdout] = spawnSync(RC_VERSION.split(' '))
   PREF_DBG && log('fmh.rclone version', stdout, 'exitStatus', exitStatus)
   return exitStatus === 0 ? stdout : undefined
@@ -81,15 +81,21 @@ function getRcVersion () {
  * Returns the RCLONE configurations as properties
  * @returns {Object} An Object with the names of the RCLONE configurations as properties
  */
-function listremotes () {
-  const [exitStatus, stdout] = spawnSync(RC_LIST_REMOTES.split(' '))
+function listremotes() {
+  let cmd = RC_LIST_REMOTES.split(' ')
+  for (let i = 0; i < cmd.length; i++) {
+    cmd[i] = cmd[i]
+      .replace('%passwordcmd', `echo ${PREF_RCONFIG_PASSWORD}`)
+  }
+
+  const [exitStatus, stdout] = spawnSync(cmd)
   if (exitStatus !== 0) return {}
   const ret = stdout
     // eslint-disable-next-line prefer-regex-literals
     .replace(new RegExp(':', 'g'), '')
     .split('\n')
     .filter(item => item.length > 1)
-  // convert array of string to object of property objects
+    // convert array of string to object of property objects
     .reduce((a, v) => ({ ...a, [v]: {} }), {})
   PREF_DBG && log('fmh.listremotes', JSON.stringify(ret))
   return ret
@@ -100,7 +106,7 @@ function listremotes () {
  * @param {string} profile Name
  * @param {fuction} onProfileStatusChanged callback function
  */
-function initFilemonitor (profile, onProfileStatusChanged) {
+function initFilemonitor(profile, onProfileStatusChanged) {
   let success = true
   if (!Object.prototype.hasOwnProperty.call(_monitors, profile)) {
     _monitors[profile] = {}
@@ -126,7 +132,7 @@ function initFilemonitor (profile, onProfileStatusChanged) {
  *
  * @see https://gjs-docs.gnome.org/gio20~2.66p/gio.filemonitor
  */
-function addMonitorRecursive (profile, path, profileMountPath, onProfileStatusChanged) {
+function addMonitorRecursive(profile, path, profileMountPath, onProfileStatusChanged) {
   try {
     const directory = Gio.file_new_for_path(path)
     const monitor = directory.monitor_directory(Gio.FileMonitorFlags.NONE, null)
@@ -157,9 +163,12 @@ function addMonitorRecursive (profile, path, profileMountPath, onProfileStatusCh
  * @param {Gio.File} otherFile
  * @param {Gio.FileMonitorEvent} eventType type of event
  */
-function onEvent (profile, monitor, file, otherFile, eventType, profileMountPath, onProfileStatusChanged) {
+function onEvent(profile, monitor, file, otherFile, eventType, profileMountPath, onProfileStatusChanged) {
   for (const idx in _monitors[profile].ignores) {
-    if (file.get_path().search(_monitors[profile].ignores[idx], 0) > 0) return
+    if (file.get_path().search(_monitors[profile].ignores[idx], 0) > 0) {
+      log('fmh.onEvent DEBUG', profile, file.get_path(), 'contains', _monitors[profile].ignores[idx], 'IGNORED')
+      return
+    }
   }
 
   log('fmh.onEvent INFO', profile, file.get_path())
@@ -214,7 +223,7 @@ function onEvent (profile, monitor, file, otherFile, eventType, profileMountPath
  * @param {Gio.File} file to check
  * @returns {boolean}
  */
-function isDir (file) {
+function isDir(file) {
   let isdir = false
   if (GLib.file_test(file.get_path(), GLib.FileTest.EXISTS)) {
     isdir = GLib.file_test(file.get_path(), GLib.FileTest.IS_DIR)
@@ -232,7 +241,7 @@ function isDir (file) {
  * @param {string} profile name
  * @param {fuction} onProfileStatusChanged callback function
  */
-function removeFilemonitor (profile, onProfileStatusChanged) {
+function removeFilemonitor(profile, onProfileStatusChanged) {
   if (getStatus(profile) === ProfileStatus.WATCHED) {
     Object.entries(_monitors[profile].paths).forEach(entry => {
       deleteFileMonitor(profile, entry[0])
@@ -248,7 +257,7 @@ function removeFilemonitor (profile, onProfileStatusChanged) {
  * @param {string} profile name
  * @param {Gio.File} path folder to unwatch
  */
-function deleteFileMonitor (profile, path) {
+function deleteFileMonitor(profile, path) {
   getFileMonitor(profile, path).cancel()
   delete _monitors[profile].paths[path]
 }
@@ -259,7 +268,7 @@ function deleteFileMonitor (profile, path) {
  * @param {Gio.File} path folder of the monitor
  * @returns {Gio.FileMonitor} the filemonitor
  */
-function getFileMonitor (profile, path) {
+function getFileMonitor(profile, path) {
   const fm = _monitors[profile].paths[path]
   PREF_DBG && log('fmh.getFileMonitor', profile, path, 'FileMonitor:', fm)
   return fm
@@ -275,7 +284,7 @@ function getFileMonitor (profile, path) {
  * @param {Gio.File} file changed if any
  * @param {fuction} onProfileStatusChanged callback function
  */
-function onCmdFinished (status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged) {
+function onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged) {
   PREF_DBG && log('fmh.onCmdFinished', profile, file && file.get_path(), status)
   if (status === 0) {
     onProfileStatusChanged && onProfileStatusChanged(profile, this.ProfileStatus.WATCHED, file.get_path() + ' updated')
@@ -293,7 +302,7 @@ function onCmdFinished (status, stdoutLines, stderrLines, profile, file, onProfi
  * @param {function} callback
  * @returns
  */
-function monitorConfigFile (callback) {
+function monitorConfigFile(callback) {
   if (!GLib.file_test(PREF_RCONFIG_FILE_PATH, GLib.FileTest.EXISTS)) {
     return
   }
@@ -308,13 +317,13 @@ function monitorConfigFile (callback) {
  * @param {string} profile name
  * @param {CallableFunction} onProfileStatusChanged callback function
  */
-function mountProfile (profile, onProfileStatusChanged) {
+function mountProfile(profile, onProfileStatusChanged) {
   const that = this
   PREF_DBG && log('fmh.mountProfile', profile)
   const directory = Gio.file_new_for_path(PREF_BASE_MOUNT_PATH + profile)
   try {
     if (!isDir(directory)) { directory.make_directory_with_parents(null, null) }
-  } catch {}
+  } catch { }
   onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
   spawnAsyncCmd(PREF_RC_MOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null,
     function (status, stdoutLines, stderrLines) {
@@ -331,7 +340,7 @@ function mountProfile (profile, onProfileStatusChanged) {
  * @param {string} profile name
  * @returns {boolean} true if base directori exists
  */
-function profileHasDir (profile) {
+function profileHasDir(profile) {
   return isDir(Gio.file_new_for_path(PREF_BASE_MOUNT_PATH + profile))
 }
 
@@ -340,7 +349,7 @@ function profileHasDir (profile) {
  * @param {string} profile name
  * @param {CallableFunction} onProfileStatusChanged callback function
  */
-function umount (profile, onProfileStatusChanged) {
+function umount(profile, onProfileStatusChanged) {
   const that = this
   onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
   spawnAsyncCmd(RC_UMOUNT, profile, PREF_BASE_MOUNT_PATH + profile, null,
@@ -357,7 +366,7 @@ function umount (profile, onProfileStatusChanged) {
  * Returns de RCLONE mounted drivers
  * @returns {Object} the names of the RCLONE mounted drivers as properties
  */
-function getMounts () {
+function getMounts() {
   const [stat, stdout, stderr] = this.spawnSync(RC_GETMOUNTS.split(' '))
   const mounts = []
   if (stdout) {
@@ -375,7 +384,7 @@ function getMounts () {
  * @param {string} profile name
  * @returns {ProfileStatus} the status of the profile
  */
-function getStatus (profile) {
+function getStatus(profile) {
   let ret = ProfileStatus.DISCONNECTED
   if (Object.prototype.hasOwnProperty.call(_monitors, profile)) ret = ProfileStatus.WATCHED
   else if (Object.prototype.hasOwnProperty.call(getMounts(), profile)) ret = ProfileStatus.MOUNTED
@@ -387,11 +396,11 @@ function getStatus (profile) {
  * Launch a console terminal whith RCLONE in order to reconnect the profile
  * @param {string} profile name
  */
-function reconnect (profile) {
+function reconnect(profile) {
   launchTermCmd(RC_RECONNECT.replace('%profile', profile))
 }
 
-function disengage (profile, onProfileStatusChanged) {
+function disengage(profile, onProfileStatusChanged) {
   const profileStatus = getStatus(profile)
   if (profileStatus === ProfileStatus.MOUNTED) {
     umount(profile, onProfileStatusChanged)
@@ -407,7 +416,7 @@ function disengage (profile, onProfileStatusChanged) {
  * @param {string} profile name
  * @param {function} onProfileStatusChanged callback function
  */
-function sync (profile, onProfileStatusChanged) {
+function sync(profile, onProfileStatusChanged) {
   if (getStatus(profile) === ProfileStatus.MOUNTED) {
     onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Mounted Profiles are already in sync')
     return
@@ -434,7 +443,7 @@ function sync (profile, onProfileStatusChanged) {
     })
 }
 
-function checkNsync (profile, onProfileStatusChanged) {
+function checkNsync(profile, onProfileStatusChanged) {
   PREF_DBG && log('fmh.checkNsync', profile)
 
   if (!Object.prototype.hasOwnProperty.call(_monitors, profile) ||
@@ -462,7 +471,7 @@ function checkNsync (profile, onProfileStatusChanged) {
  * Launch a file browser on the profile location
  * @param {string} profile name
  */
-function open (profile) {
+function open(profile) {
   const cmd = PREF_EXTERNAL_FILE_BROWSER.split(' ')
   cmd.push(PREF_BASE_MOUNT_PATH + profile)
   this.spawnAsyncWithPipes(cmd)
@@ -472,12 +481,12 @@ function open (profile) {
  * Launch a console terminal whith RCLONE in order to add a new profile
  * @param {string} profile name
  */
-function addConfig (onProfileStatusChanged) {
+function addConfig(onProfileStatusChanged) {
   launchTermCmd(RC_ADDCONFIG, false, false)
   onProfileStatusChanged && onProfileStatusChanged('', ProfileStatus.CREATED)
 }
 
-function deleteConfig (profile, onProfileStatusChanged) {
+function deleteConfig(profile, onProfileStatusChanged) {
   if (getStatus(profile) === ProfileStatus.MOUNTED || getStatus(profile) === ProfileStatus.WATCHED) {
     onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Cannot be deleted because is still mounted or watched')
   } else {
@@ -499,7 +508,7 @@ function deleteConfig (profile, onProfileStatusChanged) {
  * @param {string} callback
  * @param {string} flags
  */
-function spawnAsyncCmd (cmd, profile, file, destination, callback) {
+function spawnAsyncCmd(cmd, profile, file, destination, callback) {
   const cmdArray = cmd.split(' ')
   PREF_DBG && log('fmh.spawnAsyncCmd', profile, cmd)
   for (let i = 0; i < cmdArray.length; i++) {
@@ -513,7 +522,7 @@ function spawnAsyncCmd (cmd, profile, file, destination, callback) {
 }
 
 // A simple asynchronous read loop
-function readOutput (stream, lineBuffer) {
+function readOutput(stream, lineBuffer) {
   stream.read_line_async(0, null, (stream, res) => {
     try {
       const line = stream.read_line_finish_utf8(res)[0]
@@ -533,7 +542,7 @@ function readOutput (stream, lineBuffer) {
  * @param {Array} argv
  * @param {CallableFunction} callback
  */
-function spawnAsyncWithPipes (argv, callback) {
+function spawnAsyncWithPipes(argv, callback) {
   try {
     PREF_DBG && log('fmh.spawnAsyncWithPipes', argv.join(' '))
     const [, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
@@ -600,7 +609,7 @@ function spawnAsyncWithPipes (argv, callback) {
   }
 }
 
-function spawnSync (argv) {
+function spawnSync(argv) {
   let out, err, status
   try {
     PREF_DBG && log(`fmh.spawnSync, ${argv.join(' ')}`)
@@ -628,7 +637,7 @@ function spawnSync (argv) {
   }
 }
 
-function launchTermCmd (cmd, autoclose, sudo) {
+function launchTermCmd(cmd, autoclose, sudo) {
   try {
     const autoclosecmd = autoclose ? '; echo "Press any key to exit"; read' : ''
     const sudocmd = sudo ? 'sudo' : ''
@@ -643,7 +652,7 @@ function launchTermCmd (cmd, autoclose, sudo) {
   }
 }
 
-function fileToString (filePath, callbackFunction) {
+function fileToString(filePath, callbackFunction) {
   if (typeof callbackFunction !== 'function') { throw TypeError('`callbackFunction` must be a function') }
 
   if (GLib.file_test(filePath, GLib.FileTest.EXISTS)) {

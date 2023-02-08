@@ -84,6 +84,12 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v43.1
+
+- [x] Bug fix, matxing Filenames not ignored 
+- [x] [Work With Encrypted Configs](https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues/11)
+
+
 ## v43.0
 
 - [x] Shell 43 version update
