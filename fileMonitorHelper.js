@@ -87,16 +87,19 @@ function listremotes() {
     cmd[i] = cmd[i]
       .replace('%passwordcmd', `echo ${PREF_RCONFIG_PASSWORD}`)
   }
-
-  const [exitStatus, stdout] = spawnSync(cmd)
-  if (exitStatus !== 0) return {}
-  const ret = stdout
-    // eslint-disable-next-line prefer-regex-literals
-    .replace(new RegExp(':', 'g'), '')
-    .split('\n')
-    .filter(item => item.length > 1)
-    // convert array of string to object of property objects
-    .reduce((a, v) => ({ ...a, [v]: {} }), {})
+  let ret = {}
+  const [exitStatus, stdout, errout] = spawnSync(cmd)
+  if (exitStatus === 0) {
+    ret = stdout
+      // eslint-disable-next-line prefer-regex-literals
+      .replace(new RegExp(':', 'g'), '')
+      .split('\n')
+      .filter(item => item.length > 1)
+      // convert array of string to object of property objects
+      .reduce((a, v) => ({ ...a, [v]: {} }), {})
+  } else if (exitStatus === 256) { 
+    throw new Error(errout);
+  }
   PREF_DBG && log('fmh.listremotes', JSON.stringify(ret))
   return ret
 }
@@ -628,7 +631,7 @@ function spawnSync(argv) {
 
     if (stderr instanceof Uint8Array) err = byteArray.toString(stderr)
     if (stdout instanceof Uint8Array) out = byteArray.toString(stdout)
-    PREF_DBG && log(`fmh.spawnSync, ok, ${ok}, status, ${exitStatus}, stderr, ${err}, stdout, ${out}`)
+    PREF_DBG && log(`fmh.spawnSync, ok=${ok}, status=${exitStatus}, stderr=${err}, stdout=${out}`)
 
     return [exitStatus, out, err]
   } catch (e) {

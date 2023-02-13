@@ -148,11 +148,23 @@ const RcloneManager = GObject.registerClass({
   _initConfig() {
     fmh.PREF_DBG && log('rcm._initConfig')
     const oldConfig = this._configs
-    this._configs = fmh.listremotes()
+    try{
+      this._configs = fmh.listremotes()
+    } catch (error) {
+      console.log("Excepción capturada: " + error.message);
+      this._showNotification(error.message, n => {
+        n.addAction(_('Details'), () => {
+          ConfirmDialog.openConfirmDialog('Error', '', error.message, _('Ok'))
+        })
+      })
+    }
+  
     this._cleanRegistry()
     // restores existing log
     Object.entries(this._configs).forEach(entry => {
-      if (entry[0] in oldConfig) {
+      if (entry[0] in [{"Error":""}]) {
+
+      } else if (entry[0] in oldConfig) {
         if (Object.prototype.hasOwnProperty.call(oldConfig[entry[0]], 'log')) {
           this._configs[entry[0]].log = oldConfig[entry[0]].log
         }
