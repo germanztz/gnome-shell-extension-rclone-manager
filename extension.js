@@ -5,6 +5,7 @@ const Gio = imports.gi.Gio
 const GObject = imports.gi.GObject
 const St = imports.gi.St
 const Secret = imports.gi.Secret;
+const Gtk = imports.gi.Gtk;
 const Util = imports.misc.util
 const ExtensionUtils = imports.misc.extensionUtils
 const MessageTray = imports.ui.messageTray
@@ -42,6 +43,12 @@ const submenus = {
   Log: 'dialog-warning-symbolic',
   Disengage: 'radio-mixed-symbolic'
 }
+
+const SECRET_SCHEMA = new Secret.Schema("org.example.Password", Secret.SchemaFlags.NONE,
+  { "application": Secret.SchemaAttributeType.STRING });
+
+const SECRET_ATTR = { "application": Me.metadata.name };
+
 
 const RcloneManager = GObject.registerClass({
   GTypeName: 'RcloneManager'
@@ -128,22 +135,32 @@ const RcloneManager = GObject.registerClass({
   }
 
   _getRconfigPassword() {
-    /* This schema is usually defined once globally */
-    const schema = new Secret.Schema("org.example.Password", Secret.SchemaFlags.NONE,
-      { "application": Secret.SchemaAttributeType.STRING });
-    const attributes = { "application": Me.metadata.name };
-    fmh.PREF_RCONFIG_PASSWORD = Secret.password_lookup_sync(schema, attributes, null);
-    if (fmh.PREF_RCONFIG_PASSWORD === null) {
-      fmh.PREF_RCONFIG_PASSWORD = GLib.spawn_command_line_sync("zenity --password --title='Password' --text='Enter the password to store:'")[1].toString().trim();
-      this._setRconfigPassword(fmh.PREF_RCONFIG_PASSWORD)
-    }
-  }
+    fmh.PREF_DBG && log(`rcm._getRconfigPassword`)
+    fmh.RConfigPassword = Secret.password_lookup_sync(SECRET_SCHEMA, SECRET_ATTR, null);
+    fmh.PREF_DBG && log(`rcm._getRconfigPassword2`)
+    if (fmh.RConfigPassword === null) {
+      let dialog = new Gtk.Dialog({
+        title: "Password",
+        modal: true,
+        destroy_with_parent: true
+      });
+      dialog.add_button("Cancel", Gtk.ResponseType.CANCEL);
+      dialog.add_button("OK", Gtk.ResponseType.OK);
 
-  _setRconfigPassword(password) {
-    const schema = new Secret.Schema("org.example.Password", Secret.SchemaFlags.NONE,
-      { "application": Secret.SchemaAttributeType.STRING });
-    const attributes = { "application": Me.metadata.name };
-    Secret.password_store_sync(schema, attributes, Secret.COLLECTION_DEFAULT, Me.metadata.name, password, null);
+      let passwordEntry = new Gtk.Entry({ visibility: false });
+      passwordEntry.set_input_purpose(Gtk.InputPurpose.PASSWORD);
+      dialog.get_content_area().add(passwordEntry);
+      passwordEntry.show();
+
+      let response = dialog.run();
+      fmh.RConfigPassword = passwordEntry.get_text();
+
+      if (response == Gtk.ResponseType.OK) {
+        Secret.password_store_sync(SECRET_SCHEMA, SECRET_ATTR, Secret.COLLECTION_DEFAULT, Me.metadata.name, fmh.RConfigPassword, null);
+      }
+
+      dialog.destroy();
+    }
   }
 
   _resetCheckInterval() {

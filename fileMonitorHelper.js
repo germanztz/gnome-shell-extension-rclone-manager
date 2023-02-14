@@ -32,7 +32,7 @@ var PrefsFields = {
 var PREFS_SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager'
 
 var PREF_RCONFIG_FILE_PATH
-var PREF_RCONFIG_PASSWORD
+var RConfigPassword
 var PREF_BASE_MOUNT_PATH
 var PREF_IGNORE_PATTERNS
 var PREF_EXTERNAL_TERMINAL
@@ -85,7 +85,7 @@ function listremotes() {
   let cmd = RC_LIST_REMOTES.split(' ')
   for (let i = 0; i < cmd.length; i++) {
     cmd[i] = cmd[i]
-      .replace('%passwordcmd', `echo ${PREF_RCONFIG_PASSWORD}`)
+      .replace('%passwordcmd', `echo ${RConfigPassword}`)
   }
   let ret = {}
   const [exitStatus, stdout, errout] = spawnSync(cmd)
@@ -516,7 +516,7 @@ function spawnAsyncCmd(cmd, profile, file, destination, callback) {
       .replace('%profile', profile)
       .replace('%source', file)
       .replace('%destination', destination)
-      .replace('%passwordcmd', `echo ${PREF_RCONFIG_PASSWORD}`)
+      .replace('%passwordcmd', `echo ${RConfigPassword}`)
   }
   spawnAsyncWithPipes(cmdArray, callback)
 }

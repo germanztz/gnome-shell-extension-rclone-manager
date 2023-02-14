@@ -12,9 +12,9 @@
 
     <key name="prefkey0011-rconfig-password" type="b">
       <default>false</default>
-      <summary>Store Configuration password</summary>
+      <summary>Configuration file has password</summary>
       <description>
-        Rclone configuration file password set by "rclone config" -> "Set configuration password"
+        Rclone configuration file has a password set by "rclone config" -> "Set configuration password"
       </description>
     </key>
 
