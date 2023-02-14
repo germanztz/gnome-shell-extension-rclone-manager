@@ -4,6 +4,7 @@ const GLib = imports.gi.GLib
 const Gio = imports.gi.Gio
 const GObject = imports.gi.GObject
 const St = imports.gi.St
+const Secret = imports.gi.Secret;
 const Util = imports.misc.util
 const ExtensionUtils = imports.misc.extensionUtils
 const MessageTray = imports.ui.messageTray
@@ -51,6 +52,7 @@ const RcloneManager = GObject.registerClass({
     this._initNotifSource()
     this.Settings = ExtensionUtils.getSettings(fmh.PREFS_SCHEMA_NAME)
     this.PREF_AUTOSYNC = true
+    this.PREF_RCONFIG_PASSWORD = false
     this.PREF_CHECK_INTERVAL = 3
     this.checkTimeoutId = null
     this._configs = []
@@ -101,7 +103,7 @@ const RcloneManager = GObject.registerClass({
     fmh.PREF_DBG = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_DEBUG_MODE)
     fmh.PREF_DBG && log('rcm._onSettingsChange')
     fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
-    fmh.PREF_RCONFIG_PASSWORD = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_PASSWORD)
+    this.PREF_RCONFIG_PASSWORD = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_RCONFIG_PASSWORD)
     fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_BASE_MOUNT_PATH)
     fmh.PREF_IGNORE_PATTERNS = this.Settings.get_string(fmh.PrefsFields.PREFKEY_IGNORE_PATTERNS)
     fmh.PREF_EXTERNAL_TERMINAL = this.Settings.get_string(fmh.PrefsFields.PREFKEY_EXTERNAL_TERMINAL)
@@ -121,7 +123,27 @@ const RcloneManager = GObject.registerClass({
 
     fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
 
+    if (this.PREF_RCONFIG_PASSWORD) this._getRconfigPassword()
     this._resetCheckInterval()
+  }
+
+  _getRconfigPassword() {
+    /* This schema is usually defined once globally */
+    const schema = new Secret.Schema("org.example.Password", Secret.SchemaFlags.NONE,
+      { "application": Secret.SchemaAttributeType.STRING });
+    const attributes = { "application": Me.metadata.name };
+    fmh.PREF_RCONFIG_PASSWORD = Secret.password_lookup_sync(schema, attributes, null);
+    if (fmh.PREF_RCONFIG_PASSWORD === null) {
+      fmh.PREF_RCONFIG_PASSWORD = GLib.spawn_command_line_sync("zenity --password --title='Password' --text='Enter the password to store:'")[1].toString().trim();
+      this._setRconfigPassword(fmh.PREF_RCONFIG_PASSWORD)
+    }
+  }
+
+  _setRconfigPassword(password) {
+    const schema = new Secret.Schema("org.example.Password", Secret.SchemaFlags.NONE,
+      { "application": Secret.SchemaAttributeType.STRING });
+    const attributes = { "application": Me.metadata.name };
+    Secret.password_store_sync(schema, attributes, Secret.COLLECTION_DEFAULT, Me.metadata.name, password, null);
   }
 
   _resetCheckInterval() {
@@ -148,23 +170,20 @@ const RcloneManager = GObject.registerClass({
   _initConfig() {
     fmh.PREF_DBG && log('rcm._initConfig')
     const oldConfig = this._configs
-    try{
+    try {
       this._configs = fmh.listremotes()
     } catch (error) {
-      console.log("Excepción capturada: " + error.message);
+      logError(error);
       this._showNotification(error.message, n => {
         n.addAction(_('Details'), () => {
-          ConfirmDialog.openConfirmDialog('Error', '', error.message, _('Ok'))
+          ConfirmDialog.openConfirmDialog(_('Error'), '', error.message, _('Ok'))
         })
       })
     }
-  
     this._cleanRegistry()
     // restores existing log
     Object.entries(this._configs).forEach(entry => {
-      if (entry[0] in [{"Error":""}]) {
-
-      } else if (entry[0] in oldConfig) {
+      if (entry[0] in oldConfig) {
         if (Object.prototype.hasOwnProperty.call(oldConfig[entry[0]], 'log')) {
           this._configs[entry[0]].log = oldConfig[entry[0]].log
         }

@@ -89,17 +89,13 @@ function listremotes() {
   }
   let ret = {}
   const [exitStatus, stdout, errout] = spawnSync(cmd)
-  if (exitStatus === 0) {
-    ret = stdout
-      // eslint-disable-next-line prefer-regex-literals
-      .replace(new RegExp(':', 'g'), '')
-      .split('\n')
-      .filter(item => item.length > 1)
-      // convert array of string to object of property objects
-      .reduce((a, v) => ({ ...a, [v]: {} }), {})
-  } else if (exitStatus === 256) { 
-    throw new Error(errout);
-  }
+  ret = stdout
+    // eslint-disable-next-line prefer-regex-literals
+    .replace(new RegExp(':', 'g'), '')
+    .split('\n')
+    .filter(item => item.length > 1)
+    // convert array of string to object of property objects
+    .reduce((a, v) => ({ ...a, [v]: {} }), {})
   PREF_DBG && log('fmh.listremotes', JSON.stringify(ret))
   return ret
 }
@@ -493,11 +489,12 @@ function deleteConfig(profile, onProfileStatusChanged) {
   if (getStatus(profile) === ProfileStatus.MOUNTED || getStatus(profile) === ProfileStatus.WATCHED) {
     onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Cannot be deleted because is still mounted or watched')
   } else {
-    const [stat, stdout, stderr] = spawnSync(RC_DELETE_CONFIG.replace('%profile', profile).split(' '))
-    if (stat === 0) {
+
+    try {
+      const [stat, stdout, stderr] = spawnSync(RC_DELETE_CONFIG.replace('%profile', profile).split(' '))
       onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DELETED, 'Successfully deleted')
-    } else {
-      onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, stderr.join('\n'))
+    } catch (err) {
+      onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, err.message.join('\n'))
     }
   }
 }
@@ -613,31 +610,25 @@ function spawnAsyncWithPipes(argv, callback) {
 }
 
 function spawnSync(argv) {
-  let out, err, status
-  try {
-    PREF_DBG && log(`fmh.spawnSync, ${argv.join(' ')}`)
-    const [ok, stdout, stderr, exitStatus] = GLib.spawn_sync(
-      // Working directory, passing %null to use the parent's
-      null,
-      // An array of arguments
-      argv,
-      // Process ENV, passing %null to use the parent's
-      null,
-      // Flags; we need to use PATH so `ls` can be found and also need to know
-      // when the process has finished to check the output and status.
-      GLib.SpawnFlags.SEARCH_PATH,
-      // Child setup function
-      null)
+  PREF_DBG && log(`fmh.spawnSync, ${argv.join(' ')}`)
+  let [ok, stdout, stderr, exitStatus] = GLib.spawn_sync(
+    // Working directory, passing %null to use the parent's
+    null,
+    // An array of arguments
+    argv,
+    // Process ENV, passing %null to use the parent's
+    null,
+    // Flags; we need to use PATH so `ls` can be found and also need to know
+    // when the process has finished to check the output and status.
+    GLib.SpawnFlags.SEARCH_PATH,
+    // Child setup function
+    null)
 
-    if (stderr instanceof Uint8Array) err = byteArray.toString(stderr)
-    if (stdout instanceof Uint8Array) out = byteArray.toString(stdout)
-    PREF_DBG && log(`fmh.spawnSync, ok=${ok}, status=${exitStatus}, stderr=${err}, stdout=${out}`)
-
-    return [exitStatus, out, err]
-  } catch (e) {
-    logError(e)
-    return [1, e.message, e.message]
-  }
+  if (stderr instanceof Uint8Array) stderr = byteArray.toString(stderr)
+  if (stdout instanceof Uint8Array) stdout = byteArray.toString(stdout)
+  PREF_DBG && log(`fmh.spawnSync, status=${exitStatus}, stderr=${stderr}, stdout=${stdout}`)
+  if (exitStatus !== 0) throw new Error(stderr);
+  return [exitStatus, stdout, stderr]
 }
 
 function launchTermCmd(cmd, autoclose, sudo) {

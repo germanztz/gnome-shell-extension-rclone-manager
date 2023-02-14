@@ -14,14 +14,14 @@ const Config = imports.misc.config
 const [major] = Config.PACKAGE_VERSION.split('.')
 const shellVersion = Number.parseInt(major)
 
-function init () {
-  ExtensionUtils.initTranslations(Me.metadata.uuid)
+function init() {
+  ExtensionUtils.initTranslations(Me.metadata.name)
 }
 
 const App = GObject.registerClass({
   GTypeName: 'App'
 }, class App extends GObject.Object {
-  _init () {
+  _init() {
     super._init()
     const schemaDir = Me.dir.get_child('schemas').get_path()
     const SettingsSchemaSource = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false)
@@ -107,7 +107,7 @@ const App = GObject.registerClass({
     }
   }
 
-  getOrientedBox (orientation) {
+  getOrientedBox(orientation) {
     let box = null
     if (shellVersion < 40) {
       box = new Gtk.HBox()
@@ -118,7 +118,7 @@ const App = GObject.registerClass({
     return box
   }
 
-  appendToBox (box, input) {
+  appendToBox(box, input) {
     if (shellVersion < 40) {
       box.pack_end(input, false, false, 0)
     } else {
@@ -127,11 +127,11 @@ const App = GObject.registerClass({
     return box
   }
 
-  resetAll () {
+  resetAll() {
     this.SettingsSchema.list_keys().forEach(prefKey => this.Settings.reset(prefKey))
   }
 
-  launchBackupDialog () {
+  launchBackupDialog() {
     const profiles = Object.entries(fmh.listremotes()).map(entry => entry[0])
     const dialog = new Gtk.Dialog({
       // default_height: 200,
@@ -173,7 +173,7 @@ const App = GObject.registerClass({
     dialog.show()
   }
 
-  onBackupDialogResponse (dialog, response) {
+  onBackupDialogResponse(dialog, response) {
     fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
     fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_BASE_MOUNT_PATH)
     fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
@@ -213,7 +213,7 @@ const App = GObject.registerClass({
   }
 })
 
-function buildPrefsWidget () {
+function buildPrefsWidget() {
   const widget = new App()
   return widget.main
 }

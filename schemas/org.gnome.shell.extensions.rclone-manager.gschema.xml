@@ -10,9 +10,9 @@
       </description>
     </key>
 
-    <key name="prefkey0011-rconfig-password" type="s">
-      <default>''</default>
-      <summary>Configuration password</summary>
+    <key name="prefkey0011-rconfig-password" type="b">
+      <default>false</default>
+      <summary>Store Configuration password</summary>
       <description>
         Rclone configuration file password set by "rclone config" -> "Set configuration password"
       </description>
