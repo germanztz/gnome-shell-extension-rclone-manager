@@ -10,11 +10,11 @@
       </description>
     </key>
 
-    <key name="prefkey0011-rconfig-password" type="b">
-      <default>false</default>
-      <summary>Configuration file has password</summary>
+    <key name="prefkey0011-rconfig-password" type="s">
+      <default>''</default>
+      <summary>Config file password</summary>
       <description>
-        Rclone configuration file has a password set by "rclone config" -> "Set configuration password"
+        Rclone configuration file password set by rclone config - Set configuration password
       </description>
     </key>
 
@@ -58,40 +58,70 @@
       </description>
     </key>
 
+    <key name="prefkey0061-list-remotes" type="s">
+      <default>'rclone --password-command %pcmd listremotes'</default>
+      <summary>List remotes command</summary>
+      <description>Lists remote configs configured in rclone</description>
+    </key>
+
     <key name="prefkey007-rclone-copy" type="s">
-      <default>'rclone --password-command %passwordcmd copy %source %profile:%destination --create-empty-src-dirs'</default>
+      <default>'rclone --password-command %pcmd copy %source %profile:%destination --create-empty-src-dirs'</default>
       <summary>Create command</summary>
       <description>Create command</description>
     </key>
 
     <key name="prefkey008-rclone-purge" type="s">
-      <default>'rclone --password-command %passwordcmd purge %profile:%destination --ignore-errors'</default>
+      <default>'rclone --password-command %pcmd purge %profile:%destination --ignore-errors'</default>
       <summary>Delete dir command</summary>
       <description>Delete dir command</description>
     </key>
 
     <key name="prefkey009-rclone-delete" type="s">
-      <default>'rclone --password-command %passwordcmd delete %profile:%destination --ignore-errors'</default>
+      <default>'rclone --password-command %pcmd delete %profile:%destination --ignore-errors'</default>
       <summary>Delete file command</summary>
       <description>Delete file command</description>
     </key>
 
     <key name="prefkey010-rclone-mount" type="s">
-      <default>'rclone --password-command %passwordcmd mount %profile: %source --volname %profile --file-perms 0777 --write-back-cache --no-modtime --daemon --daemon-timeout 30s'</default>
+      <default>'rclone --password-command %pcmd mount %profile: %source --volname %profile --file-perms 0777 --write-back-cache --no-modtime --daemon --daemon-timeout 30s'</default>
       <summary>Mount command</summary>
       <description>Mount command</description>
     </key>
 
     <key name="prefkey011-rclone-sync" type="s">
-      <default>'rclone --password-command %passwordcmd sync %profile: %source --create-empty-src-dirs'</default>
+      <default>'rclone --password-command %pcmd sync %profile: %source --create-empty-src-dirs'</default>
       <summary>Sync command</summary>
       <description>Sync command </description>
     </key>
 
     <key name="prefkey0111-rclone-check" type="s">
-      <default>'rclone --password-command %passwordcmd check --size-only --one-way %profile: %destination'</default>
+      <default>'rclone --password-command %pcmd check --size-only --one-way %profile: %destination'</default>
       <summary>Check command</summary>
       <description>Checks the files in the source and destination match</description>
+    </key>
+
+    <key name="prefkey0112-rclone-copyto" type="s">
+      <default>'rclone --password-command %pcmd copyto %profile:%source %destination'</default>
+      <summary>Copyto command</summary>
+      <description>Copies a file to remote</description>
+    </key>
+
+    <key name="prefkey0113-rclone-config" type="s">
+      <default>'rclone --password-command %pcmd config'</default>
+      <summary>Add remote command</summary>
+      <description>Adds a new remote config to rclone</description>
+    </key>
+
+    <key name="prefkey0114-rclone-delete" type="s">
+      <default>'rclone --password-command %pcmd config delete %profile'</default>
+      <summary>Delete remote command</summary>
+      <description>Deletes an existing remote config from rclone</description>
+    </key>
+
+    <key name="prefkey0115-rclone-reconnect" type="s">
+      <default>'rclone --password-command %pcmd config reconnect %profile:'</default>
+      <summary>Reconnect command</summary>
+      <description>Launches the authentication of a remote config</description>
     </key>
 
     <key name="hiddenkey012-profile-registry" type="s">

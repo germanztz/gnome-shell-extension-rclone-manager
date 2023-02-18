@@ -188,3 +188,42 @@ msgstr "Intervalo de comprobación en min"
 
 msgid "Checks the files in the source and destination match"
 msgstr "Comprueba que los archivos coincidan en origen y destino"
+
+msgid "List remotes command"
+msgstr "Comando listar remotos"
+
+msgid "Lists remote configs configured in rclone"
+msgstr "Lista las configuraciones remotas configuradas en rclone"
+
+msgid "Check command"
+msgstr "Comando comprobar"
+
+msgid "Config file password"
+msgstr "Contraseña de fichero de config"
+
+msgid "Rclone configuration file password set by rclone config - Set configuration password"
+msgstr "Contraseña de fichero de configuración puesto con rclone config - Set configuration password"
+
+msgid "Copyto command"
+msgstr "Comando copiar"
+
+msgid "Copies a file to remote"
+msgstr "Copia archivos a un destino remoto"
+
+msgid "Add remote command"
+msgstr "Comando Añadir remoto"
+
+msgid "Adds a new remote config to rclone"
+msgstr "Añade una configuración remota de rclone"
+
+msgid "Delete remote command"
+msgstr "Comando eliminar remoto"
+
+msgid "Deletes an existing remote config from rclone"
+msgstr "Elimina una configuración remota existente"
+
+msgid "Reconnect command"
+msgstr "Comando reconectar"
+
+msgid "Launches the authentication of a remote config"
+msgstr "Lanza la autenticación de una configuración remota"

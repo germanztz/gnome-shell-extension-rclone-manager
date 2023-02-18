@@ -188,3 +188,42 @@ msgstr "Interval de comprovació en minuts"
 
 msgid "Checks the files in the source and destination match"
 msgstr "Comprova que els arxius coincideixin en origen i destinació"
+
+msgid "List remotes command"
+msgstr "Ordre llistar remots"
+
+msgid "Lists remote configs configured in rclone"
+msgstr "Llista les configuracions remotes configurades en rclone"
+
+msgid "Check command"
+msgstr "Ordre comprovar"
+
+msgid "Config file password"
+msgstr "Contrasenya de fitxer de config"
+
+msgid "Rclone configuration file password set by rclone config - Set configuration password"
+msgstr "Contrasenya de fitxer de configuració posat amb rclone config - Set configuration password"
+
+msgid "Copyto command"
+msgstr "Ordre copiar"
+
+msgid "Copies a file to remote"
+msgstr "Còpia arxius a un destí remot"
+
+msgid "Add remote command"
+msgstr "Ordre afegir remot"
+
+msgid "Adds a new remote config to rclone"
+msgstr "Afegeix una configuració remota de rclone"
+
+msgid "Delete remote command"
+msgstr "Ordre eliminar remot"
+
+msgid "Deletes an existing remote config from rclone"
+msgstr "Elimina una configuració remota existent"
+
+msgid "Reconnect command"
+msgstr "Ordre reconnectar"
+
+msgid "Launches the authentication of a remote config"
+msgstr "Llança l'autenticació d'una configuració remota"

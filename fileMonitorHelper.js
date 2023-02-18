@@ -18,12 +18,17 @@ var PrefsFields = {
   PREFKEY_EXTERNAL_TERMINAL: 'prefkey004-external-terminal',
   PREFKEY_EXTERNAL_FILE_BROWSER: 'prefkey005-external-file-browser',
   PREFKEY_AUTOSYNC: 'prefkey006-autosync',
+  PREFKEY_RC_LIST_REMOTES: 'prefkey0061-list-remotes',
   PREFKEY_RC_CREATE_DIR: 'prefkey007-rclone-copy',
   PREFKEY_RC_DELETE_DIR: 'prefkey008-rclone-purge',
   PREFKEY_RC_DELETE_FILE: 'prefkey009-rclone-delete',
   PREFKEY_RC_MOUNT: 'prefkey010-rclone-mount',
   PREFKEY_RC_SYNC: 'prefkey011-rclone-sync',
   PREFKEY_RC_CHECK: 'prefkey0111-rclone-check',
+  PREFKEY_RC_COPYTO: 'prefkey0112-rclone-copyto',
+  PREFKEY_RC_ADD_CONFIG: 'prefkey0113-rclone-config',
+  PREFKEY_RC_DELETE_CONFIG: 'prefkey0114-rclone-delete',
+  PREFKEY_RC_RECONNECT: 'prefkey0115-rclone-reconnect',
   HIDDENKEY_PROFILE_REGISTRY: 'hiddenkey012-profile-registry',
   PREFKEY_DEBUG_MODE: 'prefkey013-debug-mode',
   PREFKEY_CHECK_INTERVAL: 'prefkey0051-check-interval'
@@ -32,7 +37,7 @@ var PrefsFields = {
 var PREFS_SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager'
 
 var PREF_RCONFIG_FILE_PATH
-var RConfigPassword
+var PREF_RCONFIG_PASSWORD
 var PREF_BASE_MOUNT_PATH
 var PREF_IGNORE_PATTERNS
 var PREF_EXTERNAL_TERMINAL
@@ -45,15 +50,15 @@ var PREF_RC_SYNC
 var PREF_RC_CHECK
 var PREF_DBG
 var PREF_CHECK_INTERVAL
+var PREF_RC_LIST_REMOTES
+var PREF_RC_COPYTO
+var PREF_RC_ADD_CONFIG
+var PREF_RC_DELETE_CONFIG
+var PREF_RC_RECONNECT
 
-var RC_LIST_REMOTES = 'rclone listremotes --password-command %passwordcmd'
-var RC_COPYTO = 'rclone --password-command %passwordcmd copyto %profile:%source %destination '
-var RC_ADDCONFIG = 'rclone --password-command %passwordcmd config'
-var RC_DELETE_CONFIG = 'rclone --password-command %passwordcmd config delete %profile'
-var RC_RECONNECT = 'rclone --password-command %passwordcmd config reconnect %profile:'
+var RC_VERSION = 'rclone version'
 var RC_UMOUNT = 'umount %source'
 var RC_GETMOUNTS = 'mount'
-var RC_VERSION = 'rclone version'
 var RC_COPY = 'cp %source %destination'
 
 var _monitors = {}
@@ -82,10 +87,10 @@ function getRcVersion() {
  * @returns {Object} An Object with the names of the RCLONE configurations as properties
  */
 function listremotes() {
-  let cmd = RC_LIST_REMOTES.split(' ')
+  let cmd = PREF_RC_LIST_REMOTES.split(' ')
   for (let i = 0; i < cmd.length; i++) {
     cmd[i] = cmd[i]
-      .replace('%passwordcmd', `echo ${RConfigPassword}`)
+      .replace('%pcmd', `echo ${PREF_RCONFIG_PASSWORD}`)
   }
   let ret = {}
   const [exitStatus, stdout, errout] = spawnSync(cmd)
@@ -396,7 +401,7 @@ function getStatus(profile) {
  * @param {string} profile name
  */
 function reconnect(profile) {
-  launchTermCmd(RC_RECONNECT.replace('%profile', profile))
+  launchTermCmd(PREF_RC_RECONNECT.replace('%profile', profile))
 }
 
 function disengage(profile, onProfileStatusChanged) {
@@ -481,7 +486,7 @@ function open(profile) {
  * @param {string} profile name
  */
 function addConfig(onProfileStatusChanged) {
-  launchTermCmd(RC_ADDCONFIG, false, false)
+  launchTermCmd(PREF_RC_ADD_CONFIG, false, false)
   onProfileStatusChanged && onProfileStatusChanged('', ProfileStatus.CREATED)
 }
 
@@ -491,7 +496,7 @@ function deleteConfig(profile, onProfileStatusChanged) {
   } else {
 
     try {
-      const [stat, stdout, stderr] = spawnSync(RC_DELETE_CONFIG.replace('%profile', profile).split(' '))
+      const [stat, stdout, stderr] = spawnSync(PREF_RC_DELETE_CONFIG.replace('%profile', profile).split(' '))
       onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DELETED, 'Successfully deleted')
     } catch (err) {
       onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, err.message.join('\n'))
@@ -516,7 +521,7 @@ function spawnAsyncCmd(cmd, profile, file, destination, callback) {
       .replace('%profile', profile)
       .replace('%source', file)
       .replace('%destination', destination)
-      .replace('%passwordcmd', `echo ${RConfigPassword}`)
+      .replace('%pcmd', `echo ${PREF_RCONFIG_PASSWORD}`)
   }
   spawnAsyncWithPipes(cmdArray, callback)
 }
@@ -635,10 +640,9 @@ function launchTermCmd(cmd, autoclose, sudo) {
   try {
     const autoclosecmd = autoclose ? '; echo "Press any key to exit"; read' : ''
     const sudocmd = sudo ? 'sudo' : ''
-    cmd = PREF_EXTERNAL_TERMINAL + " {0} bash -c '{1} {2}'"
-      .replace('{0}', sudocmd)
-      .replace('{1}', cmd)
-      .replace('{2}', autoclosecmd)
+    cmd = `${PREF_EXTERNAL_TERMINAL} ${sudocmd} bash -c '${cmd} ${autoclosecmd}'`
+      .replace('%pcmd', `"echo ${PREF_RCONFIG_PASSWORD}"`)
+
     PREF_DBG && log('fmh.launchTermCmd', cmd)
     GLib.spawn_command_line_async(cmd)
   } catch (e) {

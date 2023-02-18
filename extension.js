@@ -4,8 +4,6 @@ const GLib = imports.gi.GLib
 const Gio = imports.gi.Gio
 const GObject = imports.gi.GObject
 const St = imports.gi.St
-const Secret = imports.gi.Secret;
-const Gtk = imports.gi.Gtk;
 const Util = imports.misc.util
 const ExtensionUtils = imports.misc.extensionUtils
 const MessageTray = imports.ui.messageTray
@@ -44,12 +42,6 @@ const submenus = {
   Disengage: 'radio-mixed-symbolic'
 }
 
-const SECRET_SCHEMA = new Secret.Schema("org.example.Password", Secret.SchemaFlags.NONE,
-  { "application": Secret.SchemaAttributeType.STRING });
-
-const SECRET_ATTR = { "application": Me.metadata.name };
-
-
 const RcloneManager = GObject.registerClass({
   GTypeName: 'RcloneManager'
 }, class RcloneManager extends PanelMenu.Button {
@@ -59,7 +51,6 @@ const RcloneManager = GObject.registerClass({
     this._initNotifSource()
     this.Settings = ExtensionUtils.getSettings(fmh.PREFS_SCHEMA_NAME)
     this.PREF_AUTOSYNC = true
-    this.PREF_RCONFIG_PASSWORD = false
     this.PREF_CHECK_INTERVAL = 3
     this.checkTimeoutId = null
     this._configs = []
@@ -86,14 +77,9 @@ const RcloneManager = GObject.registerClass({
     const rcVersion = fmh.getRcVersion()
     if (!rcVersion || !rcVersion.includes('rclone')) {
       log('rcm._checkDependencies ERROR: It seems you don\'t have rclone installed, this extension won\'t work without it')
-      const title = Me.metadata.name + ' ' + _('Error')
       const subTitle = _('rclone Version: ') + rcVersion
       const message = _("It seems you don't have rclone installed, this extension won't work without it")
-      this._showNotification(title + ': ' + message, n => {
-        n.addAction(_('Details'), () => {
-          ConfirmDialog.openConfirmDialog(title, subTitle, message, _('Ok'))
-        })
-      })
+      this._showNotification(`${Me.metadata.name} ${_('Error')} ${_('rclone Version: ')}`, `${message} ${subTitle}`)
       this.icon.icon_name = PROFILE_ERROR_ICON
       return false
     }
@@ -109,20 +95,26 @@ const RcloneManager = GObject.registerClass({
   _onSettingsChange() {
     fmh.PREF_DBG = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_DEBUG_MODE)
     fmh.PREF_DBG && log('rcm._onSettingsChange')
+    const oldPassword = fmh.PREF_RCONFIG_PASSWORD
     fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
-    this.PREF_RCONFIG_PASSWORD = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_RCONFIG_PASSWORD)
+    fmh.PREF_RCONFIG_PASSWORD = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RCONFIG_PASSWORD)
     fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(fmh.PrefsFields.PREFKEY_BASE_MOUNT_PATH)
     fmh.PREF_IGNORE_PATTERNS = this.Settings.get_string(fmh.PrefsFields.PREFKEY_IGNORE_PATTERNS)
     fmh.PREF_EXTERNAL_TERMINAL = this.Settings.get_string(fmh.PrefsFields.PREFKEY_EXTERNAL_TERMINAL)
     fmh.PREF_EXTERNAL_FILE_BROWSER = this.Settings.get_string(fmh.PrefsFields.PREFKEY_EXTERNAL_FILE_BROWSER)
     this.PREF_AUTOSYNC = this.Settings.get_boolean(fmh.PrefsFields.PREFKEY_AUTOSYNC)
     this.PREF_CHECK_INTERVAL = this.Settings.get_int(fmh.PrefsFields.PREFKEY_CHECK_INTERVAL)
+    fmh.PREF_RC_LIST_REMOTES = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_LIST_REMOTES)
     fmh.PREF_RC_CREATE_DIR = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_CREATE_DIR)
     fmh.PREF_RC_DELETE_DIR = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_DELETE_DIR)
     fmh.PREF_RC_DELETE_FILE = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_DELETE_FILE)
     fmh.PREF_RC_MOUNT = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_MOUNT)
     fmh.PREF_RC_SYNC = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_SYNC)
     fmh.PREF_RC_CHECK = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_CHECK)
+    fmh.PREF_RC_COPYTO = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_COPYTO)
+    fmh.PREF_RC_ADD_CONFIG = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_ADD_CONFIG)
+    fmh.PREF_RC_DELETE_CONFIG = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_DELETE_CONFIG)
+    fmh.PREF_RC_RECONNECT = this.Settings.get_string(fmh.PrefsFields.PREFKEY_RC_RECONNECT)
     this._registry = this._readRegistry(this.Settings.get_string(fmh.PrefsFields.HIDDENKEY_PROFILE_REGISTRY))
 
     fmh.PREF_BASE_MOUNT_PATH = fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
@@ -130,37 +122,11 @@ const RcloneManager = GObject.registerClass({
 
     fmh.PREF_RCONFIG_FILE_PATH = fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
 
-    if (this.PREF_RCONFIG_PASSWORD) this._getRconfigPassword()
-    this._resetCheckInterval()
-  }
-
-  _getRconfigPassword() {
-    fmh.PREF_DBG && log(`rcm._getRconfigPassword`)
-    fmh.RConfigPassword = Secret.password_lookup_sync(SECRET_SCHEMA, SECRET_ATTR, null);
-    fmh.PREF_DBG && log(`rcm._getRconfigPassword2`)
-    if (fmh.RConfigPassword === null) {
-      let dialog = new Gtk.Dialog({
-        title: "Password",
-        modal: true,
-        destroy_with_parent: true
-      });
-      dialog.add_button("Cancel", Gtk.ResponseType.CANCEL);
-      dialog.add_button("OK", Gtk.ResponseType.OK);
-
-      let passwordEntry = new Gtk.Entry({ visibility: false });
-      passwordEntry.set_input_purpose(Gtk.InputPurpose.PASSWORD);
-      dialog.get_content_area().add(passwordEntry);
-      passwordEntry.show();
-
-      let response = dialog.run();
-      fmh.RConfigPassword = passwordEntry.get_text();
-
-      if (response == Gtk.ResponseType.OK) {
-        Secret.password_store_sync(SECRET_SCHEMA, SECRET_ATTR, Secret.COLLECTION_DEFAULT, Me.metadata.name, fmh.RConfigPassword, null);
-      }
-
-      dialog.destroy();
+    if(oldPassword !== fmh.PREF_RCONFIG_PASSWORD){
+      this._initConfig()
     }
+
+    this._resetCheckInterval()
   }
 
   _resetCheckInterval() {
@@ -191,11 +157,8 @@ const RcloneManager = GObject.registerClass({
       this._configs = fmh.listremotes()
     } catch (error) {
       logError(error);
-      this._showNotification(error.message, n => {
-        n.addAction(_('Details'), () => {
-          ConfirmDialog.openConfirmDialog(_('Error'), '', error.message, _('Ok'))
-        })
-      })
+      this._configs = {}
+      this._showNotification(`${Me.metadata.name} ${_('Error')} ${_('List remotes command')}`, error.message)
     }
     this._cleanRegistry()
     // restores existing log
@@ -421,11 +384,7 @@ const RcloneManager = GObject.registerClass({
 
         case fmh.ProfileStatus.ERROR:
           this.icon.icon_name = PROFILE_ERROR_ICON
-          this._showNotification(profile + ' ' + _('Error') + ': ' + _(message), n => {
-            n.addAction(_('Details'), () => {
-              ConfirmDialog.openConfirmDialog(_('Log detail'), profile, _(message), _('Ok'))
-            })
-          })
+          this._showNotification(`${profile} ${_('Error')} ${_(message)}`, `${profile} ${_(message)}`)
           break
 
         case fmh.ProfileStatus.BUSSY:
@@ -506,20 +465,27 @@ const RcloneManager = GObject.registerClass({
     }
   }
 
-  _showNotification(message, transformFn) {
+  _showNotification(title, details, transformFn) {
     let notification = null
     this._initNotifSource()
 
     if (this._notifSource.count === 0) {
-      notification = new MessageTray.Notification(this._notifSource, message)
+      notification = new MessageTray.Notification(this._notifSource, title)
     } else {
       notification = this._notifSource.notifications[0]
-      notification.update(message, '', { clear: true })
+      notification.update(title, '', { clear: true })
     }
 
     if (typeof transformFn === 'function') {
       transformFn(notification)
+    } else {
+      notification.addAction(_('Details'), () => {
+        ConfirmDialog.openConfirmDialog(title, '', details, _('Ok'))
+        })
     }
+    notification.connect('activated', () => {
+      ConfirmDialog.openConfirmDialog(title, '', details, _('Ok'))
+    })
 
     this._notifSource.showNotification(notification)
   }

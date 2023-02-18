@@ -56,7 +56,12 @@ const App = GObject.registerClass({
           property = 'active'
         } else if (inputWidget instanceof Gtk.SpinButton) {
           property = 'value'
+        } 
+        if(prefKey === fmh.PrefsFields.PREFKEY_RCONFIG_PASSWORD){
+          inputWidget.set_visibility(false)
+          inputWidget.set_input_purpose(Gtk.InputPurpose.PASSWORD)
         }
+        
         inputWidget.hexpand = true
 
         main.attach(LabelWidget, 0, row, 1, 1)
@@ -188,14 +193,16 @@ const App = GObject.registerClass({
       [statusResult, out, err] = fmh.spawnSync(fmh.RC_COPY
         .replace('%source', fmh.PREF_RCONFIG_FILE_PATH)
         .replace('%destination', fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf')
+        .replace('%pcmd', `"echo ${PREF_RCONFIG_PASSWORD}"`)
         .split(' ')
       )
     } else if (response === 1) {
       // Restore
-      [statusResult, out, err] = fmh.spawnSync(fmh.RC_COPYTO
+      [statusResult, out, err] = fmh.spawnSync(fmh.PREF_RC_COPYTO
         .replace('%profile', profile)
         .replace('%source', '/.rclone.conf')
         .replace('%destination', fmh.PREF_RCONFIG_FILE_PATH)
+        .replace('%pcmd', `"echo ${PREF_RCONFIG_PASSWORD}"`)
         .split(' ')
       )
     } else {
