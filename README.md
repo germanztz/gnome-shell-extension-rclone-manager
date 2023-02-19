@@ -11,6 +11,7 @@ Extension page on Gnome Extensions [RClone Manager](https://extensions.gnome.org
 
 # Features 
 
+- Works with password protected crclone configurations
 - Does not track your data like Dropbox, Google or Microsoft's clients will do, plain functionality
 - Adds an indicator in the system tray to check and manage rclone configurations
 - Works with rclone
@@ -88,8 +89,8 @@ Zoho WorkDrive| The local filesystem
 
 - [x] Bug fix, matching Filenames not ignored 
 - [x] Bug fix, settings translation
-- [x] Clicable notifications
-- [x] [Work With Encrypted Configs](https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues/11)
+- [x] add Clicable notifications
+- [x] add [encripted config support](https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues/11)
 
 ## v43.0
 
@@ -140,9 +141,7 @@ Zoho WorkDrive| The local filesystem
 - [x] Translate spanish
 
 ## TODO list
-- [ ] Fix show permanent notification
 - [ ] Fix Backup / restore dialog style
 - [ ] add function cleanup: Clean up the remote if possible.
 - [ ] add function size: Prints the total size and number of objects in remote:path.
-- [ ] add [encripted config support](https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues/11)
 
