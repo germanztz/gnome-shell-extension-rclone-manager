@@ -20,7 +20,7 @@ function create_vm() {
     # Create a network interface for the virtual machine
     VBoxManage modifyvm $vm_name --ostype "Ubuntu_64" --memory 4096 --vram 128 \
     --vram 128 --accelerate3d on --graphicscontroller vmsvga \
-    --nic1 nat
+    --nic1 nat --clipboard-mode bidirectional --draganddrop bidirectional
 
     # Add a SATA controller for the virtual hard drive
     VBoxManage storagectl $vm_name --name "SATA Controller" --add sata --controller IntelAhci
@@ -31,6 +31,8 @@ function create_vm() {
     VBoxManage storageattach $vm_name --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "$vm_folder"/$vm_name/$vm_name.vdi
     VBoxManage storageattach $vm_name --storagectl "IDE Controller" --port 0 --device 0 --type dvddrive --medium $iso_file
 
+    # Add a shared folder
+    VBoxManage sharedfolder add $vm_name --name vagrant --hostpath $HOME --transient --readonly --automount
 
     # Set up an unattended installation
     # VBoxManage unattended install $vm_name --user=vagrant --password=vagrant \
@@ -41,14 +43,19 @@ function create_vm() {
 }
 
 function install_tools() {
+    local vbver="6.1.38"
     echo "Installing tools"
-    wget http://download.virtualbox.org/virtualbox/4.3.8/VBoxGuestAdditions_4.3.8.iso
+    wget http://download.virtualbox.org/virtualbox/$vbver/VBoxGuestAdditions_$vbver.iso
     sudo mkdir /media/VBoxGuestAdditions
-    sudo mount -o loop,ro VBoxGuestAdditions_4.3.8.iso /media/VBoxGuestAdditions
+    sudo mount -o loop,ro VBoxGuestAdditions_$vbver.iso /media/VBoxGuestAdditions
     sudo sh /media/VBoxGuestAdditions/VBoxLinuxAdditions.run
-    rm VBoxGuestAdditions_4.3.8.iso
+    rm VBoxGuestAdditions_$vbver.iso
     sudo umount /media/VBoxGuestAdditions
     sudo rmdir /media/VBoxGuestAdditions
+}
+
+function prepare_user(){
+    sudo apt remove --autoremove gnome-initial-setup
 }
 
 function config_ssh() {
