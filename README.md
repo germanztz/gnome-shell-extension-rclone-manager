@@ -85,6 +85,10 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v44.0
+
+- [x] Shell 44 version update
+
 ## v43.1
 
 - [x] Bug fix, matching Filenames not ignored 
