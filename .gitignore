@@ -7,3 +7,9 @@ node_modules
 rclone.conf
 *.log
 
+vm/packer_cache
+vm/output-virtualbox-iso
+vm/Vagrantfile
+*.iso
+*.box
+*.lock

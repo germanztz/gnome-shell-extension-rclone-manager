@@ -1,0 +1,34 @@
+{
+  "variables": {
+    "comment_origin": "https://developer.hashicorp.com/packer/guides/automatic-operating-system-installs/preseed_ubuntu"
+  },
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "iso_url": "https://releases.ubuntu.com/23.04/ubuntu-23.04-desktop-amd64.iso",
+      "iso_checksum": "file:https://releases.ubuntu.com/23.04/SHA256SUMS",
+      "iso_target_path": "ubuntu-23.04-desktop.iso",
+      "vm_name": "ubuntu-23.04-desktop",
+      "guest_os_type": "Ubuntu_64",
+      "disk_size": 40000,
+      "vboxmanage": [
+        ["modifyvm", "{{ .Name }}", "--cpus", "2"],
+        ["modifyvm", "{{ .Name }}", "--memory", "4096"]
+      ],
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "10000s",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+      "boot_command": ["<wait>e<wait><down><down><down><end> autoinstall ds=nocloud-net\\;s=http://{{.HTTPIP}}:{{.HTTPPort}}/<wait><f10><wait>"],
+      "http_directory": "http",
+      "boot_wait": "10s"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | {{ .Vars }} sudo -S -E bash '{{ .Path }}'",
+      "scripts": ["http/ubuntu-preseed.sh"]
+    }
+  ]
+}
