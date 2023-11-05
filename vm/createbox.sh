@@ -50,7 +50,7 @@ vboxmanage import output-virtualbox-iso/$vm_name.ovf
 
 rm $vm_name.box
 vagrant package --base $vm_name --output $vm_name.box
-vagrant box remove daimler/$vm_name
+vagrant box remove daimler/$vm_name -f
 vagrant box add --name daimler/$vm_name  $vm_name.box
 vagrant destroy -f
 rm Vagrantfile
