@@ -1,14 +1,14 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
-const St = imports.gi.St
-const GObject = imports.gi.GObject
-const ModalDialog = imports.ui.modalDialog
-const CheckBox = imports.ui.checkBox
-const Clutter = imports.gi.Clutter
+import GObject from 'gi://GObject'
+import St from 'gi://St'
+import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
+import * as CheckBox from 'resource:///org/gnome/shell/ui/checkBox.js';
+import * as Clutter from 'gi://Clutter';
 
 let _openDialog
 
-function openConfirmDialog (title, message, subMessage, okLabel, cancelLabel, callback) {
+export function openConfirmDialog (title, message, subMessage, okLabel, cancelLabel, callback) {
   log('dlg.openConfirmDialog')
   if (!_openDialog) {
     _openDialog = new ConfirmDialog()
@@ -29,12 +29,12 @@ const ConfirmDialog = GObject.registerClass(
       })
       const subjectLabel = new St.Label({
         style: 'font-weight: bold;',
-        x_align: Clutter.ActorAlign.CENTER,
+        // x_align: Clutter.ActorAlign.CENTER,
         text: title
       })
       const descLabel = new St.Label({
         style: 'padding-top: 12px;',
-        x_align: Clutter.ActorAlign.CENTER,
+        // x_align: Clutter.ActorAlign.CENTER,
         text: desc
       })
       descLabel.clutter_text.line_wrap = true

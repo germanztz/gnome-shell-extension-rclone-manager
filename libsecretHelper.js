@@ -1,7 +1,6 @@
 #!/usr/bin/gjs
-
-const GLib = imports.gi.GLib;
-const Secret = imports.gi.Secret;
+import GLib from 'gi://GLib'
+import Secret from 'gi://Secret'
 
 /* This schema is usually defined once globally */
 const EXAMPLE_SCHEMA = new Secret.Schema("org.example.Password",

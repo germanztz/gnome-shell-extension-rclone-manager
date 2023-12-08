@@ -1,14 +1,14 @@
 #!/bin/bash 
 #-eux
 
-vm_name="ubuntu-23.04-desktop"
+vm_name="ubuntu-23.10.1-desktop"
 
 old() {
   
   # Name of the new virtual machine
 
   # Location of the ISO file
-  iso_file="$HOME/Descargas/ubuntu-23.04-desktop-amd64.iso"
+  iso_file="$HOME/Descargas/ubuntu-23.10.1-desktop-amd64.iso"
 
   # Location to store virtual machine files
   vm_folder="$HOME/VirtualBox VMs"
