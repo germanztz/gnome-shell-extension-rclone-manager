@@ -67,3 +67,4 @@ https://github.com/julio641742/gnome-shell-extension-reference
 
 https://rclone.org
 
+https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/extensions/prefs.js

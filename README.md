@@ -85,6 +85,11 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v45.0
+
+- [x] Shell 45 version update
+https://gjs.guide/extensions/upgrading/gnome-shell-45.html#extension-js
+
 ## v44.0
 
 - [x] Shell 44 version update
