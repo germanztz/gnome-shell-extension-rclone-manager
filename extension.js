@@ -1,26 +1,18 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 import GObject from 'gi://GObject';
+import GLib from 'gi://GLib'
 import St from 'gi://St';
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-
-import GLib from 'gi://GLib'
-import Gio from 'gi://Gio'
-import * as Util from 'resource:///org/gnome/shell/misc/util.js';
-import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
-import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 
 import {FileMonitorHelper, PrefsFields, ProfileStatus} from './fileMonitorHelper.js';
 import * as ConfirmDialog from './confirmDialog.js';
 
 const Mainloop = imports.mainloop
-
-const [major] = Config.PACKAGE_VERSION.split('.')
-const shellVersion = Number.parseInt(major)
 
 const INDICATOR_ICON = 'drive-multidisk-symbolic'
 const PROFILE_IDLE_ICON = 'radio-symbolic'
@@ -42,23 +34,22 @@ const submenus = {
   Log: 'dialog-warning-symbolic',
   Disengage: 'radio-mixed-symbolic'
 }
-let Me = null;
 
 const RcloneManagerIndicator = GObject.registerClass(
   class RcloneManagerIndicator extends PanelMenu.Button {
       _init(extension) {
           super._init(0.0, 'RcloneManager');
           this.extension = extension;
-          log('rcm._init')
-  
-          this._initNotifSource()
+          this._settings = extension.getSettings()
           this.fmh = new FileMonitorHelper();
-          // this.Settings = Me.getSettings(this.fmh.PREFS_SCHEMA_NAME)
+          log('rcm._init', JSON.stringify(extension))
+
+          this._initNotifSource()
 
           this.PREF_AUTOSYNC = true
           this.PREF_CHECK_INTERVAL = 3
           this.checkTimeoutId = null
-          this._configs = []
+          this._configs = {}
           this._registry = {}
 
           const hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box rclone-manager-hbox' })
@@ -88,7 +79,7 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _initNotifSource() {
         if (!this._notifSource) {
-          this._notifSource = new MessageTray.Source(Me.metadata.name, INDICATOR_ICON)
+          this._notifSource = new MessageTray.Source(this.extension.metadata.name, INDICATOR_ICON)
           this._notifSource.connect('destroy', () => { this._notifSource = null })
           Main.messageTray.add(this._notifSource)
         }
@@ -96,7 +87,7 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _loadSettings() {
         this.fmh.PREF_DBG && log('rcm._loadSettings')
-        this.extension.settings.connect('changed', this._onSettingsChange.bind(this))
+        this._settings.connect('changed', this._onSettingsChange.bind(this))
         this._onSettingsChange()
       }
 
@@ -107,7 +98,7 @@ const RcloneManagerIndicator = GObject.registerClass(
           log('rcm._checkDependencies ERROR: It seems you don\'t have rclone installed, this extension won\'t work without it')
           const subTitle = _('rclone Version: ') + rcVersion
           const message = _("It seems you don't have rclone installed, this extension won't work without it")
-          this._showNotification(`${Me.metadata.name} ${_('Error')} ${_('rclone Version: ')}`, `${message} ${subTitle}`)
+          this._showNotification(`${this.extension.metadata.name} ${_('Error')} ${_('rclone Version: ')}`, `${message} ${subTitle}`)
           this.icon.icon_name = PROFILE_ERROR_ICON
           return false
         }
@@ -115,36 +106,14 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _onSettingsChange() {
-        const { settings } = this.extension;
-        this.fmh.PREF_DBG = settings.get_boolean(PrefsFields.PREFKEY_DEBUG_MODE)
         this.fmh.PREF_DBG && log('rcm._onSettingsChange')
         const oldPassword = this.fmh.PREF_RCONFIG_PASSWORD
-        this.fmh.PREF_RCONFIG_FILE_PATH = settings.get_string(PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
-        this.fmh.PREF_RCONFIG_PASSWORD = settings.get_string(PrefsFields.PREFKEY_RCONFIG_PASSWORD)
-        this.fmh.PREF_BASE_MOUNT_PATH = settings.get_string(PrefsFields.PREFKEY_BASE_MOUNT_PATH)
-        this.fmh.PREF_IGNORE_PATTERNS = settings.get_string(PrefsFields.PREFKEY_IGNORE_PATTERNS)
-        this.fmh.PREF_EXTERNAL_TERMINAL = settings.get_string(PrefsFields.PREFKEY_EXTERNAL_TERMINAL)
-        this.fmh.PREF_EXTERNAL_FILE_BROWSER = settings.get_string(PrefsFields.PREFKEY_EXTERNAL_FILE_BROWSER)
-        this.PREF_AUTOSYNC = settings.get_boolean(PrefsFields.PREFKEY_AUTOSYNC)
-        this.PREF_CHECK_INTERVAL = settings.get_int(PrefsFields.PREFKEY_CHECK_INTERVAL)
-        this.fmh.PREF_RC_LIST_REMOTES = settings.get_string(PrefsFields.PREFKEY_RC_LIST_REMOTES)
-        this.fmh.PREF_RC_CREATE_DIR = settings.get_string(PrefsFields.PREFKEY_RC_CREATE_DIR)
-        this.fmh.PREF_RC_DELETE_DIR = settings.get_string(PrefsFields.PREFKEY_RC_DELETE_DIR)
-        this.fmh.PREF_RC_DELETE_FILE = settings.get_string(PrefsFields.PREFKEY_RC_DELETE_FILE)
-        this.fmh.PREF_RC_MOUNT = settings.get_string(PrefsFields.PREFKEY_RC_MOUNT)
-        this.fmh.PREF_RC_SYNC = settings.get_string(PrefsFields.PREFKEY_RC_SYNC)
-        this.fmh.PREF_RC_CHECK = settings.get_string(PrefsFields.PREFKEY_RC_CHECK)
-        this.fmh.PREF_RC_COPYTO = settings.get_string(PrefsFields.PREFKEY_RC_COPYTO)
-        this.fmh.PREF_RC_ADD_CONFIG = settings.get_string(PrefsFields.PREFKEY_RC_ADD_CONFIG)
-        this.fmh.PREF_RC_DELETE_CONFIG = settings.get_string(PrefsFields.PREFKEY_RC_DELETE_CONFIG)
-        this.fmh.PREF_RC_RECONNECT = settings.get_string(PrefsFields.PREFKEY_RC_RECONNECT)
-        this._registry = this._readRegistry(settings.get_string(PrefsFields.HIDDENKEY_PROFILE_REGISTRY))
+        this.PREF_AUTOSYNC = this._settings.get_boolean(PrefsFields.PREFKEY_AUTOSYNC)
+        this.PREF_CHECK_INTERVAL = this._settings.get_int(PrefsFields.PREFKEY_CHECK_INTERVAL)
+        this._registry = this._readRegistry(this._settings.get_string(PrefsFields.HIDDENKEY_PROFILE_REGISTRY))
 
-        this.fmh.PREF_BASE_MOUNT_PATH = this.fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
-        if (!this.fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) this.fmh.PREF_BASE_MOUNT_PATH = this.fmh.PREF_BASE_MOUNT_PATH + '/'
-
-        this.fmh.PREF_RCONFIG_FILE_PATH = this.fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
-
+        this.fmh.loadSettings(this._settings)
+        
         if(oldPassword !== this.fmh.PREF_RCONFIG_PASSWORD){
           this._initConfig()
         }
@@ -181,7 +150,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         } catch (error) {
           logError(error);
           this._configs = {}
-          this._showNotification(`${Me.metadata.name} ${_('Error')} ${_('List remotes command')}`, error.message)
+          this._showNotification(`${this.extension.metadata.name} ${_('Error')} ${_('List remotes command')}`, error.message)
         }
         this._cleanRegistry()
         // restores existing log
@@ -255,7 +224,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         // Add 'Settings' menu item to open settings
         const settingsMenuItem = new PopupMenu.PopupImageMenuItem(_('Settings'), 'gnome-tweak-tool-symbolic')
         this.menu.addMenuItem(settingsMenuItem)
-        settingsMenuItem.connect('activate', () => { this.extension.openSettings(); }) //ExtensionUtils.openPrefs()
+        settingsMenuItem.connect('activate', () => { this.extension.openPreferences(); })
 
         // Add 'About' button which shows info abou the extension
         const aboutMenuItem = new PopupMenu.PopupImageMenuItem(_('About'), 'system-help-symbolic')
@@ -305,6 +274,7 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _buildSubMenuItem(action, profile) {
+        this.fmh.PREF_DBG && log('rcm._buildSubMenuItem', profile, action)
         const subMenuItem = new PopupMenu.PopupImageMenuItem(_(action), submenus[action])
         subMenuItem.profile = profile
         subMenuItem.action = action
@@ -346,7 +316,7 @@ const RcloneManagerIndicator = GObject.registerClass(
               _('This action cannot be undone'),
               _('Confirm'), _('Cancel'),
               function () {
-                this.fmh.deleteConfig(menuItem.profile,
+                that.fmh.deleteConfig(menuItem.profile,
                   (profile, status, message) => { that._onProfileStatusChanged(profile, status, message) })
               }
             )
@@ -356,9 +326,6 @@ const RcloneManagerIndicator = GObject.registerClass(
             break
           default:
             break
-        }
-        if (shellVersion < 40) {
-          this.menu.toggle()
         }
       }
 
@@ -379,7 +346,7 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _updateRegistry(newRegistry) {
         this.fmh.PREF_DBG && log('rcm._updateRegistry', JSON.stringify(newRegistry))
-        this.extension.settings.set_string(PrefsFields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(newRegistry))
+        this._settings.set_string(PrefsFields.HIDDENKEY_PROFILE_REGISTRY, JSON.stringify(newRegistry))
       }
 
       _openRemote(autoSet) {
@@ -509,48 +476,33 @@ const RcloneManagerIndicator = GObject.registerClass(
         const rcVersion = this.fmh.getRcVersion()
         const contents =
           `
-    ${Me.metadata.name} v${Me.metadata.version}
+    ${this.extension.metadata.name} v${this.extension.metadata.version}
 
     AUTHORS:
     German Ztz <avena.root@gmail.com>: Development
     Heimen Stoffels: Dutch translation
     Axel H.: French translation
 
-    ${Me.metadata.description}
+    ${this.extension.metadata.description}
 
     For bugs report and comments go to:
-    ${Me.metadata.url}
+    ${this.extension.metadata.url}
 
     `
         ConfirmDialog.openConfirmDialog(_('About'), rcVersion, contents, _('Ok'))
       }
-  
-//   enable() {
-//     // this.Settings = this.getSettings();
-//     console.log(_('This is a translatable text'));
-//   }
-
-//   disable() {
-//     // this._removeCheckInterval()
-//     // this.Settings = null;
-//   }
-// }
 });
 
 export default class RcloneManager extends Extension {
   enable() {
-    Me = this
-    this.RcloneManagerIndicator = new RcloneManagerIndicator({
-      settings: this.getSettings(),
-      openSettings: this.openPreferences,
-      uuid: this.uuid
-    });
-    Main.panel.addToStatusArea(this.uuid, this.RcloneManagerIndicator);
+    this._rcm = new RcloneManagerIndicator( this );
+    Main.panel.addToStatusArea(this.uuid, this._rcm);
   }
 
   disable() {
-    this.RcloneManagerIndicator._removeCheckInterval()
-    this.RcloneManagerIndicator.destroy();
-    this.RcloneManagerIndicator = null;
+    log('rcm.disable')
+    this._rcm._removeCheckInterval()
+    this._rcm.destroy();
+    this._rcm = null;
   }
 }

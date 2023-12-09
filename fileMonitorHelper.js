@@ -49,7 +49,6 @@ const MONITOR_EVENTS = ['CHANGED', 'CHANGES_DONE_HINT', 'DELETED', 'CREATED', 'A
 export class FileMonitorHelper {
 
   constructor() {
-    this.PREFS_SCHEMA_NAME = 'org.gnome.shell.extensions.rclone-manager'
 
     this.PREF_RCONFIG_FILE_PATH = ''
     this.PREF_RCONFIG_PASSWORD = ''
@@ -65,7 +64,7 @@ export class FileMonitorHelper {
     this.PREF_RC_CHECK = ''
     this.PREF_DBG = ''
     this.PREF_CHECK_INTERVAL = ''
-    // var PREF_RC_LIST_REMOTES = ''
+    this.PREF_RC_LIST_REMOTES = ''
     this.PREF_RC_COPYTO = ''
     this.PREF_RC_ADD_CONFIG = ''
     this.PREF_RC_DELETE_CONFIG = ''
@@ -78,6 +77,34 @@ export class FileMonitorHelper {
 
     this._monitors = {}
     this._configMonitor = null
+
+  }
+
+  loadSettings(settings) {
+    this.PREF_DBG = settings.get_boolean(PrefsFields.PREFKEY_DEBUG_MODE)
+    this.PREF_DBG && log('fmh.loadSettings')
+    this.PREF_RCONFIG_FILE_PATH = settings.get_string(PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
+    this.PREF_RCONFIG_PASSWORD = settings.get_string(PrefsFields.PREFKEY_RCONFIG_PASSWORD)
+    this.PREF_BASE_MOUNT_PATH = settings.get_string(PrefsFields.PREFKEY_BASE_MOUNT_PATH)
+    this.PREF_IGNORE_PATTERNS = settings.get_string(PrefsFields.PREFKEY_IGNORE_PATTERNS)
+    this.PREF_EXTERNAL_TERMINAL = settings.get_string(PrefsFields.PREFKEY_EXTERNAL_TERMINAL)
+    this.PREF_EXTERNAL_FILE_BROWSER = settings.get_string(PrefsFields.PREFKEY_EXTERNAL_FILE_BROWSER)
+    this.PREF_RC_LIST_REMOTES = settings.get_string(PrefsFields.PREFKEY_RC_LIST_REMOTES)
+    this.PREF_RC_CREATE_DIR = settings.get_string(PrefsFields.PREFKEY_RC_CREATE_DIR)
+    this.PREF_RC_DELETE_DIR = settings.get_string(PrefsFields.PREFKEY_RC_DELETE_DIR)
+    this.PREF_RC_DELETE_FILE = settings.get_string(PrefsFields.PREFKEY_RC_DELETE_FILE)
+    this.PREF_RC_MOUNT = settings.get_string(PrefsFields.PREFKEY_RC_MOUNT)
+    this.PREF_RC_SYNC = settings.get_string(PrefsFields.PREFKEY_RC_SYNC)
+    this.PREF_RC_CHECK = settings.get_string(PrefsFields.PREFKEY_RC_CHECK)
+    this.PREF_RC_COPYTO = settings.get_string(PrefsFields.PREFKEY_RC_COPYTO)
+    this.PREF_RC_ADD_CONFIG = settings.get_string(PrefsFields.PREFKEY_RC_ADD_CONFIG)
+    this.PREF_RC_DELETE_CONFIG = settings.get_string(PrefsFields.PREFKEY_RC_DELETE_CONFIG)
+    this.PREF_RC_RECONNECT = settings.get_string(PrefsFields.PREFKEY_RC_RECONNECT)
+
+    this.PREF_BASE_MOUNT_PATH = this.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
+    if (!this.PREF_BASE_MOUNT_PATH.endsWith('/')) this.PREF_BASE_MOUNT_PATH = this.PREF_BASE_MOUNT_PATH + '/'
+
+    this.PREF_RCONFIG_FILE_PATH = this.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
 
   }
 

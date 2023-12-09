@@ -19,7 +19,8 @@ const RcloneManagerWidget = GObject.registerClass(
         _init(extension) {
             super._init({orientation: Gtk.Orientation.VERTICAL, spacing: 30});
             this._settings = extension.getSettings();
-            this.fhm = new FileMonitorHelper();
+            this.fmh = new FileMonitorHelper();
+            this.fmh.loadSettings(this._settings);
 
             this.main = new Gtk.Grid({
                 margin_top: 10,
@@ -159,8 +160,8 @@ const RcloneManagerWidget = GObject.registerClass(
         }
 
         onBackupDialogResponse(dialog, response) {
-            this.fmh.PREF_RCONFIG_FILE_PATH = this.Settings.get_string(PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
-            this.fmh.PREF_BASE_MOUNT_PATH = this.Settings.get_string(PrefsFields.PREFKEY_BASE_MOUNT_PATH)
+            this.fmh.PREF_RCONFIG_FILE_PATH = this._settings.get_string(PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
+            this.fmh.PREF_BASE_MOUNT_PATH = this._settings.get_string(PrefsFields.PREFKEY_BASE_MOUNT_PATH)
             this.fmh.PREF_BASE_MOUNT_PATH = this.fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
             if (!this.fmh.PREF_BASE_MOUNT_PATH.endsWith('/')) this.fmh.PREF_BASE_MOUNT_PATH = this.fmh.PREF_BASE_MOUNT_PATH + '/'
             this.fmh.PREF_RCONFIG_FILE_PATH = this.fmh.PREF_RCONFIG_FILE_PATH.replace('~', GLib.get_home_dir())
@@ -170,22 +171,30 @@ const RcloneManagerWidget = GObject.registerClass(
             var statusResult, out, err, isSuccessful
             if (response === 0) {
                 // Backup
-                [statusResult, out, err] = this.fmh.spawnSync(this.fmh.RC_COPY
+                try {
+                    [statusResult, out, err] = this.fmh.spawnSync(this.fmh.RC_COPY
                     .replace('%source', this.fmh.PREF_RCONFIG_FILE_PATH)
                     .replace('%destination', this.fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf')
-                    .replace('%pcmd', `"echo ${PREF_RCONFIG_PASSWORD}"`)
+                    .replace('%pcmd', `"echo ${this.fmh.PREF_RCONFIG_PASSWORD}"`)
                     .split(' ')
-                )
-            } else if (response === 1) {
+                    )
+                } catch (e) {
+                    logError(e)
+                }
+        } else if (response === 1) {
                 // Restore
-                [statusResult, out, err] = this.fmh.spawnSync(this.fmh.PREF_RC_COPYTO
-                    .replace('%profile', profile)
-                    .replace('%source', '/.rclone.conf')
-                    .replace('%destination', this.fmh.PREF_RCONFIG_FILE_PATH)
-                    .replace('%pcmd', `"echo ${PREF_RCONFIG_PASSWORD}"`)
-                    .split(' ')
-                )
-            } else {
+                try {
+                    [statusResult, out, err] = this.fmh.spawnSync(this.fmh.PREF_RC_COPYTO
+                        .replace('%profile', profile)
+                        .replace('%source', '/.rclone.conf')
+                        .replace('%destination', this.fmh.PREF_RCONFIG_FILE_PATH)
+                        .replace('%pcmd', `"echo ${this.fmh.PREF_RCONFIG_PASSWORD}"`)
+                        .split(' ')
+                    )
+                } catch (e) {
+                    logError(e)
+                }
+        } else {
                 return
             }
             this.fmh.PREF_DBG && log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}, err, ${err}`)
