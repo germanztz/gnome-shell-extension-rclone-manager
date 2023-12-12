@@ -12,8 +12,6 @@ import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import {FileMonitorHelper, PrefsFields, ProfileStatus} from './fileMonitorHelper.js';
 import * as ConfirmDialog from './confirmDialog.js';
 
-const Mainloop = imports.mainloop
-
 const INDICATOR_ICON = 'drive-multidisk-symbolic'
 const PROFILE_IDLE_ICON = 'radio-symbolic'
 const PROFILE_WATCHED_ICON = 'folder-saved-search-symbolic'
@@ -123,22 +121,26 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _resetCheckInterval() {
         this._removeCheckInterval()
+        const that = this
         if (this.PREF_CHECK_INTERVAL !== 0) {
           this.fmh.PREF_DBG && log(`rcm._resetCheckInterval, interval: ${this.PREF_CHECK_INTERVAL}`)
-          this.checkTimeoutId = Mainloop.timeout_add(this.PREF_CHECK_INTERVAL * 60000, () => {
-            Object.entries(this._registry)
+          this.checkTimeoutId = GLib.timeout_source_new(this.PREF_CHECK_INTERVAL * 60000)
+          this.checkTimeoutId.attach(null)
+          this.checkTimeoutId.set_callback( () => {
+            this.fmh.PREF_DBG && log(`rcm._resetCheckInterval running`)
+            Object.entries(that._registry)
               .filter(p => p[1].syncType === ProfileStatus.WATCHED)
-              .forEach(p => this.fmh.checkNsync(p[0], (profile, status, message) => { this._onProfileStatusChanged(profile, status, message) }))
+              .forEach(p => that.fmh.checkNsync(p[0], (profile, status, message) => { that._onProfileStatusChanged(profile, status, message) }))
             return true
           })
         }
       }
 
       _removeCheckInterval() {
-        if (this.checkTimeoutId) {
+        if(this.checkTimeoutId){
           this.fmh.PREF_DBG && log('rcm._removeCheckInterval')
-          Mainloop.source_remove(this.checkTimeoutId)
-          this.checkTimeoutId = null
+          this.checkTimeoutId.destroy()
+          this.checkTimeoutId = null  
         }
       }
 
@@ -495,6 +497,7 @@ const RcloneManagerIndicator = GObject.registerClass(
 
 export default class RcloneManager extends Extension {
   enable() {
+    log('rcm.enable')
     this._rcm = new RcloneManagerIndicator( this );
     Main.panel.addToStatusArea(this.uuid, this._rcm);
   }
