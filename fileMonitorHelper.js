@@ -7,7 +7,6 @@
  */
 import GLib from 'gi://GLib'
 import Gio from 'gi://Gio'
-const byteArray = imports.byteArray
 
 export const PrefsFields = {
   PREFKEY_RCONFIG_FILE_PATH: 'prefkey001-rconfig-file-path',
@@ -77,6 +76,7 @@ export class FileMonitorHelper {
 
     this._monitors = {}
     this._configMonitor = null
+    this._textDecoder = new TextDecoder()
 
   }
 
@@ -665,8 +665,8 @@ export class FileMonitorHelper {
       // Child setup function
       null)
 
-    if (stderr instanceof Uint8Array) stderr = byteArray.toString(stderr)
-    if (stdout instanceof Uint8Array) stdout = byteArray.toString(stdout)
+    if (stderr instanceof Uint8Array) stderr = this._textDecoder.decode(stderr)
+    if (stdout instanceof Uint8Array) stdout = this._textDecoder.decode(stdout)
     this.PREF_DBG && log(`fmh.spawnSync, status=${exitStatus}, stderr=${stderr}, stdout=${stdout}`)
     if (exitStatus !== 0) throw new Error(stderr);
     return [exitStatus, stdout, stderr]
@@ -701,7 +701,7 @@ export class FileMonitorHelper {
               try {
                 // are we running gnome 3.30 or higher?
                 if (contents instanceof Uint8Array) {
-                  callbackFunction(imports.byteArray.toString(contents))
+                  callbackFunction(this._textDecoder.decode(contents))
                 } else {
                   callbackFunction('File contents are no Uint8Array')
                 }
