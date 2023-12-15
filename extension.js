@@ -46,7 +46,7 @@ const RcloneManagerIndicator = GObject.registerClass(
 
           this.PREF_AUTOSYNC = true
           this.PREF_CHECK_INTERVAL = 3
-          this.checkTimeoutId = null
+          this._sourceId = null
           this._configs = {}
           this._registry = {}
 
@@ -124,23 +124,21 @@ const RcloneManagerIndicator = GObject.registerClass(
         const that = this
         if (this.PREF_CHECK_INTERVAL !== 0) {
           this.fmh.PREF_DBG && log(`rcm._resetCheckInterval, interval: ${this.PREF_CHECK_INTERVAL}`)
-          this.checkTimeoutId = GLib.timeout_source_new(this.PREF_CHECK_INTERVAL * 60000)
-          this.checkTimeoutId.attach(null)
-          this.checkTimeoutId.set_callback( () => {
+          this._sourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, this.PREF_CHECK_INTERVAL * 60, () => {
             this.fmh.PREF_DBG && log(`rcm._resetCheckInterval running`)
             Object.entries(that._registry)
               .filter(p => p[1].syncType === ProfileStatus.WATCHED)
               .forEach(p => that.fmh.checkNsync(p[0], (profile, status, message) => { that._onProfileStatusChanged(profile, status, message) }))
-            return true
+            return GLib.SOURCE_CONTINUE;
           })
         }
       }
 
       _removeCheckInterval() {
-        if(this.checkTimeoutId){
+        if(this._sourceId){
           this.fmh.PREF_DBG && log('rcm._removeCheckInterval')
-          this.checkTimeoutId.destroy()
-          this.checkTimeoutId = null  
+          GLib.Source.remove(this._sourceId);
+          this._sourceId = null  
         }
       }
 
@@ -497,7 +495,6 @@ const RcloneManagerIndicator = GObject.registerClass(
 
 export default class RcloneManager extends Extension {
   enable() {
-    log('rcm.enable')
     this._rcm = new RcloneManagerIndicator( this );
     Main.panel.addToStatusArea(this.uuid, this._rcm);
   }
