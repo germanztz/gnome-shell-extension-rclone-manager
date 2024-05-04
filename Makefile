@@ -24,7 +24,7 @@ bundle: all
 	zip -r rclone-manager@germanztz.com.zip $(MODULES) -x "*.po"
 
 run: install
-	dbus-run-session -- gnome-shell --nested --wayland
+	./debug.sh
 # 2>1 | grep -v 'Meta.Rectangle'
 
 vmrun: bundle

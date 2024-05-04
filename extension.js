@@ -77,7 +77,11 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _initNotifSource() {
         if (!this._notifSource) {
-          this._notifSource = new MessageTray.Source(this.extension.metadata.name, INDICATOR_ICON)
+          this._notifSource = new MessageTray.Source(
+            {
+              'title': this.extension.metadata.name,
+              'icon-name': INDICATOR_ICON
+          })
           this._notifSource.connect('destroy', () => { this._notifSource = null })
           Main.messageTray.add(this._notifSource)
         }
