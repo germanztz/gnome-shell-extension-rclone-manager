@@ -138,7 +138,7 @@ const RcloneManagerWidget = GObject.registerClass(
             })
 
             const contentArea = dialog.get_content_area()
-            contentArea.set_css_classes('dialog-backup')
+            // contentArea.set_css_classes('dialog-backup')
             const contentBox = this.getOrientedBox(Gtk.Orientation.VERTICAL)
 
             var liststore = new Gtk.ListStore()
