@@ -11,14 +11,14 @@ Vagrant.configure("2") do |config|
   # https://docs.vagrantup.com.
 
   # config.vagrant.plugins = ["vagrant-reload"]
-  config.vm.box = "daimler/ubuntu-23.10.1-desktop"
+  config.vm.box = "daimler/ubuntu-24.04-desktop"
 
 
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder ".", "/home/vagrant/rclone-manager@germanztz.com"
+  config.vm.synced_folder ".", "/home/vagrant/.local/share/gnome-shell/extensions/rclone-manager@germanztz.com"
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   #

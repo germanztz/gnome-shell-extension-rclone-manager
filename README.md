@@ -85,6 +85,10 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v46.0
+
+- [x] Shell 46 version update
+
 ## v45.1
 
 - [x] Remove obsolete calls
