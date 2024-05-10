@@ -24,23 +24,19 @@ bundle: all
 	zip -r rclone-manager@germanztz.com.zip $(MODULES) -x "*.po"
 
 run: install
-	dbus-run-session -- gnome-shell --nested --wayland
+	./debug.sh
 # 2>1 | grep -v 'Meta.Rectangle'
 
-vmrun: bundle
-	ps -ef | grep -v grep | grep -e 'virtualbox.*rclone-manager' || vagrant up 
+vmrun: 
+	ps -ef | grep -v grep | grep -e 'virtualbox.*rclone-manager' && vagrant reload || vagrant up 
 # 	vagrant ssh -c '\
 # gsettings set org.gnome.shell disable-user-extensions false && \
 # gnome-extensions install --force ~/rclone-manager@germanztz.com/rclone-manager@germanztz.com.zip && \
 # gnome-extensions enable rclone-manager@germanztz.com && \
 # journalctl -f --no-hostname -b /usr/bin/gnome-shell'
+# vagrant ssh -c 'gnome-extensions install --force ~/rclone-manager@germanztz.com/rclone-manager@germanztz.com.zip'
+	
 	vagrant ssh -c 'gsettings set org.gnome.shell disable-user-extensions false'
-	vagrant ssh -c 'gnome-extensions install --force ~/rclone-manager@germanztz.com/rclone-manager@germanztz.com.zip'
-	vagrant ssh -c 'sudo init 3'
-	vagrant ssh -c 'sudo init 5'
-	sleep 3
-	vagrant ssh -c 'sudo init 3'
-	vagrant ssh -c 'sudo init 5'
 	vagrant ssh -c 'gnome-extensions enable rclone-manager@germanztz.com'
 	vagrant ssh -c 'journalctl -f --no-hostname -b /usr/bin/gnome-shell'
 

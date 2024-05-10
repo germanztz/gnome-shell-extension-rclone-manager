@@ -138,7 +138,7 @@ const RcloneManagerWidget = GObject.registerClass(
             })
 
             const contentArea = dialog.get_content_area()
-            contentArea.style_class = 'dialog-backup'
+            contentArea.set_css_classes('dialog-backup')
             const contentBox = this.getOrientedBox(Gtk.Orientation.VERTICAL)
 
             var liststore = new Gtk.ListStore()
@@ -198,8 +198,9 @@ const RcloneManagerWidget = GObject.registerClass(
                 return
             }
             this.fmh.PREF_DBG && log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}, err, ${err}`)
-
             const resultDialog = new Gtk.MessageDialog({
+                modal: true,
+                use_header_bar: false,
                 title: _('Backup & restore'),
                 text: statusResult === 0 ? _('Operation succeed') : _('Operation failed') + '\n' + err,
                 buttons: [Gtk.ButtonsType.OK]
@@ -207,5 +208,4 @@ const RcloneManagerWidget = GObject.registerClass(
             resultDialog.connect('response', (resultDialog) => { resultDialog.destroy() })
             resultDialog.show()
         }
-
     });

@@ -57,7 +57,7 @@ const RcloneManagerIndicator = GObject.registerClass(
           })
           hbox.add_child(this.icon)
           this.add_child(hbox)
-  
+
           let item = new PopupMenu.PopupMenuItem(_('Show Notification'));
           item.connect('activate', () => {
               Main.notify(_('Whatʼs up, folks?'));
@@ -73,11 +73,15 @@ const RcloneManagerIndicator = GObject.registerClass(
             this._initConfig()
           })
 
-      } 
+      }
 
       _initNotifSource() {
         if (!this._notifSource) {
-          this._notifSource = new MessageTray.Source(this.extension.metadata.name, INDICATOR_ICON)
+          this._notifSource = new MessageTray.Source(
+            {
+              'title': this.extension.metadata.name,
+              'icon-name': INDICATOR_ICON
+          })
           this._notifSource.connect('destroy', () => { this._notifSource = null })
           Main.messageTray.add(this._notifSource)
         }
@@ -111,7 +115,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         this._registry = this._readRegistry(this._settings.get_string(PrefsFields.HIDDENKEY_PROFILE_REGISTRY))
 
         this.fmh.loadSettings(this._settings)
-        
+
         if(oldPassword !== this.fmh.PREF_RCONFIG_PASSWORD){
           this._initConfig()
         }
@@ -138,7 +142,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         if(this._sourceId){
           this.fmh.PREF_DBG && log('rcm._removeCheckInterval')
           GLib.Source.remove(this._sourceId);
-          this._sourceId = null  
+          this._sourceId = null
         }
       }
 
@@ -207,8 +211,8 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _buildMainMenu(profiles) {
         this.fmh.PREF_DBG && log('rcm._buildMainMenu')
-        // clean menu
-        this.menu._getMenuItems().forEach(function (i) { i.destroy() })
+        this.menu.removeAll()
+
 
         Object.entries(profiles).forEach(entry => {
           this.menu.addMenuItem(this._buildMenuItem(entry[0], this.fmh.getStatus(entry[0])))
@@ -249,7 +253,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         // clean submenu
         this.fmh.PREF_DBG && log('rcm._buildSubmenu', profile, status)
         if (!menuItem) return
-        menuItem.menu._getMenuItems().forEach(function (i) { i.destroy() })
+        menuItem.menu.removeAll()
 
         menuItem.menu.box.style_class = 'menuitem-menu-box'
 
@@ -452,10 +456,16 @@ const RcloneManagerIndicator = GObject.registerClass(
         this._initNotifSource()
 
         if (this._notifSource.count === 0) {
-          notification = new MessageTray.Notification(this._notifSource, title)
+          notification = new MessageTray.Notification({
+            source: this._notifSource,
+            title: title,
+            body: details,
+            'is-transient': true
+        })
         } else {
           notification = this._notifSource.notifications[0]
-          notification.update(title, '', { clear: true })
+          // notification.update(title, '', { clear: true })
+          notification.body = details;
         }
 
         if (typeof transformFn === 'function') {
@@ -469,7 +479,7 @@ const RcloneManagerIndicator = GObject.registerClass(
           ConfirmDialog.openConfirmDialog(title, '', details, _('Ok'))
         })
 
-        this._notifSource.showNotification(notification)
+        this._notifSource.addNotification(notification)
       }
 
       _lauchAbout() {

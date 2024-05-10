@@ -41,10 +41,10 @@ const ConfirmDialog = GObject.registerClass(
       const descScroll = new St.ScrollView()
       const descBox = new St.BoxLayout({ vertical: true })
 
-      descBox.add_actor(descLabel)
-      descScroll.add_actor(descBox)
+      descBox.add_child(descLabel)
+      descScroll.add_child(descBox)
       messageBox.add_child(subjectLabel)
-      messageBox.add_actor(descScroll)
+      messageBox.add_child(descScroll)
       mainBox.add_child(messageBox)
       this.contentLayout.add_child(mainBox)
       return this

@@ -1,7 +1,7 @@
 #!/bin/bash 
 #-eux
 
-vm_name="ubuntu-23.10.1-desktop"
+vm_name="ubuntu-24.04-desktop"
 
 old() {
   
@@ -42,11 +42,10 @@ old() {
 
 }
 
-yes | vboxmanage unregistervm $vm_name --delete
-rm -Rf output-virtualbox-iso
-packer build -force Packerfile.json
-
-vboxmanage import output-virtualbox-iso/$vm_name.ovf
+#yes | vboxmanage unregistervm $vm_name --delete
+#rm -Rf output-virtualbox-iso
+#packer build -force Packerfile.json
+#vboxmanage import output-virtualbox-iso/$vm_name.ovf
 
 rm $vm_name.box
 vagrant package --base $vm_name --output $vm_name.box
