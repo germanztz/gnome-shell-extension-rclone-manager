@@ -183,8 +183,8 @@ msgstr "Ha fallat l'operació"
 msgid "Operation succeed"
 msgstr "Operació correcta"
 
-msgid "Check interval in minuts"
-msgstr "Interval de comprovació en minuts"
+msgid "Check interval in minutes"
+msgstr "Interval de comprovació en minutes"
 
 msgid "Checks the files in the source and destination match"
 msgstr "Comprova que els arxius coincideixin en origen i destinació"

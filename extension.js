@@ -176,7 +176,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         Object.entries(this._registry).forEach(registryProfile => {
           if (!(registryProfile[0] in this._configs)) {
             delete this._registry[registryProfile[0]]
-            this.fmh.PREF_DBG && log('rcm._cleanRegistry', JSON.stringify(this._registry), 'has beed deleted from registry')
+            this.fmh.PREF_DBG && log('rcm._cleanRegistry', JSON.stringify(this._registry), 'has been deleted from registry')
             this._updateRegistry(this._registry)
           }
         })
@@ -230,10 +230,10 @@ const RcloneManagerIndicator = GObject.registerClass(
         this.menu.addMenuItem(settingsMenuItem)
         settingsMenuItem.connect('activate', () => { this.extension.openPreferences(); })
 
-        // Add 'About' button which shows info abou the extension
+        // Add 'About' button which shows info about the extension
         const aboutMenuItem = new PopupMenu.PopupImageMenuItem(_('About'), 'system-help-symbolic')
         this.menu.addMenuItem(aboutMenuItem)
-        aboutMenuItem.connect('activate', this._lauchAbout.bind(this))
+        aboutMenuItem.connect('activate', this._launchAbout.bind(this))
       }
 
       /**
@@ -482,7 +482,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         this._notifSource.addNotification(notification)
       }
 
-      _lauchAbout() {
+      _launchAbout() {
         const rcVersion = this.fmh.getRcVersion()
         const contents =
           `

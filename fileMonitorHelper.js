@@ -140,7 +140,7 @@ export class FileMonitorHelper {
   /**
    * Initiates the monitor for an RCLONE profile
    * @param {string} profile Name
-   * @param {fuction} onProfileStatusChanged callback function
+   * @param {function} onProfileStatusChanged callback function
    */
   initFilemonitor(profile, onProfileStatusChanged) {
     let success = true
@@ -193,7 +193,7 @@ export class FileMonitorHelper {
   }
 
   /**
-   * Calback function called when some file changes
+   * Callback function called when some file changes
    * @param {string} profile Name
    * @param {Gio.FileMonitor} monitor which triggered the Event
    * @param {Gio.File} file Changed
@@ -277,7 +277,7 @@ export class FileMonitorHelper {
   /**
    * Removes a filemonitor of a RCLONE profile
    * @param {string} profile name
-   * @param {fuction} onProfileStatusChanged callback function
+   * @param {function} onProfileStatusChanged callback function
    */
   removeFilemonitor(profile, onProfileStatusChanged) {
     if (this.getStatus(profile) === ProfileStatus.WATCHED) {
@@ -320,7 +320,7 @@ export class FileMonitorHelper {
    * @param {string[]} stderrLines error out lines
    * @param {string} profile Name
    * @param {Gio.File} file changed if any
-   * @param {fuction} onProfileStatusChanged callback function
+   * @param {function} onProfileStatusChanged callback function
    */
   onCmdFinished(status, stdoutLines, stderrLines, profile, file, onProfileStatusChanged) {
     this.PREF_DBG && log('fmh.onCmdFinished', profile, file && file.get_path(), status)
@@ -374,7 +374,7 @@ export class FileMonitorHelper {
   }
 
   /**
-   * Returs if a profile has base directori created
+   * Returns if a profile has base directori created
    * @param {string} profile name
    * @returns {boolean} true if base directori exists
    */
@@ -431,7 +431,7 @@ export class FileMonitorHelper {
   }
 
   /**
-   * Launch a console terminal whith RCLONE in order to reconnect the profile
+   * Launch a console terminal with RCLONE in order to reconnect the profile
    * @param {string} profile name
    */
   reconnect(profile) {
@@ -450,7 +450,7 @@ export class FileMonitorHelper {
   }
 
   /**
-   * Lauch an RCLONE sincronization whith the remote repository
+   * Launch an RCLONE sincronization with the remote repository
    * @param {string} profile name
    * @param {function} onProfileStatusChanged callback function
    */
@@ -518,7 +518,7 @@ export class FileMonitorHelper {
   }
 
   /**
-   * Launch a console terminal whith RCLONE in order to add a new profile
+   * Launch a console terminal with RCLONE in order to add a new profile
    * @param {string} profile name
    */
   addConfig(onProfileStatusChanged) {
@@ -600,7 +600,7 @@ export class FileMonitorHelper {
         null
       )
 
-      // Any unsused streams still have to be closed explicitly, otherwise the
+      // Any unused streams still have to be closed explicitly, otherwise the
       // file descriptors may be left open
       GLib.close(stdin)
 

@@ -183,7 +183,7 @@ msgstr "A operação falou"
 msgid "Operation succeed"
 msgstr "A operação foi concluída com exito"
 
-msgid "Check interval in minuts"
+msgid "Check interval in minutes"
 msgstr "Intervalo de checagem en min"
 
 msgid "Checks the files in the source and destination match"
