@@ -93,7 +93,7 @@ msgstr "Ruta donde se montarán los discos remotos"
 msgid "Filenames to be ignored"
 msgstr "Nombre de fichero a ignorar"
 
-msgid "Comma separed filenames to be ignored by inotify"
+msgid "Comma separated filenames to be ignored by inotify"
 msgstr "Nombre de fichero a ignorar separados por comas"
 
 msgid "Terminal command"

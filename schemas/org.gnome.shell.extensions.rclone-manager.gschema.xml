@@ -30,7 +30,7 @@
       <default>'\\.remmina\\.,~lock,\\.tmp,\\.log,\\.Trash-1000'</default>
       <summary>Filenames to be ignored</summary>
       <description>
-        Comma separed filenames to be ignored by inotify
+        Comma separated filenames to be ignored by inotify
       </description>
     </key>
 

@@ -93,7 +93,7 @@ msgstr "Ruta on se muntaran els discs remots"
 msgid "Filenames to be ignored"
 msgstr "Nom de fitxers a ignorar"
 
-msgid "Comma separed filenames to be ignored by inotify"
+msgid "Comma separated filenames to be ignored by inotify"
 msgstr "Nom de fitxers a ignorar separats per comes"
 
 msgid "Terminal command"
