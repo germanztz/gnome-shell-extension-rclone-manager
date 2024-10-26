@@ -1,14 +1,14 @@
 #!/bin/bash 
 #-eux
 
-vm_name="ubuntu-24.04-desktop"
+vm_name="ubuntu-24.10-desktop-amd64"
 
-old() {
+vboxmanage() {
   
   # Name of the new virtual machine
 
   # Location of the ISO file
-  iso_file="$HOME/Descargas/ubuntu-23.10.1-desktop-amd64.iso"
+  iso_file="$HOME/Descargas/ubuntu-24.10-desktop-amd64.iso"
 
   # Location to store virtual machine files
   vm_folder="$HOME/VirtualBox VMs"
@@ -38,20 +38,28 @@ old() {
     # --locale=en_US --country=US --time-zone=UTC --hostname=$vm_name --iso=$iso_file  --package-selection-adjustment=minimal
 
   # Start the virtual machine
-  # VBoxManage startvm $vm_name
+  VBoxManage startvm $vm_name 
 
 }
+packer() {
+  yes | vboxmanage unregistervm $vm_name --delete
+  rm -Rf output-virtualbox-iso
+  packer build -force Packerfile.json
+  vboxmanage import output-virtualbox-iso/$vm_name.ovf
+  
+}
 
-#yes | vboxmanage unregistervm $vm_name --delete
-#rm -Rf output-virtualbox-iso
-#packer build -force Packerfile.json
-#vboxmanage import output-virtualbox-iso/$vm_name.ovf
+vagrant() {
+  rm $vm_name.box
+  vagrant package --base $vm_name --output $vm_name.box
+  vagrant box remove daimler/$vm_name -f
+  vagrant box add --name daimler/$vm_name  $vm_name.box
+  vagrant destroy -f
+  rm Vagrantfile
+  vagrant init daimler/$vm_name
+  vagrant up  
+}
 
-rm $vm_name.box
-vagrant package --base $vm_name --output $vm_name.box
-vagrant box remove daimler/$vm_name -f
-vagrant box add --name daimler/$vm_name  $vm_name.box
-vagrant destroy -f
-rm Vagrantfile
-vagrant init daimler/$vm_name
-vagrant up
+#ejecutar función invocada por parámetro
+
+$1 ;
