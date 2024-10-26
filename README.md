@@ -85,6 +85,11 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v47.0
+
+- [x] Shell 47 version update
+- [x] Bug fix, extension crash on startup if not rclone installed
+
 ## v46.0
 
 - [x] Shell 46 version update
