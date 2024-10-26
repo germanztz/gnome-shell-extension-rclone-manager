@@ -109,9 +109,14 @@ export class FileMonitorHelper {
   }
 
   getRcVersion() {
-    const [exitStatus, stdout] = this.spawnSync(this.RC_VERSION.split(' '))
-    this.PREF_DBG && log('fmh.rclone version', stdout, 'exitStatus', exitStatus)
-    return exitStatus === 0 ? stdout : undefined
+    try {
+      const [exitStatus, stdout] = this.spawnSync(this.RC_VERSION.split(' '))
+      this.PREF_DBG && log('fmh.rclone version', stdout, 'exitStatus', exitStatus)
+      return exitStatus === 0 ? stdout : undefined
+        
+    } catch (e) {
+      return undefined      
+    }
   }
 
   /**

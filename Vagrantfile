@@ -11,7 +11,7 @@ Vagrant.configure("2") do |config|
   # https://docs.vagrantup.com.
 
   # config.vagrant.plugins = ["vagrant-reload"]
-  config.vm.box = "daimler/ubuntu-24.04-desktop"
+  config.vm.box = "daimler/ubuntu-24.10-desktop-amd64"
 
 
   # Share an additional folder to the guest VM. The first argument is

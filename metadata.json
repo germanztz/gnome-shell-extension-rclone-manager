@@ -1,12 +1,12 @@
 {
   "shell-version": [
-    "46"
+    "47"
   ],
   "uuid": "rclone-manager@germanztz.com",
   "name": "rclone-manager",
   "description": "Is like Dropbox sync client but for more than 30 services, adds an indicator to the top panel so you can manage the rclone profiles configured in your system, perform operations such as mount as remote, watch for file modifications, sync with remote storage, navigate it's main folder. Also, it shows the status of each profile so you can supervise the operations, and provides an easy access log of events. Backup and restore the rclone configuration file, so you won't have to configure all your devices one by one",
   "url": "https://github.com/germanztz/gnome-shell-extension-rclone-manager",
-  "version": 46.0,
+  "version": 47.0,
   "gettext-domain": "rclone-manager",
   "settings-schema": "org.gnome.shell.extensions.rclone-manager"
 }

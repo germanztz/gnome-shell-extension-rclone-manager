@@ -58,13 +58,6 @@ const RcloneManagerIndicator = GObject.registerClass(
           hbox.add_child(this.icon)
           this.add_child(hbox)
 
-          let item = new PopupMenu.PopupMenuItem(_('Show Notification'));
-          item.connect('activate', () => {
-              Main.notify(_('Whatʼs up, folks?'));
-              log('Whatʼs up, folks?')
-        });
-          this.menu.addMenuItem(item);
-
           this._loadSettings()
           this._checkDependencies()
           this._initConfig()
@@ -99,7 +92,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         if (!rcVersion || !rcVersion.includes('rclone')) {
           log('rcm._checkDependencies ERROR: It seems you don\'t have rclone installed, this extension won\'t work without it')
           const subTitle = _('rclone Version: ') + rcVersion
-          const message = _("It seems you don't have rclone installed, this extension won't work without it")
+          const message = "It seems you don\'t have rclone installed, this extension won\'t work without it"
           this._showNotification(`${this.extension.metadata.name} ${_('Error')} ${_('rclone Version: ')}`, `${message} ${subTitle}`)
           this.icon.icon_name = PROFILE_ERROR_ICON
           return false
