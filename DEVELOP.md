@@ -46,7 +46,7 @@ Launch in vm Ubuntu
 - [x] Update version in extension.js 
 - [x] Update changelog from README.md
 - [x] package
-- [x] Push to branche on github
+- [x] Push to branch on github
 - [x] Pull request to master on github
 - [x] create tag and release on github
 - [x] close issues on github

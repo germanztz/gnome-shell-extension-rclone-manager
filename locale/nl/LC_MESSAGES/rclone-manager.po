@@ -93,7 +93,7 @@ msgstr "De locatie waar externe schijven worden aangekoppeld"
 msgid "Filenames to be ignored"
 msgstr "Te negeren bestandsnamen"
 
-msgid "Comma separed filenames to be ignored by inotify"
+msgid "Comma separated filenames to be ignored by inotify"
 msgstr "Een kommagescheiden lijst met bestandsnamen die dienen te worden genegeerd door inotify"
 
 msgid "Terminal command"
