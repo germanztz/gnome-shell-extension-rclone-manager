@@ -93,7 +93,7 @@ msgstr "Base de montagem para unidades remotas"
 msgid "Filenames to be ignored"
 msgstr "Arquivos a serem ignorados"
 
-msgid "Comma separed filenames to be ignored by inotify"
+msgid "Comma separated filenames to be ignored by inotify"
 msgstr "Os arquivos a serem ignorados devem ser separados por vírgulas"
 
 msgid "Terminal command"
@@ -183,7 +183,7 @@ msgstr "A operação falou"
 msgid "Operation succeed"
 msgstr "A operação foi concluída com exito"
 
-msgid "Check interval in minuts"
+msgid "Check interval in minutes"
 msgstr "Intervalo de checagem en min"
 
 msgid "Checks the files in the source and destination match"

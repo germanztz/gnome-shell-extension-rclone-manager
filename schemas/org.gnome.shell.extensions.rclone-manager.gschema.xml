@@ -27,10 +27,10 @@
     </key>
 
     <key name="prefkey003-ignore-patterns" type="s">
-      <default>'\\.remmina\\.,~lock,\\.tmp,\\.log,\\.Trash-1000'</default>
+      <default>'\\.remmina\\.,~lock,\\.tmp,\\.log,\\.Trash-1000,\\.lock'</default>
       <summary>Filenames to be ignored</summary>
       <description>
-        Comma separed filenames to be ignored by inotify
+        Comma separated filenames to be ignored by inotify
       </description>
     </key>
 
@@ -141,7 +141,7 @@
     <key name="prefkey0051-check-interval" type="i">
       <default>3</default>
       <range min="0" max="999"/>
-      <summary>Check interval in minuts</summary>
+      <summary>Check interval in minutes</summary>
       <description>
         Checks the files in the source and destination match
       </description>

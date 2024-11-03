@@ -58,13 +58,6 @@ const RcloneManagerIndicator = GObject.registerClass(
           hbox.add_child(this.icon)
           this.add_child(hbox)
 
-          let item = new PopupMenu.PopupMenuItem(_('Show Notification'));
-          item.connect('activate', () => {
-              Main.notify(_('Whatʼs up, folks?'));
-              log('Whatʼs up, folks?')
-        });
-          this.menu.addMenuItem(item);
-
           this._loadSettings()
           this._checkDependencies()
           this._initConfig()
@@ -99,7 +92,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         if (!rcVersion || !rcVersion.includes('rclone')) {
           log('rcm._checkDependencies ERROR: It seems you don\'t have rclone installed, this extension won\'t work without it')
           const subTitle = _('rclone Version: ') + rcVersion
-          const message = _("It seems you don't have rclone installed, this extension won't work without it")
+          const message = "It seems you don\'t have rclone installed, this extension won\'t work without it"
           this._showNotification(`${this.extension.metadata.name} ${_('Error')} ${_('rclone Version: ')}`, `${message} ${subTitle}`)
           this.icon.icon_name = PROFILE_ERROR_ICON
           return false
@@ -176,7 +169,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         Object.entries(this._registry).forEach(registryProfile => {
           if (!(registryProfile[0] in this._configs)) {
             delete this._registry[registryProfile[0]]
-            this.fmh.PREF_DBG && log('rcm._cleanRegistry', JSON.stringify(this._registry), 'has beed deleted from registry')
+            this.fmh.PREF_DBG && log('rcm._cleanRegistry', JSON.stringify(this._registry), 'has been deleted from registry')
             this._updateRegistry(this._registry)
           }
         })
@@ -230,10 +223,10 @@ const RcloneManagerIndicator = GObject.registerClass(
         this.menu.addMenuItem(settingsMenuItem)
         settingsMenuItem.connect('activate', () => { this.extension.openPreferences(); })
 
-        // Add 'About' button which shows info abou the extension
+        // Add 'About' button which shows info about the extension
         const aboutMenuItem = new PopupMenu.PopupImageMenuItem(_('About'), 'system-help-symbolic')
         this.menu.addMenuItem(aboutMenuItem)
-        aboutMenuItem.connect('activate', this._lauchAbout.bind(this))
+        aboutMenuItem.connect('activate', this._launchAbout.bind(this))
       }
 
       /**
@@ -482,7 +475,7 @@ const RcloneManagerIndicator = GObject.registerClass(
         this._notifSource.addNotification(notification)
       }
 
-      _lauchAbout() {
+      _launchAbout() {
         const rcVersion = this.fmh.getRcVersion()
         const contents =
           `
