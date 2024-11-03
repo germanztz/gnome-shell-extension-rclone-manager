@@ -78,6 +78,25 @@ Zoho WorkDrive| The local filesystem
 - **Files backup is strongly advised**
 - **Absolutely no warranty**
 
+
+# Issue report
+
+1. Enable the debug mode in the settings
+      
+    ![settings](docs/settings.png)
+
+1. Restart the extension or logout
+1. Generate a file with the output of these commands:
+
+    ```
+    journalctl --no-pager --no-hostname --since "1 days ago" -b -g rclone -o cat /usr/bin/gnome-shell &> rclone_extension.log
+    env &>> rclone_extension.log
+    rclone --version &>> rclone_extension.log
+    ```
+1. Review the file `rclone_extension.log` make sure no personal info is present
+1. Upload the file `rclone_extension.log` to a [gist](https://gist.github.com/) and send the link in an [issue](https://github.com/germanztz/gnome-shell-extension-rclone-manager/issues) post
+
+
 # Known errors
 
  - Failed to create file system for "Mega:": didn't find backend called "mega"
