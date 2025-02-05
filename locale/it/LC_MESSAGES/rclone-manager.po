@@ -1,4 +1,4 @@
-# Spanish translation for gnome-shell-extension-rclone-manager.
+# Italian translation for gnome-shell-extension-rclone-manager.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the gnome-shell-extension-rclone-manager package.
 # Germán Z <germanztz@github.com>, 2022.
