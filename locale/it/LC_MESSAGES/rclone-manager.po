@@ -1,0 +1,229 @@
+# Italian translation for gnome-shell-extension-rclone-manager.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the gnome-shell-extension-rclone-manager package.
+# Germán Z <germanztz@github.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-shell-extension-rclone-manager\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-02-12 12:00+0100\n"
+"PO-Revision-Date: \n"
+"Last-Translator: w0lf\n"
+"Language-Team: \n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.6\n"
+
+msgid " was already mounted"
+msgstr " è già montato"
+
+msgid "Add config"
+msgstr "Aggiungi"
+
+msgid "Settings"
+msgstr "Impostazioni"
+
+msgid "Watch"
+msgstr "Monitora"
+
+msgid "Unwatch"
+msgstr "Unwatch"
+
+msgid "Mount"
+msgstr "Monta"
+
+msgid "Umount"
+msgstr "Smonta"
+
+msgid "Open"
+msgstr "Apri"
+
+msgid "Reconnect"
+msgstr "Riconetti"
+
+msgid "Sync"
+msgstr "Sincronizza"
+
+msgid "Delete"
+msgstr "Elimina"
+
+msgid "Error"
+msgstr "Errore"
+
+msgid "Log"
+msgstr "Log"
+
+msgid "Disengage"
+msgstr "Disabilita"
+
+msgid "Are you sure you want to delete?"
+msgstr "Eliminare?"
+
+msgid "This action cannot be undone"
+msgstr "Questa azione non può essere annullata"
+
+msgid "Confirm"
+msgstr "Conferma"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Log Detail"
+msgstr "Dettagli del log"
+
+msgid "Ok"
+msgstr "OK"
+
+msgid "Details"
+msgstr "Dettagli"
+
+msgid "Rclone configuration file path"
+msgstr "Percorso file di configurazione di Rclone"
+
+msgid "Base mount path"
+msgstr "Percorso del mount point base"
+
+msgid "Path where the remote disks are mounted"
+msgstr "Percorso del mount point delle unità remote"
+
+msgid "Filenames to be ignored"
+msgstr "File da ignorare"
+
+msgid "Comma separated filenames to be ignored by inotify"
+msgstr "Nomi di file da ignorare, separati da virgole"
+
+msgid "Terminal command"
+msgstr "Comando del terminale"
+
+msgid "Command to call a new terminal window in order to perform rclone manager actions"
+msgstr "Comando di apertura della finestra di terminale per le azioni di Rclone"
+
+msgid "File browser command"
+msgstr "Comando di apertura del file manager"
+
+msgid "Command to call a new file browser window in order to explore configuration folders"
+msgstr "Comando di apertura per l'esplorazione di file e cartelle"
+
+msgid "Sync files on start"
+msgstr "Sincronizza all'avvio"
+
+msgid "If is on will execute 'rclone sync' on start watching a profile"
+msgstr "Se questa opzione è attivata, sarà eseguito 'rclone sync' all'avvio del monitoraggio di un'unità"
+
+msgid "Create command"
+msgstr "Comando di creazione"
+
+msgid "Delete dir command"
+msgstr "Comando di eliminazione directory"
+
+msgid "Delete file command"
+msgstr "Comando di eliminazione file"
+
+msgid "Mount command"
+msgstr "Comando di mount"
+
+msgid "Sync command"
+msgstr "Comando di sincronizzazione"
+
+msgid "Profile registry"
+msgstr "Registro profili"
+
+msgid "Stores profile status and configs"
+msgstr "Memorizza lo sstato di profili configurazioni"
+
+msgid "Debug mode"
+msgstr "Modalità debug"
+
+msgid "Print verbose debug messages to the journalctl"
+msgstr "Inserisce messaggi di debug in journalctl"
+
+msgid "Reset settings"
+msgstr "Ripristina impostazioni"
+
+msgid "About"
+msgstr "Informazioni"
+
+msgid "It seems you don't have rclone installed, this extension won't work without it"
+msgstr "Rclone non è installato. Questa estensione richiede Rclone per poter essere utilizzata."
+
+msgid "Mounted successfully"
+msgstr "Filesystem remoto montato correttamente"
+
+msgid "Umounted successfully"
+msgstr "Filesystem remoto smontato correttamente"
+
+msgid "Filemonitor has been started"
+msgstr "Monitoraggio file avviato"
+
+msgid "Filemonitor has been stopped"
+msgstr "Monitoraggio file interrotto"
+
+msgid "Synchronization finished successfully"
+msgstr "Sincronizzazione completata correttamente"
+
+msgid "Backup & restore"
+msgstr "Backup & ripristino"
+
+msgid "Backup"
+msgstr "Backup"
+
+msgid "Restore"
+msgstr "Ripristino"
+
+msgid "Select a profile where backup to or restore from"
+msgstr "Scegliere un profilo da/su cui effettuare il ripristino/backup"
+
+msgid "Operation failed"
+msgstr "Operazione completata con errori"
+
+msgid "Operation succeed"
+msgstr "Operazione completata con successo"
+
+msgid "Check interval in minutes"
+msgstr "Intervallo di controllo in minuti"
+
+msgid "Checks the files in the source and destination match"
+msgstr "Controlla la corrispondenza fra i file di origine e di destinazione"
+
+msgid "List remotes command"
+msgstr "Comando di elenco remoto"
+
+msgid "Lists remote configs configured in rclone"
+msgstr "Elenca i profili delle unità remote configurate in Rclone"
+
+msgid "Check command"
+msgstr "Comando di controllo"
+
+msgid "Config file password"
+msgstr "Password del file di configurazione"
+
+msgid "Rclone configuration file password set by rclone config - Set configuration password"
+msgstr "Password impostata con 'rclone config - Set configuration password'"
+
+msgid "Copyto command"
+msgstr "Comando di copia"
+
+msgid "Copies a file to remote"
+msgstr "Copia i file in un filesystem remoto"
+
+msgid "Add remote command"
+msgstr "Comando di aggiunta file remoto"
+
+msgid "Adds a new remote config to rclone"
+msgstr "Aggiunge la configurazione di un nuovo filesystem remoto a Rclone"
+
+msgid "Delete remote command"
+msgstr "Comando di eliminazione remoto"
+
+msgid "Deletes an existing remote config from rclone"
+msgstr "Elimina una configurazione remota esistente"
+
+msgid "Reconnect command"
+msgstr "Comando di riconnessione"
+
+msgid "Launches the authentication of a remote config"
+msgstr "Avvia l'autenticazione per un'unità remota"
