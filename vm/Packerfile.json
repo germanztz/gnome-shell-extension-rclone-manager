@@ -5,10 +5,10 @@
   "builders": [
     {
       "type": "virtualbox-iso",
-      "iso_url": "https://releases.ubuntu.com/24.04/ubuntu-24.04-desktop-amd64.iso",
-      "iso_checksum": "https://releases.ubuntu.com/24.04/SHA256SUMS",
-      "iso_target_path": "ubuntu-24.04-desktop-amd64.iso",
-      "vm_name": "ubuntu-24.04-desktop",
+      "iso_url": "https://releases.ubuntu.com/25.04/ubuntu-25.04-desktop-amd64.iso",
+      "iso_checksum": "https://releases.ubuntu.com/25.04/SHA256SUMS",
+      "iso_target_path": "ubuntu-25.04-desktop-amd64.iso",
+      "vm_name": "ubuntu-25.04-desktop",
       "guest_os_type": "Ubuntu_64",
       "disk_size": 40000,
       "vboxmanage": [
