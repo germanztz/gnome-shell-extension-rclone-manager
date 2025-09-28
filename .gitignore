@@ -13,3 +13,4 @@ vm/Vagrantfile
 *.iso
 *.box
 *.lock
+.continue
