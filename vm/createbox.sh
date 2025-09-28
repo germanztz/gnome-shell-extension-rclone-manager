@@ -1,14 +1,14 @@
 #!/bin/bash 
 #-eux
 
-vm_name="ubuntu-24.10-desktop-amd64"
+vm_name="ubuntu-25.04-desktop-amd64"
 
 vboxmanage() {
   
   # Name of the new virtual machine
 
   # Location of the ISO file
-  iso_file="$HOME/Descargas/ubuntu-24.10-desktop-amd64.iso"
+  iso_file="$HOME/Descargas/ubuntu-25.04-desktop-amd64.iso"
 
   # Location to store virtual machine files
   vm_folder="$HOME/VirtualBox VMs"
@@ -41,6 +41,7 @@ vboxmanage() {
   VBoxManage startvm $vm_name 
 
 }
+
 packer() {
   yes | vboxmanage unregistervm $vm_name --delete
   rm -Rf output-virtualbox-iso
