@@ -104,6 +104,10 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v50.0
+
+- [x] [Shell 50 version update](https://gjs.guide/extensions/upgrading/gnome-shell-50.html)
+
 ## v49.0
 
 - [x] [Shell 48 version update](https://gjs.guide/extensions/upgrading/gnome-shell-48.html)
