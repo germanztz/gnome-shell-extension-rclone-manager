@@ -1,8 +1,0 @@
-name: Playwright mcpServer
-version: 0.0.1
-schema: v1
-mcpServers:
-  - name: Browser search
-    command: npx
-    args:
-      - "@playwright/mcp@latest"
