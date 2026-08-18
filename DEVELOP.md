@@ -27,6 +27,7 @@ Please, send the resulting report in an issue in github
 
 From your extension local directory
 
+    $ sudo apt install make gettext
     $ clean && make install && make run 2>&1 | grep -i -e rclone
 
 ## Prepare Virtual dev environment
