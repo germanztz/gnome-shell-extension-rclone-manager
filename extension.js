@@ -49,6 +49,8 @@ const RcloneManagerIndicator = GObject.registerClass(
           this._sourceId = null
           this._configs = {}
           this._registry = {}
+          this._destroyed = false
+          this._reloading = false
 
           const hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box rclone-manager-hbox' })
           this.icon = new St.Icon({
@@ -69,6 +71,7 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _initNotifSource() {
+        if (this._destroyed) return
         if (!this._notifSource) {
           this._notifSource = new MessageTray.Source(
             {
@@ -82,7 +85,7 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _loadSettings() {
         this.fmh.PREF_DBG && log('rcm._loadSettings')
-        this._settings.connect('changed', this._onSettingsChange.bind(this))
+        this._settingsChangedId = this._settings.connect('changed', this._onSettingsChange.bind(this))
         this._onSettingsChange()
       }
 
@@ -101,6 +104,7 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _onSettingsChange() {
+        if (this._destroyed) return
         this.fmh.PREF_DBG && log('rcm._onSettingsChange')
         const oldPassword = this.fmh.PREF_RCONFIG_PASSWORD
         this.PREF_AUTOSYNC = this._settings.get_boolean(PrefsFields.PREFKEY_AUTOSYNC)
@@ -140,27 +144,33 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _initConfig() {
+        if (this._destroyed || this._reloading) return
         this.fmh.PREF_DBG && log('rcm._initConfig')
-        const oldConfig = this._configs
+        this._reloading = true
         try {
-          this._configs = this.fmh.listremotes()
-        } catch (error) {
-          logError(error);
-          this._configs = {}
-          this._showNotification(`${this.extension.metadata.name} ${_('Error')} ${_('List remotes command')}`, error.message)
-        }
-        this._cleanRegistry()
-        // restores existing log
-        Object.entries(this._configs).forEach(entry => {
-          if (entry[0] in oldConfig) {
-            if (Object.prototype.hasOwnProperty.call(oldConfig[entry[0]], 'log')) {
-              this._configs[entry[0]].log = oldConfig[entry[0]].log
-            }
+          const oldConfig = this._configs
+          try {
+            this._configs = this.fmh.listremotes()
+          } catch (error) {
+            logError(error);
+            this._configs = {}
+            this._showNotification(`${this.extension.metadata.name} ${_('Error')} ${_('List remotes command')}`, error.message)
           }
-        })
-        this._buildMainMenu(this._configs)
-        Object.entries(this._registry).forEach(registryProfile =>
-          this._initProfile(registryProfile[0], registryProfile[1]))
+          this._cleanRegistry()
+          // restores existing log
+          Object.entries(this._configs).forEach(entry => {
+            if (entry[0] in oldConfig) {
+              if (Object.prototype.hasOwnProperty.call(oldConfig[entry[0]], 'log')) {
+                this._configs[entry[0]].log = oldConfig[entry[0]].log
+              }
+            }
+          })
+          this._buildMainMenu(this._configs)
+          Object.entries(this._registry).forEach(registryProfile =>
+            this._initProfile(registryProfile[0], registryProfile[1]))
+        } finally {
+          this._reloading = false
+        }
       }
 
       _cleanRegistry() {
@@ -203,6 +213,7 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _buildMainMenu(profiles) {
+        if (this._destroyed) return
         this.fmh.PREF_DBG && log('rcm._buildMainMenu')
         this.menu.removeAll()
 
@@ -360,12 +371,13 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _onProfileStatusChanged(profile, status, message) {
         try {
+          if (this._destroyed) return
           this.fmh.PREF_DBG && log('rcm._onProfileStatusChanged', profile, status, message)
           const mItem = this._findProfileMenu(profile)
           const that = this
           switch (status) {
             case ProfileStatus.DELETED:
-              mItem.destroy()
+              mItem && mItem.destroy()
               this._cleanRegistry()
               return
 
@@ -445,6 +457,7 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _showNotification(title, details, transformFn) {
+        if (this._destroyed) return
         let notification = null
         this._initNotifSource()
 
@@ -494,6 +507,18 @@ const RcloneManagerIndicator = GObject.registerClass(
     `
         ConfirmDialog.openConfirmDialog(_('About'), rcVersion, contents, _('Ok'))
       }
+
+      destroy() {
+        this._destroyed = true
+        this._removeCheckInterval()
+        if (this._settingsChangedId) {
+          this._settings.disconnect(this._settingsChangedId)
+          this._settingsChangedId = null
+        }
+        this.fmh.stopConfigMonitor()
+        this.fmh.stopAllFileMonitors()
+        super.destroy()
+      }
 });
 
 export default class RcloneManager extends Extension {
@@ -504,7 +529,6 @@ export default class RcloneManager extends Extension {
 
   disable() {
     log('rcm.disable')
-    this._rcm._removeCheckInterval()
     this._rcm.destroy();
     this._rcm = null;
   }

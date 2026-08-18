@@ -104,6 +104,11 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v49.0
+
+- [x] Shell 49 version update
+- [x] Fix 'Add config' and 'Reconnect' not opening a terminal on distros without `gnome-terminal` (e.g. Ubuntu 25.04); defaults to `ptyxis` and auto-detects the available terminal emulator
+
 ## v47.0
 
 - [x] Shell 47 version update

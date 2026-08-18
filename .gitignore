@@ -13,3 +13,5 @@ vm/Vagrantfile
 *.iso
 *.box
 *.lock
+vm/.guest_key
+.opencode
