@@ -89,9 +89,9 @@ const RcloneManagerIndicator = GObject.registerClass(
         this._onSettingsChange()
       }
 
-      _checkDependencies() {
+      async _checkDependencies() {
         this.fmh.PREF_DBG && log('rcm._checkDependencies')
-        const rcVersion = this.fmh.getRcVersion()
+        const rcVersion = await this.fmh.getRcVersion()
         if (!rcVersion || !rcVersion.includes('rclone')) {
           log('rcm._checkDependencies ERROR: It seems you don\'t have rclone installed, this extension won\'t work without it')
           const subTitle = _('rclone Version: ') + rcVersion
@@ -143,14 +143,14 @@ const RcloneManagerIndicator = GObject.registerClass(
         }
       }
 
-      _initConfig() {
+      async _initConfig() {
         if (this._destroyed || this._reloading) return
         this.fmh.PREF_DBG && log('rcm._initConfig')
         this._reloading = true
         try {
           const oldConfig = this._configs
           try {
-            this._configs = this.fmh.listremotes()
+            this._configs = await this.fmh.listremotes()
           } catch (error) {
             logError(error);
             this._configs = {}
@@ -165,7 +165,7 @@ const RcloneManagerIndicator = GObject.registerClass(
               }
             }
           })
-          this._buildMainMenu(this._configs)
+          await this._buildMainMenu(this._configs)
           Object.entries(this._registry).forEach(registryProfile =>
             this._initProfile(registryProfile[0], registryProfile[1]))
         } finally {
@@ -186,7 +186,7 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       }
 
-      _initProfile(profile, regProf) {
+      async _initProfile(profile, regProf) {
         this.fmh.PREF_DBG && log('rcm._initProfile', profile, JSON.stringify(regProf))
         const that = this
         if (regProf.syncType === ProfileStatus.WATCHED) {
@@ -203,7 +203,7 @@ const RcloneManagerIndicator = GObject.registerClass(
               function (profile, status, message) { that._onProfileStatusChanged(profile, status, message) })
           }
           this._resetCheckInterval()
-        } else if (Object.prototype.hasOwnProperty.call(this.fmh.getMounts(), profile)) {
+        } else if (Object.prototype.hasOwnProperty.call(await this.fmh.getMounts(), profile)) {
           // if is already mounted just leave it
           this._onProfileStatusChanged(profile, ProfileStatus.MOUNTED, profile + ' was already mounted')
         } else if (regProf.syncType === ProfileStatus.MOUNTED) {
@@ -212,15 +212,15 @@ const RcloneManagerIndicator = GObject.registerClass(
         }
       }
 
-      _buildMainMenu(profiles) {
+      async _buildMainMenu(profiles) {
         if (this._destroyed) return
         this.fmh.PREF_DBG && log('rcm._buildMainMenu')
         this.menu.removeAll()
 
-
-        Object.entries(profiles).forEach(entry => {
-          this.menu.addMenuItem(this._buildMenuItem(entry[0], this.fmh.getStatus(entry[0])))
-        })
+        for (const entry of Object.entries(profiles)) {
+          const status = await this.fmh.getStatus(entry[0])
+          this.menu.addMenuItem(this._buildMenuItem(entry[0], status))
+        }
         // Add separator
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem())
 
@@ -399,7 +399,9 @@ const RcloneManagerIndicator = GObject.registerClass(
           }
           if (message) { this._addLog(profile, _(message)) }
           this._setMenuIcon(mItem, status)
-          this._buildSubmenu(mItem, profile, this.fmh.getStatus(profile))
+          this.fmh.getStatus(profile).then(st => {
+            this._buildSubmenu(mItem, profile, st)
+          })
         } catch (e) {
           logError(e)
         }
@@ -488,8 +490,8 @@ const RcloneManagerIndicator = GObject.registerClass(
         this._notifSource.addNotification(notification)
       }
 
-      _launchAbout() {
-        const rcVersion = this.fmh.getRcVersion()
+      async _launchAbout() {
+        const rcVersion = await this.fmh.getRcVersion()
         const contents =
           `
     ${this.extension.metadata.name} v${this.extension.metadata.version}

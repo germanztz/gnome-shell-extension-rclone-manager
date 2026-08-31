@@ -1,5 +1,5 @@
-MODULES = extension.js confirmDialog.js locale/ metadata.json stylesheet.css LICENSE.rst README.md prefs.js schemas/  fileMonitorHelper.js
-INSTALLPATH=~/.local/share/gnome-shell/extensions/rclone-manager@germanztz.com/
+MODULES = extension.js confirmDialog.js locale/ metadata.json stylesheet.css LICENSE.rst README.md prefs.js schemas/ fileMonitorHelper.js
+INSTALLPATH=.local/share/gnome-shell/extensions/rclone-manager@germanztz.com
 VM_NAME = rclone
 
 all: compile-locales compile-settings
@@ -17,22 +17,20 @@ update-po-files:
 		msgmerge $(file) rclone-manager.pot -o $(file);)
 
 install: all
-	rm -rf $(INSTALLPATH)
-	mkdir -p $(INSTALLPATH)
+	rm -rf ${HOME}/$(INSTALLPATH)/
+	mkdir -p ${HOME}/$(INSTALLPATH)/
 	cp -r $(MODULES) $(INSTALLPATH)/
 
 bundle: all
-	zip -r rclone-manager@germanztz.com.zip $(MODULES) -x "*.po"
-
-run: install
-	./debug.sh
-# 2>1 | grep -v 'Meta.Rectangle'
+	zip -r -FS rclone-manager@germanztz.com.zip $(MODULES) -x "*.po" -x "*.compiled"
 
 debug:
-	journalctl --no-pager --no-hostname -g rclone -o cat /usr/bin/gnome-shell
+	/usr/bin/journalctl --no-pager --no-hostname -f --since "1 minute ago" -b -g rclone -o cat /usr/bin/gnome-shell
 
 debug-prefs:
 	journalctl -f -o cat /usr/bin/gnome-shell-extension-prefs
+
+run: install debug
 
 vmrun: bundle
 
@@ -51,9 +49,10 @@ vmrun: bundle
 
 	@VBoxManage guestcontrol "$(VM_NAME)" run --username vagrant --password vagrant -- \
 		/bin/bash -c "rm -Rf $(INSTALLPATH) \
-		&& mkdir -p $(INSTALLPATH) \
+		&& mkdir -p /home/vagrant/$(INSTALLPATH) \
 		&& mkdir -p /home/vagrant/.config/rclone \
-		&& unzip -o /tmp/rclone-manager@germanztz.com.zip -d $(INSTALLPATH) \
+		&& unzip -o /tmp/rclone-manager@germanztz.com.zip -d /home/vagrant/$(INSTALLPATH) \
+		&& glib-compile-schemas --targetdir=/home/vagrant/$(INSTALLPATH)/schemas/ /home/vagrant/$(INSTALLPATH)/schemas/ \
 		&& export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
 		&& gsettings set org.gnome.shell disable-user-extensions false \
 		&& gnome-extensions enable rclone-manager@germanztz.com"

@@ -120,8 +120,8 @@ const RcloneManagerWidget = GObject.registerClass(
             this._settings.list_keys().forEach(prefKey => this._settings.reset(prefKey))
         }
 
-        launchBackupDialog() {
-            const profiles = Object.entries(this.fmh.listremotes()).map(entry => entry[0])
+        async launchBackupDialog() {
+            const profiles = Object.entries(await this.fmh.listremotes()).map(entry => entry[0])
             const dialog = new Gtk.Dialog({
                 // default_height: 200,
                 // default_width: 200,
@@ -159,7 +159,7 @@ const RcloneManagerWidget = GObject.registerClass(
             dialog.show()
         }
 
-        onBackupDialogResponse(dialog, response) {
+        async onBackupDialogResponse(dialog, response) {
             this.fmh.PREF_RCONFIG_FILE_PATH = this._settings.get_string(PrefsFields.PREFKEY_RCONFIG_FILE_PATH)
             this.fmh.PREF_BASE_MOUNT_PATH = this._settings.get_string(PrefsFields.PREFKEY_BASE_MOUNT_PATH)
             this.fmh.PREF_BASE_MOUNT_PATH = this.fmh.PREF_BASE_MOUNT_PATH.replace('~', GLib.get_home_dir())
@@ -169,33 +169,32 @@ const RcloneManagerWidget = GObject.registerClass(
             const profile = dialog.profile
             dialog.destroy()
             var statusResult, out, err, isSuccessful
-            if (response === 0) {
-                // Backup
-                try {
-                    [statusResult, out, err] = this.fmh.spawnSync(this.fmh.RC_COPY
+            try {
+                if (response === 0) {
+                    // Backup
+                    [statusResult, out, err] = await this.fmh.spawn(this.fmh.RC_COPY
                     .replace('%source', this.fmh.PREF_RCONFIG_FILE_PATH)
                     .replace('%destination', this.fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf')
                     .replace('%pcmd', `"echo ${this.fmh.PREF_RCONFIG_PASSWORD}"`)
                     .split(' ')
                     )
-                } catch (e) {
-                    logError(e)
-                }
-        } else if (response === 1) {
-                // Restore
-                try {
-                    [statusResult, out, err] = this.fmh.spawnSync(this.fmh.PREF_RC_COPYTO
+                } else if (response === 1) {
+                    // Restore
+                    [statusResult, out, err] = await this.fmh.spawn(this.fmh.PREF_RC_COPYTO
                         .replace('%profile', profile)
                         .replace('%source', '/.rclone.conf')
                         .replace('%destination', this.fmh.PREF_RCONFIG_FILE_PATH)
                         .replace('%pcmd', `"echo ${this.fmh.PREF_RCONFIG_PASSWORD}"`)
                         .split(' ')
                     )
-                } catch (e) {
-                    logError(e)
+                } else {
+                    return
                 }
-        } else {
-                return
+                statusResult = 0
+            } catch (e) {
+                logError(e)
+                err = e.message
+                statusResult = -1
             }
             this.fmh.PREF_DBG && log(`prefs.onBackupDialogResponse, statusResult, ${statusResult}, err, ${err}`)
             const resultDialog = new Gtk.MessageDialog({

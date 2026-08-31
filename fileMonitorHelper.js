@@ -7,6 +7,10 @@
  */
 import GLib from 'gi://GLib'
 import Gio from 'gi://Gio'
+import GioUnix from 'gi://GioUnix'
+
+Gio._promisify(Gio.Subprocess.prototype, 'communicate_utf8_async');
+Gio._promisify(Gio.Subprocess.prototype, 'wait_check_async');
 
 export const PrefsFields = {
   PREFKEY_RCONFIG_FILE_PATH: 'prefkey001-rconfig-file-path',
@@ -109,14 +113,13 @@ export class FileMonitorHelper {
 
   }
 
-  getRcVersion() {
+  async getRcVersion() {
     try {
-      const [exitStatus, stdout] = this.spawnSync(this.RC_VERSION.split(' '))
+      const [exitStatus, stdout] = await this.spawn(this.RC_VERSION.split(' '))
       this.PREF_DBG && log('fmh.rclone version', stdout, 'exitStatus', exitStatus)
       return exitStatus === 0 ? stdout : undefined
-        
     } catch (e) {
-      return undefined      
+      return undefined
     }
   }
 
@@ -124,14 +127,14 @@ export class FileMonitorHelper {
    * Returns the RCLONE configurations as properties
    * @returns {Object} An Object with the names of the RCLONE configurations as properties
    */
-  listremotes() {
+  async listremotes() {
     let cmd = this.PREF_RC_LIST_REMOTES.split(' ')
     for (let i = 0; i < cmd.length; i++) {
       cmd[i] = cmd[i]
         .replace('%pcmd', `echo ${this.PREF_RCONFIG_PASSWORD}`)
     }
     let ret = {}
-    const [exitStatus, stdout, errout] = this.spawnSync(cmd)
+    const [exitStatus, stdout, errout] = await this.spawn(cmd)
     ret = stdout
       // eslint-disable-next-line prefer-regex-literals
       .replace(new RegExp(':', 'g'), '')
@@ -285,8 +288,8 @@ export class FileMonitorHelper {
    * @param {string} profile name
    * @param {function} onProfileStatusChanged callback function
    */
-  removeFilemonitor(profile, onProfileStatusChanged) {
-    if (this.getStatus(profile) === ProfileStatus.WATCHED) {
+  async removeFilemonitor(profile, onProfileStatusChanged) {
+    if (await this.getStatus(profile) === ProfileStatus.WATCHED) {
       Object.entries(this._monitors[profile].paths).forEach(entry => {
         this.deleteFileMonitor(profile, entry[0])
       })
@@ -394,7 +397,7 @@ export class FileMonitorHelper {
     this.PREF_DBG && log('fmh.mountProfile', profile)
     const directory = Gio.file_new_for_path(this.PREF_BASE_MOUNT_PATH + profile)
     try {
-      if (!this.isDir(directory)) { directory.make_directory_with_parents(null, null) }
+      if (!this.isDir(directory)) { directory.make_directory_with_parents(null) }
     } catch { }
     onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.BUSSY)
     this.spawnAsyncCmd(this.PREF_RC_MOUNT, profile, this.PREF_BASE_MOUNT_PATH + profile, null,
@@ -438,13 +441,17 @@ export class FileMonitorHelper {
    * Returns de RCLONE mounted drivers
    * @returns {Object} the names of the RCLONE mounted drivers as properties
    */
-  getMounts() {
-    const [stat, stdout, stderr] = this.spawnSync(this.RC_GETMOUNTS.split(' '))
-    const mounts = []
-    if (stdout) {
-      stdout.split('\n')
-        .filter(line => line.search('rclone') > 0)
-        .forEach(line => mounts.push(line.split(':')[0]))
+  async getMounts() {
+    let mounts = []
+    try {
+      const [stat, stdout, stderr] = await this.spawn(this.RC_GETMOUNTS.split(' '))
+      if (stdout) {
+        stdout.split('\n')
+          .filter(line => line.search('rclone') > 0)
+          .forEach(line => mounts.push(line.split(':')[0]))
+      }
+    } catch (e) {
+      this.PREF_DBG && log('fmh.getMounts ERROR', e.message)
     }
     const retmounts = mounts.reduce((a, v) => ({ ...a, [v]: {} }), {})
     this.PREF_DBG && log('fmh.getMounts', JSON.stringify(retmounts))
@@ -456,10 +463,10 @@ export class FileMonitorHelper {
    * @param {string} profile name
    * @returns {ProfileStatus} the status of the profile
    */
-  getStatus(profile) {
+  async getStatus(profile) {
     let ret = ProfileStatus.DISCONNECTED
     if (Object.prototype.hasOwnProperty.call(this._monitors, profile)) ret = ProfileStatus.WATCHED
-    else if (Object.prototype.hasOwnProperty.call(this.getMounts(), profile)) ret = ProfileStatus.MOUNTED
+    else if (Object.prototype.hasOwnProperty.call(await this.getMounts(), profile)) ret = ProfileStatus.MOUNTED
     this.PREF_DBG && log('fmh.getStatus', profile, ret)
     return ret
   }
@@ -472,12 +479,12 @@ export class FileMonitorHelper {
     this.launchTermCmd(this.PREF_RC_RECONNECT.replace('%profile', profile))
   }
 
-  disengage(profile, onProfileStatusChanged) {
-    const profileStatus = this.getStatus(profile)
+  async disengage(profile, onProfileStatusChanged) {
+    const profileStatus = await this.getStatus(profile)
     if (profileStatus === ProfileStatus.MOUNTED) {
       this.umount(profile, onProfileStatusChanged)
     } else if (profileStatus === ProfileStatus.WATCHED) {
-      this.removeFilemonitor(profile, onProfileStatusChanged)
+      await this.removeFilemonitor(profile, onProfileStatusChanged)
     } else {
       onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DISCONNECTED)
     }
@@ -488,9 +495,9 @@ export class FileMonitorHelper {
    * @param {string} profile name
    * @param {function} onProfileStatusChanged callback function
    */
-  sync(profile, onProfileStatusChanged) {
+  async sync(profile, onProfileStatusChanged) {
     const that = this
-    if (this.getStatus(profile) === ProfileStatus.MOUNTED) {
+    if (await this.getStatus(profile) === ProfileStatus.MOUNTED) {
       onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Mounted Profiles are already in sync')
       return
     }
@@ -509,7 +516,9 @@ export class FileMonitorHelper {
         }
 
         if (status === 0) {
-          onProfileStatusChanged && onProfileStatusChanged(profile, that.getStatus(profile), 'Synchronization finished successfully')
+          that.getStatus(profile).then(status => {
+            onProfileStatusChanged && onProfileStatusChanged(profile, status, 'Synchronization finished successfully')
+          })
         } else {
           onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, stderrLines.join('\n'))
         }
@@ -560,13 +569,14 @@ export class FileMonitorHelper {
     onProfileStatusChanged && onProfileStatusChanged('', ProfileStatus.CREATED)
   }
 
-  deleteConfig(profile, onProfileStatusChanged) {
-    if (this.getStatus(profile) === ProfileStatus.MOUNTED || this.getStatus(profile) === ProfileStatus.WATCHED) {
+  async deleteConfig(profile, onProfileStatusChanged) {
+    const status = await this.getStatus(profile)
+    if (status === ProfileStatus.MOUNTED || status === ProfileStatus.WATCHED) {
       onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, 'Cannot be deleted because is still mounted or watched')
     } else {
 
       try {
-        const [stat, stdout, stderr] = this.spawnSync(this.PREF_RC_DELETE_CONFIG.replace('%profile', profile).split(' '))
+        const [stat, stdout, stderr] = await this.spawn(this.PREF_RC_DELETE_CONFIG.replace('%profile', profile).split(' '))
         onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DELETED, 'Successfully deleted')
       } catch (err) {
         onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, err.message.join('\n'))
@@ -640,7 +650,7 @@ export class FileMonitorHelper {
 
       // Okay, now let's get output stream for `stdout`
       const stdoutStream = new Gio.DataInputStream({
-        base_stream: new Gio.UnixInputStream({
+        base_stream: new GioUnix.InputStream({
           fd: stdout,
           close_fd: true
         }),
@@ -653,7 +663,7 @@ export class FileMonitorHelper {
 
       // We want the real error from `stderr`, so we'll have to do the same here
       const stderrStream = new Gio.DataInputStream({
-        base_stream: new Gio.UnixInputStream({
+        base_stream: new GioUnix.InputStream({
           fd: stderr,
           close_fd: true
         }),
@@ -684,25 +694,16 @@ export class FileMonitorHelper {
     }
   }
 
-  spawnSync(argv) {
-    this.PREF_DBG && log(`fmh.spawnSync, ${argv.join(' ')}`)
-    let [ok, stdout, stderr, exitStatus] = GLib.spawn_sync(
-      // Working directory, passing %null to use the parent's
-      null,
-      // An array of arguments
+  async spawn(argv) {
+    this.PREF_DBG && log(`fmh.spawn, ${argv.join(' ')}`)
+    const proc = Gio.Subprocess.new(
       argv,
-      // Process ENV, passing %null to use the parent's
-      null,
-      // Flags; we need to use PATH so `ls` can be found and also need to know
-      // when the process has finished to check the output and status.
-      GLib.SpawnFlags.SEARCH_PATH,
-      // Child setup function
-      null)
-
-    if (stderr instanceof Uint8Array) stderr = this._textDecoder.decode(stderr)
-    if (stdout instanceof Uint8Array) stdout = this._textDecoder.decode(stdout)
-    this.PREF_DBG && log(`fmh.spawnSync, status=${exitStatus}, stderr=${stderr}, stdout=${stdout}`)
-    if (exitStatus !== 0) throw new Error(stderr);
+      Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
+    )
+    const [stdout, stderr] = await proc.communicate_utf8_async(null, null)
+    const exitStatus = proc.get_exit_status()
+    this.PREF_DBG && log(`fmh.spawn, status=${exitStatus}, stderr=${stderr}, stdout=${stdout}`)
+    if (exitStatus !== 0) throw new Error(stderr)
     return [exitStatus, stdout, stderr]
   }
 
