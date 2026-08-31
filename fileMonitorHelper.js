@@ -76,6 +76,7 @@ export class FileMonitorHelper {
 
     this._monitors = {}
     this._configMonitor = null
+    this._resolvedTerminal = null
     this._textDecoder = new TextDecoder()
 
   }
@@ -353,6 +354,34 @@ export class FileMonitorHelper {
     const file = Gio.file_new_for_path(this.PREF_RCONFIG_FILE_PATH)
     this._configMonitor = file.monitor(Gio.FileMonitorFlags.WATCH_MOVES, null)
     this._configMonitor.connect('changed', function (file, otherFile, eventType) { callback && callback(eventType) })
+  }
+
+  /**
+   * Stops the RCLONE config file monitor so no 'changed' signals fire anymore
+   */
+  stopConfigMonitor() {
+    if (this._configMonitor) {
+      this.PREF_DBG && log('fmh.stopConfigMonitor')
+      this._configMonitor.cancel()
+      this._configMonitor = null
+    }
+  }
+
+  /**
+   * Cancels all per-profile file monitors, used on teardown
+   */
+  stopAllFileMonitors() {
+    this.PREF_DBG && log('fmh.stopAllFileMonitors')
+    Object.entries(this._monitors).forEach(profileEntry => {
+      Object.entries(profileEntry[1].paths || {}).forEach(pathEntry => {
+        try {
+          pathEntry[1].cancel()
+        } catch (e) {
+          logError(e)
+        }
+      })
+    })
+    this._monitors = {}
   }
 
   /**
@@ -677,11 +706,42 @@ export class FileMonitorHelper {
     return [exitStatus, stdout, stderr]
   }
 
+  /**
+   * Resolves the external terminal command, falling back to an available
+   * terminal emulator when the configured one is not installed.
+   * @returns {string} terminal prefix (including trailing separator)
+   */
+  _resolveExternalTerminal() {
+    if (this._resolvedTerminal) {
+      return this._resolvedTerminal
+    }
+
+    const configuredBinary = this.PREF_EXTERNAL_TERMINAL.trim().split(' ')[0]
+    if (GLib.find_program_in_path(configuredBinary)) {
+      this._resolvedTerminal = this.PREF_EXTERNAL_TERMINAL
+      this.PREF_DBG && log('fmh._resolveExternalTerminal', 'using configured terminal', this._resolvedTerminal)
+      return this._resolvedTerminal
+    }
+
+    const candidates = [
+      'ptyxis -- ',
+      'gnome-terminal --window -- ',
+      'x-terminal-emulator -e '
+    ]
+    const resolved = candidates.find(prefix => {
+      const binary = prefix.trim().split(' ')[0]
+      return GLib.find_program_in_path(binary)
+    })
+    this._resolvedTerminal = resolved || this.PREF_EXTERNAL_TERMINAL
+    this.PREF_DBG && log('fmh._resolveExternalTerminal', 'using detected terminal', this._resolvedTerminal)
+    return this._resolvedTerminal
+  }
+
   launchTermCmd(cmd, autoclose, sudo) {
     try {
       const autoclosecmd = autoclose ? '; echo "Press any key to exit"; read' : ''
       const sudocmd = sudo ? 'sudo' : ''
-      cmd = `${this.PREF_EXTERNAL_TERMINAL} ${sudocmd} bash -c '${cmd} ${autoclosecmd}'`
+      cmd = `${this._resolveExternalTerminal()} ${sudocmd} bash -c '${cmd} ${autoclosecmd}'`
         .replace('%pcmd', `"echo ${this.PREF_RCONFIG_PASSWORD}"`)
 
       this.PREF_DBG && log('fmh.launchTermCmd', cmd)

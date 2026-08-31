@@ -35,7 +35,7 @@
     </key>
 
     <key name="prefkey004-external-terminal" type="s">
-      <default>'gnome-terminal --window -- '</default>
+      <default>'ptyxis -- '</default>
       <summary>Terminal command</summary>
       <description>
         Command to call a new terminal window in order to perform rclone manager actions

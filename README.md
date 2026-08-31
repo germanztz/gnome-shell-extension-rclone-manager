@@ -108,10 +108,18 @@ Zoho WorkDrive| The local filesystem
 
 - [x] [Shell 50 version update](https://gjs.guide/extensions/upgrading/gnome-shell-50.html)
 
+## v49.1
+
+- [x] Add Italian localization **Thanks @AJ-The-Wolf !!**
+- [x] Fix extension crash on disable by adding proper destroy() cleanup
+- [x] Fix terminal emulator detection for distros without gnome-terminal (auto-detects ptyxis, x-terminal-emulator)
+- [x] Fix null check for menu item in profile status changes
+- [x] Add config and file monitor cleanup on extension teardown
+
 ## v49.0
 
-- [x] [Shell 48 version update](https://gjs.guide/extensions/upgrading/gnome-shell-48.html)
-- [x] [Shell 49 version update](https://gjs.guide/extensions/upgrading/gnome-shell-49.html)
+- [x] Shell 49 version update
+- [x] Fix 'Add config' and 'Reconnect' not opening a terminal on distros without `gnome-terminal` (e.g. Ubuntu 25.04); defaults to `ptyxis` and auto-detects the available terminal emulator
 
 ## v47.0
 
