@@ -104,10 +104,6 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
-## v50.0
-
-- [x] [Shell 50 version update](https://gjs.guide/extensions/upgrading/gnome-shell-50.html)
-
 ## v49.1
 
 - [x] Add Italian localization **Thanks @AJ-The-Wolf !!**
