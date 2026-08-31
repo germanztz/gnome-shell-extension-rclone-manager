@@ -28,6 +28,12 @@ run: install
 	./debug.sh
 # 2>1 | grep -v 'Meta.Rectangle'
 
+debug:
+	journalctl --no-pager --no-hostname -g rclone -o cat /usr/bin/gnome-shell
+
+debug-prefs:
+	journalctl -f -o cat /usr/bin/gnome-shell-extension-prefs
+
 vmrun: bundle
 
 	@VBoxManage guestcontrol "$(VM_NAME)" run --username vagrant --password vagrant -- \

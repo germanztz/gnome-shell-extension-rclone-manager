@@ -13,11 +13,15 @@ After cloning the repo, the extension is practically installed yet disabled.
 
 To Debug the installed Extension (extension.js), use this in terminal:
 
-    $ journalctl --no-pager --no-hostname --since "1 days ago" -b -g rclone -o cat /usr/bin/gnome-shell
+    $ make debug
+
+(equivalent to `journalctl --no-pager --no-hostname --since "1 days ago" -b -g rclone -o cat /usr/bin/gnome-shell`)
 
 To Debug the Extension Preferences (prefs), use this in terminal:
 
-    $ journalctl -f -o cat /usr/bin/gnome-shell-extension-prefs
+    $ make debug-prefs
+
+(equivalent to `journalctl -f -o cat /usr/bin/gnome-shell-extension-prefs`)
 
 Please, send the resulting report in an issue in github
 
