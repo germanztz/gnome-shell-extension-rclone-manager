@@ -104,6 +104,12 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v50.1
+
+- [x] Replace sync subprocess calls with async Gio.Subprocess
+- [x] Fix signal cleanup and message tray source leak causing dateMenu crash
+- [x] Fix prefs fillPreferencesWindow, crash race conditions, and empty password-command
+
 ## v50.0
 
 - [x] [Shell 50 version update](https://gjs.guide/extensions/upgrading/gnome-shell-50.html)
