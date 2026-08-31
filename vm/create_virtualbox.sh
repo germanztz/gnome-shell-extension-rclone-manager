@@ -66,7 +66,60 @@ delete_vm() {
 
 }
 
-create_vm() {
+wait_idle() {
+  local state
+  state="$(VBoxManage showvminfo --machinereadable "$vm_name" | sed -n 's/^VMState="\(.*\)"/\1/p')"
+  case "$state" in
+    poweroff|aborted|saved)
+      echo "VM ${vm_name} is not running (${state}), skipping idle wait."
+      return 0
+      ;;
+  esac
+
+  local timeout="${2:-3600}"
+  local threshold="${WAIT_IDLE_THRESHOLD:-5}"
+  local streak_needed=15
+  local streak=0
+  local waited=0
+  local u k load
+
+  VBoxManage metrics setup --period 1 --samples 1 "$vm_name" CPU/Load
+
+  echo "Waiting for VM ${vm_name} CPU < ${threshold}% for ${streak_needed}s ..."
+  while [ "$waited" -lt "$timeout" ]; do
+    u="$(VBoxManage metrics query "$vm_name" CPU/Load/User 2>/dev/null | awk '/CPU\/Load\/User/{print $3}')"
+    k="$(VBoxManage metrics query "$vm_name" CPU/Load/Kernel 2>/dev/null | awk '/CPU\/Load\/Kernel/{print $3}')"
+    if [ -z "$u" ] || [ -z "$k" ]; then
+      sleep 1; waited=$((waited + 1)); continue
+    fi
+    u="${u%,}"; u="${u%\%}"
+    k="${k%,}"; k="${k%\%}"
+    load="$(awk -v a="$u" -v b="$k" 'BEGIN{printf "%.1f", a+b}')"
+    if awk -v l="$load" -v t="$threshold" 'BEGIN{exit !(l<t)}'; then
+      streak=$((streak + 1))
+    else
+      streak=0
+      echo "  CPU=${load}% - busy, resetting streak"
+    fi
+    if [ "$streak" -ge "$streak_needed" ]; then
+      echo "VM ${vm_name} idle (CPU ${load}% < ${threshold}% for ${streak_needed}s)."
+      return 0
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+  echo "ERROR: timeout (${timeout}s) while waiting for VM ${vm_name} to idle." >&2
+  return 1
+}
+
+restart_vm(){
+  echo "Restarting  ${vm_name}." 
+  VBoxManage controlvm "$vm_name" reset
+  sleep 60
+}
+
+install_vm() {
+
   if VBoxManage list vms | grep -q "\"${vm_name}\""; then
     if [ "$DELETE_VM" = "1" ]; then
       delete_vm
@@ -78,55 +131,24 @@ create_vm() {
 
   echo "Creating VM ${vm_name} ..."
   VBoxManage createvm --name "$vm_name" --register --basefolder "$vm_folder"
-  VBoxManage modifyvm "$vm_name" --ostype "Ubuntu_64" --memory 8096 --vram 128 --cpus 4
-  VBoxManage storagectl "$vm_name" --name "SATA Controller" --add sata --controller IntelAhci
   VBoxManage createhd --filename "$vm_folder/$vm_name/$vm_name.vdi" --size 40960 --format VDI
-  VBoxManage storageattach "$vm_name" --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "$vm_folder/$vm_name/$vm_name.vdi"
+  VBoxManage storagectl "$vm_name" --name "SATA Controller" --add sata --controller IntelAhci
   VBoxManage storagectl "$vm_name" --name "IDE Controller" --add ide
+  VBoxManage storageattach "$vm_name" --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "$vm_folder/$vm_name/$vm_name.vdi"
   VBoxManage storageattach "$vm_name" --storagectl "IDE Controller" --port 0 --device 0 --type dvddrive --medium "$iso_file"
+  VBoxManage modifyvm "$vm_name" --ostype "Ubuntu_64" --memory 8096 --vram 128 --cpus 4
   VBoxManage modifyvm "$vm_name" --nic1 nat
   VBoxManage modifyvm "$vm_name" --natpf1 "ssh,tcp,127.0.0.1,2222,,22"
   VBoxManage modifyvm "$vm_name" --clipboard-mode bidirectional
-  # VBoxManage modifyvm "$vm_name" --drag-and-drop bidirectional
+  VBoxManage modifyvm "$vm_name" --graphicscontroller vmsvga
   VBoxManage modifyvm "$vm_name" --audio-enabled off
-  # VBoxManage sharedfolder add "$vm_name" --name host_user --hostpath "$HOME" --automount
+  VBoxManage modifyvm "$vm_name" --vrde on
+  # VBoxManage sharedfolder add "$vm_name" --name http --hostpath "$script_dir/http/" --automount
+  # VBoxManage modifyvm "$vm_name" --drag-and-drop bidirectional
   # VBoxManage modifyvm "$vm_name" --uart1 0x3F8 4
   # VBoxManage modifyvm "$vm_name" --uartmode1 file "$vm_folder/$vm_name/vm-console.log"
 
-}
-
-install_vm() {
-
   echo "Configuring unattended install (locale ${LOCALE}, country ${COUNTRY}) ..."
-
-  post_install_command="$(cat <<'EOF'
-apt remove -y --autoremove gnome-initial-setup || true
-apt-get install -y linux-headers-$(uname -r) build-essential dkms openssh-server
-
-echo 'vagrant ALL=(ALL) NOPASSWD:ALL' >/etc/sudoers.d/99_vagrant;
-chmod 440 /etc/sudoers.d/99_vagrant;
-
-sed -i 's/#UseDNS no/UseDNS no/' /etc/ssh/sshd_config
-
-sed -i 's/^# *AutomaticLoginEnable = true/AutomaticLoginEnable = true/' /etc/gdm3/custom.conf
-sed -i 's/^# *AutomaticLogin = user1/AutomaticLogin = vagrant/' /etc/gdm3/custom.conf
-
-mkdir -p /home/vagrant/.ssh/
-echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key' | tee -a /home/vagrant/.ssh/authorized_keys
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN1YdxBpNlzxDqfJyw/QKow1F+wvG9hXGoqiysfJOn5Y vagrant insecure public key' | tee --append /home/vagrant/.ssh/authorized_keys
-
-chmod 0700 /home/vagrant/.ssh
-chmod 0600 /home/vagrant/.ssh/authorized_keys
-chown 1000:1000 /home/vagrant/.ssh/authorized_keys || true
-
-sed -i 's/^XKBLAYOUT=.*/XKBLAYOUT=\"${KEYBOARD}\"/' /etc/default/keyboard || true
-
-EOF
-)"
-# sed -i 's/^GRUB_CMDLINE_LINUX=\"[^\"]*\"/GRUB_CMDLINE_LINUX=\"console=tty0 console=ttyS0,115200n8\"/' /etc/default/grub
-# grep -q '^GRUB_TERMINAL=' /etc/default/grub || echo 'GRUB_TERMINAL=\"serial console\"' >> /etc/default/grub
-# grep -q '^GRUB_SERIAL_COMMAND=' /etc/default/grub || echo 'GRUB_SERIAL_COMMAND=\"serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1\"' >> /etc/default/grub
-# update-grub
 
   VBoxManage unattended install "$vm_name" \
     --user=vagrant \
@@ -138,37 +160,41 @@ EOF
     --iso="$iso_file" \
     --install-additions \
     --additions-iso="$vbga_iso_file" \
+    --post-install-command="/bin/bash -c 'exit 0'" \
     --package-selection-adjustment=minimal
-    # --post-install-command="$post_install_command" \
-
-  patch_keyboard_layout
 
   echo "Starting SO intalation ..."
   VBoxManage startvm "$vm_name" --type headless
+  # remmina --no-tray-icon --set-option "resolution=1920x1080" -c rdp://vagrant:local\\vagrant@localhost
+  wait_idle
+  restart_vm  
 }
 
-patch_keyboard_layout() {
-  local user_data_file grub_cfg
-
-  user_data_file="$(ls "$vm_folder/$vm_name"/Unattended-*-user-data 2>/dev/null | head -n 1 || true)"
-  if [ -z "$user_data_file" ] || [ ! -f "$user_data_file" ]; then
-    echo "WARNING: generated user-data not found; autoinstall keyboard layout left as 'us'" >&2
-  elif ! grep -q '^    layout: us$' "$user_data_file"; then
-    echo "WARNING: 'layout: us' not found in $user_data_file; autoinstall keyboard layout left unchanged" >&2
+ensure_start_vm(){
+  local state
+  state="$(VBoxManage showvminfo --machinereadable "$vm_name" | sed -n 's/^VMState="\(.*\)"/\1/p')"
+  if echo "$state" | grep -qE 'running|paused'; then
+    echo "VM ${vm_name} is already running (${state}), skipping start."
   else
-    echo "Setting autoinstall keyboard layout to ${KEYBOARD} in $user_data_file ..."
-    sed -i "s/^    layout: us$/    layout: ${KEYBOARD}/" "$user_data_file"
+    echo "Starting VM ${vm_name} ..."
+    VBoxManage startvm "$vm_name" --type headless
+    sleep 30
   fi
+}
 
-  grub_cfg="$(ls "$vm_folder/$vm_name"/Unattended-*-grub.cfg 2>/dev/null | head -n 1 || true)"
-  if [ -z "$grub_cfg" ] || [ ! -f "$grub_cfg" ]; then
-    echo "WARNING: generated grub.cfg not found; kernel keyboard param left as 'us'" >&2
-  else
-    echo "Setting kernel keyboard param to ${KEYBOARD} in $grub_cfg ..."
-    sed -i "s|keyboard-configuration/layoutcode=us|keyboard-configuration/layoutcode=${KEYBOARD}|g" "$grub_cfg"
-    # echo "Adding serial console args to $grub_cfg ..."
-    # sed -i "s|/casper/vmlinuz |/casper/vmlinuz console=tty0 console=ttyS0,115200n8 |g" "$grub_cfg"
-  fi
+post_install(){
+  wait_idle
+  restart_vm  
+
+  # ensure_start_vm
+  VBoxManage guestcontrol "$vm_name" copyto --username vagrant --password vagrant \
+    --target-directory /tmp/ubuntu-preseed.sh "$script_dir/http/ubuntu-preseed.sh"
+  VBoxManage guestcontrol "$vm_name" run --username vagrant --password vagrant \
+  -- /bin/bash -c "echo vagrant | sudo -S /tmp/ubuntu-preseed.sh root_entry"
+  VBoxManage guestcontrol "$vm_name" run --username vagrant --password vagrant \
+  -- /bin/bash /tmp/ubuntu-preseed.sh vagrant_entry
+
+  restart_vm
 }
 
 main() {
@@ -190,12 +216,10 @@ main() {
   COUNTRY="${COUNTRY^^}"
   KEYBOARD="${COUNTRY,,}"
 
-  # clean_host_env
-  # prepare_ssh_key
   download_iso
-  create_vm
   install_vm
-  wait_vm_stoped
+  post_install
+
   echo "Done. Install complete and VM is powered off."
 
 }
