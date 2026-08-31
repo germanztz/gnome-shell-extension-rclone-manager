@@ -106,7 +106,6 @@ Zoho WorkDrive| The local filesystem
 
 ## v49.1
 
-- [x] Add Italian localization **Thanks @AJ-The-Wolf !!**
 - [x] Fix extension crash on disable by adding proper destroy() cleanup
 - [x] Fix terminal emulator detection for distros without gnome-terminal (auto-detects ptyxis, x-terminal-emulator)
 - [x] Fix null check for menu item in profile status changes
