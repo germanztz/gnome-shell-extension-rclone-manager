@@ -51,6 +51,7 @@ const RcloneManagerIndicator = GObject.registerClass(
           this._registry = {}
           this._destroyed = false
           this._reloading = false
+          this._notifSourceDestroyId = null
 
           const hbox = new St.BoxLayout({ style_class: 'panel-status-menu-box rclone-manager-hbox' })
           this.icon = new St.Icon({
@@ -78,7 +79,7 @@ const RcloneManagerIndicator = GObject.registerClass(
               'title': this.extension.metadata.name,
               'icon-name': INDICATOR_ICON
           })
-          this._notifSource.connect('destroy', () => { this._notifSource = null })
+          this._notifSourceDestroyId = this._notifSource.connect('destroy', () => { this._notifSource = null })
           Main.messageTray.add(this._notifSource)
         }
       }
@@ -483,10 +484,6 @@ const RcloneManagerIndicator = GObject.registerClass(
             ConfirmDialog.openConfirmDialog(title, '', details, _('Ok'))
             })
         }
-        notification.connect('activated', () => {
-          ConfirmDialog.openConfirmDialog(title, '', details, _('Ok'))
-        })
-
         this._notifSource.addNotification(notification)
       }
 
@@ -519,6 +516,14 @@ const RcloneManagerIndicator = GObject.registerClass(
         }
         this.fmh.stopConfigMonitor()
         this.fmh.stopAllFileMonitors()
+        if (this._notifSource) {
+          if (this._notifSourceDestroyId) {
+            this._notifSource.disconnect(this._notifSourceDestroyId)
+            this._notifSourceDestroyId = null
+          }
+          this._notifSource.destroy()
+          this._notifSource = null
+        }
         super.destroy()
       }
 });
