@@ -104,6 +104,13 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v49.1
+
+- [x] Fix extension crash on disable by adding proper destroy() cleanup
+- [x] Fix terminal emulator detection for distros without gnome-terminal (auto-detects ptyxis, x-terminal-emulator)
+- [x] Fix null check for menu item in profile status changes
+- [x] Add config and file monitor cleanup on extension teardown
+
 ## v49.0
 
 - [x] Shell 49 version update
