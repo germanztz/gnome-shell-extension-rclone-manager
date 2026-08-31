@@ -104,6 +104,10 @@ Zoho WorkDrive| The local filesystem
 
 # ChangeLog
 
+## v50.0
+
+- [x] [Shell 50 version update](https://gjs.guide/extensions/upgrading/gnome-shell-50.html)
+
 ## v49.1
 
 - [x] Fix extension crash on disable by adding proper destroy() cleanup

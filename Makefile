@@ -1,5 +1,6 @@
 MODULES = extension.js confirmDialog.js locale/ metadata.json stylesheet.css LICENSE.rst README.md prefs.js schemas/  fileMonitorHelper.js
 INSTALLPATH=~/.local/share/gnome-shell/extensions/rclone-manager@germanztz.com/
+VM_NAME = rclone
 
 all: compile-locales compile-settings
 
@@ -27,17 +28,36 @@ run: install
 	./debug.sh
 # 2>1 | grep -v 'Meta.Rectangle'
 
-vmrun: 
-	ps -ef | grep -v grep | grep -e 'virtualbox.*rclone-manager' && vagrant reload || vagrant up 
-# 	vagrant ssh -c '\
-# gsettings set org.gnome.shell disable-user-extensions false && \
-# gnome-extensions install --force ~/rclone-manager@germanztz.com/rclone-manager@germanztz.com.zip && \
-# gnome-extensions enable rclone-manager@germanztz.com && \
-# journalctl -f --no-hostname -b /usr/bin/gnome-shell'
-# vagrant ssh -c 'gnome-extensions install --force ~/rclone-manager@germanztz.com/rclone-manager@germanztz.com.zip'
-	
-	vagrant ssh -c 'gsettings set org.gnome.shell disable-user-extensions false'
-	vagrant ssh -c 'gnome-extensions enable rclone-manager@germanztz.com'
-	vagrant ssh -c 'journalctl -f --no-hostname -b /usr/bin/gnome-shell'
+vmrun: bundle
 
+	@VBoxManage guestcontrol "$(VM_NAME)" run --username vagrant --password vagrant -- \
+		/bin/bash -c "echo vagrant | sudo -S apt install -y gnome-shell-extension-manager rclone" 
 
+	@VBoxManage guestcontrol "$(VM_NAME)" run --username vagrant --password vagrant -- \
+	    /bin/bash -c "echo vagrant | sudo -S sed -i 's/^# *AutomaticLoginEnable = true/AutomaticLoginEnable = true/' /etc/gdm3/custom.conf"
+
+	@VBoxManage guestcontrol "$(VM_NAME)" run --username vagrant --password vagrant -- \
+	    /bin/bash -c "echo vagrant | sudo -S sed -i 's/^# *AutomaticLogin = user1/AutomaticLogin = vagrant/' /etc/gdm3/custom.conf"
+
+	@VBoxManage guestcontrol "$(VM_NAME)" copyto --username vagrant --password vagrant \
+		--target-directory /tmp/rclone-manager@germanztz.com.zip \
+		${PWD}/rclone-manager@germanztz.com.zip
+
+	@VBoxManage guestcontrol "$(VM_NAME)" run --username vagrant --password vagrant -- \
+		/bin/bash -c "rm -Rf $(INSTALLPATH) \
+		&& mkdir -p $(INSTALLPATH) \
+		&& mkdir -p /home/vagrant/.config/rclone \
+		&& unzip -o /tmp/rclone-manager@germanztz.com.zip -d $(INSTALLPATH) \
+		&& export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus \
+		&& gsettings set org.gnome.shell disable-user-extensions false \
+		&& gnome-extensions enable rclone-manager@germanztz.com"
+
+	@VBoxManage guestcontrol "$(VM_NAME)" copyto --username vagrant --password vagrant \
+		--target-directory /home/vagrant/.config/rclone/rclone.conf \
+		${HOME}/.config/rclone/rclone.conf
+
+	@VBoxManage guestcontrol "$(VM_NAME)" run --username vagrant --password vagrant -- \
+		/bin/bash -c "echo vagrant | sudo -S systemctl restart gdm"
+
+	@VBoxManage guestcontrol "$(VM_NAME)" run --username vagrant --password vagrant -- \
+		/usr/bin/journalctl --no-pager --no-hostname -f --since "1 minute ago" -b -g rclone -o cat /usr/bin/gnome-shell
