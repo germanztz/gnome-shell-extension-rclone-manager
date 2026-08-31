@@ -48,6 +48,5 @@ Follow the release checklist in DEVELOP.md:
 1. Bump `version` + `shell-version` in `metadata.json`; add a new section to the README.md changelog
 2. Package: `make bundle` → `rclone-manager@germanztz.com.zip`
 3. Push the branch to GitHub, then open a PR to `master`
-4. Create a tag and a GitHub release, attaching the zip
-5. Close related issues on GitHub
-6. Upload to extensions.gnome.org
+4. Create a tag named "v<version>" 
+5. Create a release named rclone-manager-v<version>, attaching the zip `rclone-manager@germanztz.com.zip`
