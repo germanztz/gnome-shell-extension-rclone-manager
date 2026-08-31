@@ -128,11 +128,7 @@ export class FileMonitorHelper {
    * @returns {Object} An Object with the names of the RCLONE configurations as properties
    */
   async listremotes() {
-    let cmd = this.PREF_RC_LIST_REMOTES.split(' ')
-    for (let i = 0; i < cmd.length; i++) {
-      cmd[i] = cmd[i]
-        .replace('%pcmd', `echo ${this.PREF_RCONFIG_PASSWORD}`)
-    }
+    const cmd = this._buildArgv(this.PREF_RC_LIST_REMOTES, {})
     let ret = {}
     const [exitStatus, stdout, errout] = await this.spawn(cmd)
     ret = stdout
@@ -576,7 +572,8 @@ export class FileMonitorHelper {
     } else {
 
       try {
-        const [stat, stdout, stderr] = await this.spawn(this.PREF_RC_DELETE_CONFIG.replace('%profile', profile).split(' '))
+        const cmd = this._buildArgv(this.PREF_RC_DELETE_CONFIG, { '%profile': profile })
+        const [stat, stdout, stderr] = await this.spawn(cmd)
         onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.DELETED, 'Successfully deleted')
       } catch (err) {
         onProfileStatusChanged && onProfileStatusChanged(profile, ProfileStatus.ERROR, err.message.join('\n'))
@@ -594,16 +591,44 @@ export class FileMonitorHelper {
    * @param {string} flags
    */
   spawnAsyncCmd(cmd, profile, file, destination, callback) {
-    const cmdArray = cmd.split(' ')
-    this.PREF_DBG && log('fmh.spawnAsyncCmd', profile, cmd)
-    for (let i = 0; i < cmdArray.length; i++) {
-      cmdArray[i] = cmdArray[i]
-        .replace('%profile', profile)
-        .replace('%source', file)
-        .replace('%destination', destination)
-        .replace('%pcmd', `echo ${this.PREF_RCONFIG_PASSWORD}`)
-    }
+    const cmdArray = this._buildArgv(cmd,
+      { '%profile': profile, '%source': file, '%destination': destination })
+    this.PREF_DBG && log('fmh.spawnAsyncCmd', profile, cmdArray.join(' '))
     this.spawnAsyncWithPipes(cmdArray, callback)
+  }
+
+  /**
+   * Build the argv array for an rclone command template.
+   * Substitutes the given placeholders and the password-command token.
+   * When no rclone config password is configured (`%pcmd`), the
+   * `--password-command` flag and its argument are removed entirely.
+   * @param {string} cmd command template
+   * @param {Object} placeholders mapping e.g. { '%profile': 'Dropbox:' }
+   * @returns {string[]} argv
+   */
+  _buildArgv(cmd, placeholders) {
+    const cmdArray = cmd.split(' ')
+    for (const token of Object.keys(placeholders)) {
+      for (let i = 0; i < cmdArray.length; i++) {
+        cmdArray[i] = cmdArray[i].replace(token, placeholders[token])
+      }
+    }
+    if (this.PREF_RCONFIG_PASSWORD) {
+      // `echo <password>` must stay a single argv element for rclone, so
+      // substitute the whole token (the template holds %pcmd as one token).
+      for (let i = 0; i < cmdArray.length; i++) {
+        cmdArray[i] = cmdArray[i].replace('%pcmd', `echo ${this.PREF_RCONFIG_PASSWORD}`)
+      }
+    } else {
+      // No config password configured: remove --password-command entirely.
+      for (let i = 0; i < cmdArray.length; i++) {
+        if (cmdArray[i] === '--password-command' || cmdArray[i] === '%pcmd') {
+          cmdArray.splice(i, 1)
+          i--
+        }
+      }
+    }
+    return cmdArray
   }
 
   // A simple asynchronous read loop

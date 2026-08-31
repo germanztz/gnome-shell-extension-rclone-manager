@@ -74,13 +74,18 @@ const RcloneManagerIndicator = GObject.registerClass(
       _initNotifSource() {
         if (this._destroyed) return
         if (!this._notifSource) {
-          this._notifSource = new MessageTray.Source(
-            {
-              'title': this.extension.metadata.name,
-              'icon-name': INDICATOR_ICON
-          })
-          this._notifSourceDestroyId = this._notifSource.connect('destroy', () => { this._notifSource = null })
-          Main.messageTray.add(this._notifSource)
+          try {
+            this._notifSource = new MessageTray.Source(
+              {
+                'title': this.extension.metadata.name,
+                'icon-name': INDICATOR_ICON
+            })
+            this._notifSourceDestroyId = this._notifSource.connect('destroy', () => { this._notifSource = null })
+            Main.messageTray.add(this._notifSource)
+          } catch (e) {
+            logError(e)
+            this._notifSource = null
+          }
         }
       }
 
@@ -256,6 +261,7 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _buildSubmenu(menuItem, profile, status) {
         // clean submenu
+        if (this._destroyed) return
         this.fmh.PREF_DBG && log('rcm._buildSubmenu', profile, status)
         if (!menuItem) return
         menuItem.menu.removeAll()
@@ -372,7 +378,7 @@ const RcloneManagerIndicator = GObject.registerClass(
 
       _onProfileStatusChanged(profile, status, message) {
         try {
-          if (this._destroyed) return
+          if (this._destroyed || !this.icon) return
           this.fmh.PREF_DBG && log('rcm._onProfileStatusChanged', profile, status, message)
           const mItem = this._findProfileMenu(profile)
           const that = this
@@ -409,6 +415,7 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _addLog(profile, message) {
+        if (this._destroyed) return
         this.fmh.PREF_DBG && log('rcm._addLog', profile, message)
         if (Object.prototype.hasOwnProperty.call(this._configs[profile], 'log')) {
           this._configs[profile].log = this._configs[profile].log + '\n' + message
@@ -418,6 +425,7 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _findProfileMenu(profile) {
+        if (this._destroyed) return null
         let retItem = null
         try {
           this.menu._getMenuItems().forEach(function (mItem) {
@@ -460,9 +468,10 @@ const RcloneManagerIndicator = GObject.registerClass(
       }
 
       _showNotification(title, details, transformFn) {
-        if (this._destroyed) return
+        if (this._destroyed || !this._notifSource) return
         let notification = null
         this._initNotifSource()
+        if (!this._notifSource) return
 
         if (this._notifSource.count === 0) {
           notification = new MessageTray.Notification({
@@ -514,6 +523,8 @@ const RcloneManagerIndicator = GObject.registerClass(
           this._settings.disconnect(this._settingsChangedId)
           this._settingsChangedId = null
         }
+        this._settings = null
+        this.icon = null
         this.fmh.stopConfigMonitor()
         this.fmh.stopAllFileMonitors()
         if (this._notifSource) {

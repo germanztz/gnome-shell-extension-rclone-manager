@@ -19,7 +19,7 @@ update-po-files:
 install: all
 	rm -rf ${HOME}/$(INSTALLPATH)/
 	mkdir -p ${HOME}/$(INSTALLPATH)/
-	cp -r $(MODULES) $(INSTALLPATH)/
+	cp -r $(MODULES) ${HOME}/$(INSTALLPATH)/
 
 bundle: all
 	zip -r -FS rclone-manager@germanztz.com.zip $(MODULES) -x "*.po" -x "*.compiled"

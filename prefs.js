@@ -4,13 +4,18 @@
 import GLib from 'gi://GLib'
 import GObject from 'gi://GObject';
 import Gio from 'gi://Gio'
+import Adw from 'gi://Adw'
 import Gtk from 'gi://Gtk'
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 import { FileMonitorHelper, PrefsFields, ProfileStatus } from './fileMonitorHelper.js';
 
 export default class RcloneManagerPreferences extends ExtensionPreferences {
-    getPreferencesWidget() {
-        return new RcloneManagerWidget(this);
+    fillPreferencesWindow(window) {
+        const page = new Adw.PreferencesPage();
+        const group = new Adw.PreferencesGroup();
+        group.add(new RcloneManagerWidget(this));
+        page.add(group);
+        window.add(page);
     }
 }
 
@@ -172,21 +177,17 @@ const RcloneManagerWidget = GObject.registerClass(
             try {
                 if (response === 0) {
                     // Backup
-                    [statusResult, out, err] = await this.fmh.spawn(this.fmh.RC_COPY
-                    .replace('%source', this.fmh.PREF_RCONFIG_FILE_PATH)
-                    .replace('%destination', this.fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf')
-                    .replace('%pcmd', `"echo ${this.fmh.PREF_RCONFIG_PASSWORD}"`)
-                    .split(' ')
-                    )
+                    [statusResult, out, err] = await this.fmh.spawn(this.fmh._buildArgv(this.fmh.RC_COPY, {
+                        '%source': this.fmh.PREF_RCONFIG_FILE_PATH,
+                        '%destination': this.fmh.PREF_BASE_MOUNT_PATH + profile + '/.rclone.conf'
+                    }))
                 } else if (response === 1) {
                     // Restore
-                    [statusResult, out, err] = await this.fmh.spawn(this.fmh.PREF_RC_COPYTO
-                        .replace('%profile', profile)
-                        .replace('%source', '/.rclone.conf')
-                        .replace('%destination', this.fmh.PREF_RCONFIG_FILE_PATH)
-                        .replace('%pcmd', `"echo ${this.fmh.PREF_RCONFIG_PASSWORD}"`)
-                        .split(' ')
-                    )
+                    [statusResult, out, err] = await this.fmh.spawn(this.fmh._buildArgv(this.fmh.PREF_RC_COPYTO, {
+                        '%profile': profile,
+                        '%source': '/.rclone.conf',
+                        '%destination': this.fmh.PREF_RCONFIG_FILE_PATH
+                    }))
                 } else {
                     return
                 }
